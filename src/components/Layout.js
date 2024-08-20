@@ -29,9 +29,10 @@ import {
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
+const collapsedDrawerWidth = 60;
 
 const Layout = ({ children }) => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const navigate = useNavigate();
 
   const menuItems = [
@@ -71,9 +72,14 @@ const Layout = ({ children }) => {
       <Drawer
         variant="permanent"
         sx={{
-          width: drawerWidth,
+          width: open ? drawerWidth : collapsedDrawerWidth,
           flexShrink: 0,
-          [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box', position: 'relative' },
+          [`& .MuiDrawer-paper`]: { 
+            width: open ? drawerWidth : collapsedDrawerWidth, 
+            boxSizing: 'border-box', 
+            overflowX: 'hidden',
+            transition: 'width 0.3s',
+          },
         }}
         open={open}
       >
@@ -81,15 +87,35 @@ const Layout = ({ children }) => {
         <Box sx={{ overflow: 'auto' }}>
           <List>
             {menuItems.map((item) => (
-              <ListItem button key={item.text} component={RouterLink} to={item.path}>
-                <ListItemIcon>{item.icon}</ListItemIcon>
-                <ListItemText primary={item.text} />
+              <ListItem 
+                button 
+                key={item.text} 
+                component={RouterLink} 
+                to={item.path}
+                sx={{ 
+                  justifyContent: open ? 'initial' : 'center',
+                  px: 2.5,
+                }}
+              >
+                <ListItemIcon
+                  sx={{
+                    minWidth: 0,
+                    mr: open ? 3 : 'auto',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText 
+                  primary={item.text} 
+                  sx={{ opacity: open ? 1 : 0 }}
+                />
               </ListItem>
             ))}
           </List>
         </Box>
       </Drawer>
-      <Box component="main" sx={{ flexGrow: 1, p: 3, width: { sm: `calc(100% - ${drawerWidth}px)` } }}>
+      <Box component="main" sx={{ flexGrow: 1, p: 3, width: { sm: `calc(100% - ${open ? drawerWidth : collapsedDrawerWidth}px)` } }}>
         <Toolbar />
         {children}
       </Box>
