@@ -1,69 +1,56 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu } from 'lucide-react';
+import React from 'react';
+import { Link as RouterLink } from 'react-router-dom';
+import { AppBar, Toolbar, Typography, Drawer, List, ListItem, ListItemText, ListItemIcon, Container, CssBaseline } from '@mui/material';
+import { Dashboard, History, Send, Inbox, AccountBalance, Search, Share, Message, AccountCircle } from '@mui/icons-material';
+
+const drawerWidth = 240;
+
+const menuItems = [
+  { text: 'Dashboard', icon: <Dashboard />, path: '/' },
+  { text: 'Transaction History', icon: <History />, path: '/transactions' },
+  { text: 'Send Money', icon: <Send />, path: '/send' },
+  { text: 'Received Payments', icon: <Inbox />, path: '/received' },
+  { text: 'Wallet', icon: <AccountBalance />, path: '/wallet' },
+  { text: 'Search User', icon: <Search />, path: '/search' },
+  { text: 'Share Wallet', icon: <Share />, path: '/share' },
+  { text: 'Messages', icon: <Message />, path: '/messages' },
+  { text: 'Account', icon: <AccountCircle />, path: '/account' },
+  // { text: 'Account Tier', icon: <AccountCircle />, path: '/account-tier' },
+];
 
 const Layout = ({ children }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const navItems = [
-    { name: 'Dashboard', path: '/' },
-    { name: 'Transaction History', path: '/transactions' },
-    { name: 'Send Money', path: '/send' },
-    { name: 'Received Payments', path: '/received' },
-    { name: 'Reload Wallet', path: '/reload' },
-    { name: 'Withdraw', path: '/withdraw' },
-    { name: 'Search User', path: '/search' },
-    { name: 'Share Wallet', path: '/share' },
-    { name: 'Messages', path: '/messages' },
-    { name: 'Account', path: '/account' },
-  ];
-
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="bg-primary text-primary-foreground p-4">
-        <div className="container mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold">MicroPay</h1>
-          <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="icon" className="md:hidden">
-                <Menu />
-              </Button>
-            </SheetTrigger>
-            <SheetContent>
-              <nav className="flex flex-col space-y-4">
-                {navItems.map((item) => (
-                  <Link key={item.path} to={item.path} onClick={() => setIsOpen(false)}>
-                    {item.name}
-                  </Link>
-                ))}
-              </nav>
-            </SheetContent>
-          </Sheet>
-        </div>
-      </header>
-      <nav className="bg-secondary hidden md:block">
-        <div className="container mx-auto">
-          <ul className="flex space-x-4 p-4">
-            {navItems.map((item) => (
-              <li key={item.path}>
-                <Link to={item.path} className="text-secondary-foreground hover:text-primary">
-                  {item.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </nav>
-      <main className="flex-grow container mx-auto p-4">
-        {children}
+    <div style={{ display: 'flex' }}>
+      <CssBaseline />
+      <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+        <Toolbar>
+          <Typography variant="h6" noWrap component="div">
+            MicroPay
+          </Typography>
+        </Toolbar>
+      </AppBar>
+      <Drawer
+        variant="permanent"
+        sx={{
+          width: drawerWidth,
+          flexShrink: 0,
+          [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box' },
+        }}
+      >
+        <Toolbar />
+        <List>
+          {menuItems.map((item) => (
+            <ListItem button key={item.text} component={RouterLink} to={item.path}>
+              <ListItemIcon>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.text} />
+            </ListItem>
+          ))}
+        </List>
+      </Drawer>
+      <main style={{ flexGrow: 1, padding: '24px' }}>
+        <Toolbar />
+        <Container>{children}</Container>
       </main>
-      <footer className="bg-secondary text-secondary-foreground p-4">
-        <div className="container mx-auto text-center">
-          © 2024 MicroPay. All rights reserved.
-        </div>
-      </footer>
     </div>
   );
 };
