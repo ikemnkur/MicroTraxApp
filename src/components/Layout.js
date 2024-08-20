@@ -40,13 +40,13 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen,
     }),
-    marginLeft: `-${drawerWidth}px`,
+    marginLeft: 0,
     ...(open && {
       transition: theme.transitions.create('margin', {
         easing: theme.transitions.easing.easeOut,
         duration: theme.transitions.duration.enteringScreen,
       }),
-      marginLeft: 0,
+      marginLeft: `${drawerWidth}px`,
     }),
   }),
 );
@@ -82,14 +82,14 @@ const Layout = ({ children }) => {
         <Toolbar>
           <IconButton
             color="inherit"
-            aria-label="open drawer"
-            onClick={() => setOpen(true)}
+            aria-label="toggle drawer"
+            onClick={() => setOpen(!open)}
             edge="start"
-            sx={{ mr: 2, ...(open && { display: 'none' }) }}
+            sx={{ mr: 2 }}
           >
-            <MenuIcon />
+            {open ? <ChevronLeftIcon /> : <MenuIcon />}
           </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, textAlign: 'center' }}>
             MicroPay
           </Typography>
           <IconButton color="inherit" onClick={() => navigate('/settings')}>
@@ -110,11 +110,7 @@ const Layout = ({ children }) => {
         anchor="left"
         open={open}
       >
-        <DrawerHeader>
-          <IconButton onClick={() => setOpen(false)}>
-            <ChevronLeftIcon />
-          </IconButton>
-        </DrawerHeader>
+        <DrawerHeader />
         <Divider />
         <List>
           {menuItems.map((item) => (

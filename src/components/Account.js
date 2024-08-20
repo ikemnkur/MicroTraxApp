@@ -86,6 +86,23 @@ const AccountPage = () => {
     { id: 7, name: 'Ultimate', limit: 100000, fee: 75 },
   ];
 
+  const handleDeleteAccount = () => {
+    console.log('Deleting account...');
+    setOpenDeleteDialog(false);
+    setSnackbarMessage('Account deleted successfully.');
+    setOpenSnackbar(true);
+    // In a real app, you'd want to navigate to a logout page or home page after a short delay
+    setTimeout(() => navigate('/'), 3000);
+  };
+
+  const handleLogout = () => {
+    console.log('Logging out...');
+    setSnackbarMessage('Logged out successfully.');
+    setOpenSnackbar(true);
+    // In a real app, you'd want to clear user session/tokens here
+    setTimeout(() => navigate('/login'), 3000);
+  };
+
   return (
     <Box>
       <Typography variant="h4" gutterBottom>Account Settings</Typography>
