@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Typography,
-  Button,
-  Paper,
-  Box,
-  TextField,
-  Avatar,
+import { 
+  Typography, 
+  Button, 
+  Paper, 
+  Box, 
+  TextField, 
+  Avatar, 
   Grid,
   FormControl,
   InputLabel,
@@ -85,47 +85,150 @@ const AccountPage = () => {
     { id: 6, name: 'Diamond', limit: 50000, fee: 50 },
     { id: 7, name: 'Ultimate', limit: 100000, fee: 75 },
   ];
-  const handleDeleteAccount = () => {
-    console.log('Deleting account...');
-    setOpenDeleteDialog(false);
-    setSnackbarMessage('Account deleted successfully.');
-    setOpenSnackbar(true);
-    // In a real app, you'd want to navigate to a logout page or home page after a short delay
-    setTimeout(() => navigate('/'), 3000);
-  };
-
-  const handleLogout = () => {
-    console.log('Logging out...');
-    setSnackbarMessage('Logged out successfully.');
-    setOpenSnackbar(true);
-    // In a real app, you'd want to clear user session/tokens here
-    setTimeout(() => navigate('/login'), 3000);
-  };
 
   return (
     <Box>
       <Typography variant="h4" gutterBottom>Account Settings</Typography>
       <Paper sx={{ p: 2 }}>
-        {/* ... (previous form content remains the same) */}
-        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
-          <Button
+        <form onSubmit={handleSubmit}>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6} md={4} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <Avatar
+                src={userData.profilePicture}
+                sx={{ width: 100, height: 100, mb: 2 }}
+              />
+              <input
+                accept="image/*"
+                style={{ display: 'none' }}
+                id="icon-button-file"
+                type="file"
+                onChange={handleProfilePictureChange}
+              />
+              <label htmlFor="icon-button-file">
+                <IconButton color="primary" aria-label="upload picture" component="span">
+                  <PhotoCamera />
+                </IconButton>
+              </label>
+            </Grid>
+            <Grid item xs={12} sm={6} md={8}>
+              <TextField
+                fullWidth
+                margin="normal"
+                name="username"
+                label="Username"
+                value={userData.username}
+                onChange={handleInputChange}
+              />
+              <TextField
+                fullWidth
+                margin="normal"
+                name="email"
+                label="Email"
+                type="email"
+                value={userData.email}
+                onChange={handleInputChange}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                margin="normal"
+                name="firstName"
+                label="First Name"
+                value={userData.firstName}
+                onChange={handleInputChange}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                margin="normal"
+                name="lastName"
+                label="Last Name"
+                value={userData.lastName}
+                onChange={handleInputChange}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                margin="normal"
+                name="phoneNumber"
+                label="Phone Number"
+                value={userData.phoneNumber}
+                onChange={handleInputChange}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                margin="normal"
+                name="birthDate"
+                label="Birth Date"
+                type="date"
+                value={userData.birthDate}
+                onChange={handleInputChange}
+                InputLabelProps={{
+                  shrink: true,
+                }}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                margin="normal"
+                name="encryptionKey"
+                label="Encryption Key"
+                value={userData.encryptionKey}
+                onChange={handleInputChange}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <FormControl fullWidth margin="normal">
+                <InputLabel>Account Tier</InputLabel>
+                <Select
+                  name="accountTier"
+                  value={userData.accountTier}
+                  onChange={handleInputChange}
+                  label="Account Tier"
+                >
+                  {tiers.map((tier) => (
+                    <MenuItem key={tier.id} value={tier.id}>
+                      {`${tier.name} - Daily Limit: $${tier.limit.toLocaleString()}, Monthly Fee: $${tier.fee}`}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+          </Grid>
+          <Button 
             type="submit"
-            variant="contained"
+            variant="contained" 
+            color="primary" 
+            sx={{ mt: 2 }}
+          >
+            Save Changes
+          </Button>
+        </form>
+        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
+          <Button 
+            type="submit"
+            variant="contained" 
             color="primary"
           >
             Save Changes
           </Button>
           <Box>
-            <Button
-              variant="outlined"
-              color="error"
+            <Button 
+              variant="outlined" 
+              color="error" 
               onClick={() => setOpenDeleteDialog(true)}
               sx={{ mr: 1 }}
             >
               Delete Account
             </Button>
-            <Button
-              variant="outlined"
+            <Button 
+              variant="outlined" 
               onClick={handleLogout}
             >
               Logout
