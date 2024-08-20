@@ -14,7 +14,7 @@ import SearchUser from './components/SearchUser';
 import UserProfile from './components/UserProfile';
 import ShareWallet from './components/ShareWallet';
 import Messages from './components/Messages';
-import AccountTier from './components/Account';
+import Account from './components/Account';
 
 function App() {
   return (
