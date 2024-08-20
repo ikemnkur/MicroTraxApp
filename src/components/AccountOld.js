@@ -47,10 +47,10 @@ const AccountTier = () => {
             ))}
           </RadioGroup>
         </FormControl>
-        <Button 
-          onClick={handleTierChange} 
-          variant="contained" 
-          color="primary" 
+        <Button
+          onClick={handleTierChange}
+          variant="contained"
+          color="primary"
           sx={{ mt: 2 }}
           disabled={selectedTier === currentTier}
         >
@@ -64,6 +64,16 @@ const AccountTier = () => {
         onClose={() => setOpenSnackbar(false)}
         message={`Account tier ${selectedTier > currentTier ? 'upgraded' : 'downgraded'} to ${tiers[selectedTier - 1].name}`}
       />
+
+      <Button
+        onClick={handleTierChange}
+        variant="contained"
+        color="primary"
+        sx={{ mt: 2 }}
+        disabled={selectedTier === currentTier}
+      >
+        {selectedTier > currentTier ? 'Upgrade' : 'Downgrade'} Logout
+      </Button>
     </Box>
   );
 };

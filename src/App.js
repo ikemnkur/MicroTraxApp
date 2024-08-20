@@ -14,7 +14,7 @@ import SearchUser from './components/SearchUser';
 import UserProfile from './components/UserProfile';
 import ShareWallet from './components/ShareWallet';
 import Messages from './components/Messages';
-import AccountTier from './components/AccountTier';
+import AccountTier from './components/Account';
 
 function App() {
   return (
@@ -33,7 +33,8 @@ function App() {
             <Route path="/user/:userId" element={<UserProfile />} />
             <Route path="/share" element={<ShareWallet />} />
             <Route path="/messages" element={<Messages />} />
-            <Route path="/account-tier" element={<AccountTier />} />
+            <Route path="/account" element={<Account />} />
+            {/* <Route path="/account-tier" element={<AccountTier />} /> */}
           </Routes>
         </Layout>
       </Router>

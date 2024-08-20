@@ -14,7 +14,8 @@ const menuItems = [
   { text: 'Search User', icon: <Search />, path: '/search' },
   { text: 'Share Wallet', icon: <Share />, path: '/share' },
   { text: 'Messages', icon: <Message />, path: '/messages' },
-  { text: 'Account Tier', icon: <AccountCircle />, path: '/account-tier' },
+  { text: 'Account', icon: <AccountCircle />, path: '/account' },
+  // { text: 'Account Tier', icon: <AccountCircle />, path: '/account-tier' },
 ];
 
 const Layout = ({ children }) => {

@@ -17,7 +17,7 @@ const Layout = ({ children }) => {
     { name: 'Search User', path: '/search' },
     { name: 'Share Wallet', path: '/share' },
     { name: 'Messages', path: '/messages' },
-    { name: 'Account Tier', path: '/account-tier' },
+    { name: 'Account', path: '/account' },
   ];
 
   return (
