@@ -43,7 +43,7 @@ const ReloadWallet = () => {
             Reload Wallet
           </Button>
         </form>
-      </Paper>
+      </Paper><></>
       <Snackbar
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         open={openSnackbar}
