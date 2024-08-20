@@ -12,7 +12,6 @@ import {
   IconButton,
   Box,
   CssBaseline,
-  Divider,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -28,36 +27,8 @@ import {
   AccountCircle,
   Settings as SettingsIcon,
 } from '@mui/icons-material';
-import { styled } from '@mui/material/styles';
 
 const drawerWidth = 240;
-
-const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
-  ({ theme, open }) => ({
-    flexGrow: 1,
-    padding: theme.spacing(3),
-    transition: theme.transitions.create('margin', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-    marginLeft: 0,
-    ...(open && {
-      transition: theme.transitions.create('margin', {
-        easing: theme.transitions.easing.easeOut,
-        duration: theme.transitions.duration.enteringScreen,
-      }),
-      marginLeft: `${drawerWidth}px`,
-    }),
-  }),
-);
-
-const DrawerHeader = styled('div')(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  padding: theme.spacing(0, 1),
-  ...theme.mixins.toolbar,
-  justifyContent: 'flex-end',
-}));
 
 const Layout = ({ children }) => {
   const [open, setOpen] = useState(false);
@@ -98,33 +69,30 @@ const Layout = ({ children }) => {
         </Toolbar>
       </AppBar>
       <Drawer
+        variant="permanent"
         sx={{
           width: drawerWidth,
           flexShrink: 0,
-          '& .MuiDrawer-paper': {
-            width: drawerWidth,
-            boxSizing: 'border-box',
-          },
+          [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box', position: 'relative' },
         }}
-        variant="persistent"
-        anchor="left"
         open={open}
       >
-        <DrawerHeader />
-        <Divider />
-        <List>
-          {menuItems.map((item) => (
-            <ListItem button key={item.text} component={RouterLink} to={item.path}>
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} />
-            </ListItem>
-          ))}
-        </List>
+        <Toolbar />
+        <Box sx={{ overflow: 'auto' }}>
+          <List>
+            {menuItems.map((item) => (
+              <ListItem button key={item.text} component={RouterLink} to={item.path}>
+                <ListItemIcon>{item.icon}</ListItemIcon>
+                <ListItemText primary={item.text} />
+              </ListItem>
+            ))}
+          </List>
+        </Box>
       </Drawer>
-      <Main open={open}>
-        <DrawerHeader />
+      <Box component="main" sx={{ flexGrow: 1, p: 3, width: { sm: `calc(100% - ${drawerWidth}px)` } }}>
+        <Toolbar />
         {children}
-      </Main>
+      </Box>
     </Box>
   );
 };

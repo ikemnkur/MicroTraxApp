@@ -16,6 +16,7 @@ import ShareWallet from './components/ShareWallet';
 import Messages from './components/Messages';
 import Account from './components/Account';
 import SettingsPage from './components/SettingsPage';
+import Wallet from './components/Wallet';
 
 function App() {
   return (
@@ -35,7 +36,8 @@ function App() {
             <Route path="/share" element={<ShareWallet />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/account" element={<Account />} />
-            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/settings" element={<SettingsPage />} /> 
+            <Route path="/wallet" element={<Wallet />} />
           </Routes>
         </Layout>
       </Router>
