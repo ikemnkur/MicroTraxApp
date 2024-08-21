@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import theme from './theme';
@@ -15,7 +15,8 @@ import UserProfile from './components/UserProfile';
 import ShareWallet from './components/ShareWallet';
 import Messages from './components/Messages';
 import Account from './components/Account';
-import SettingsPage from './components/SettingsPage';
+import Settings from './components/Settings';
+import Auth from './components/Auth';
 import Wallet from './components/Wallet';
 
 function App() {
@@ -36,8 +37,11 @@ function App() {
             <Route path="/share" element={<ShareWallet />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/account" element={<Account />} />
-            <Route path="/settings" element={<SettingsPage />} /> 
+            <Route path="/settings" element={<Settings />} />
             <Route path="/wallet" element={<Wallet />} />
+            <Route path="/login" element={<Auth isLogin={true} />} />
+            <Route path="/register" element={<Auth isLogin={false} />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Layout>
       </Router>

@@ -1,20 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Typography, 
-  Button, 
-  Paper, 
-  Box, 
-  TextField, 
-  Avatar, 
+import {
+  Typography,
+  Button,
+  Paper,
+  Box,
+  TextField,
+  Avatar,
   Grid,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
   Snackbar,
-  IconButton
+  IconButton,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle
 } from '@mui/material';
 import { PhotoCamera } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import { fetchUserProfile } from './api';
 
 const AccountPage = () => {
   const [userData, setUserData] = useState({
@@ -30,22 +37,61 @@ const AccountPage = () => {
   });
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Mock fetching user data
-    const mockUserData = {
-      username: 'johndoe',
-      email: 'johndoe@example.com',
-      firstName: 'John',
-      lastName: 'Doe',
-      phoneNumber: '123-456-7890',
-      birthDate: '1990-01-01',
-      encryptionKey: 'abc123xyz789',
-      accountTier: 2,
-      profilePicture: 'https://mui.com/static/images/avatar/1.jpg'
+    const loadUserProfile = async () => {
+      try {
+        const profile = await fetchUserProfile();
+        setUserData(prevData => ({
+          ...prevData,
+          ...profile,
+          birthDate: profile.birthDate ? profile.birthDate.split('T')[0] : '', // Format date for input
+        }));
+      } catch (error) {
+        setSnackbarMessage('Failed to load user profile');
+        setOpenSnackbar(true);
+      }
     };
-    setUserData(mockUserData);
+    loadUserProfile();
   }, []);
+
+  // // ... in your useEffect or wherever you're fetching the profile
+  // useEffect(() => {
+  //   const loadUserProfile = async () => {
+  //     try {
+  //       const profile = await fetchUserProfile();
+  //       setUserData(profile);
+  //     } catch (error) {
+  //       console.error('Failed to load user profile:', error);
+  //       setSnackbarMessage('Failed to load user profile');
+  //       setOpenSnackbar(true);
+  //       // Handle error (e.g., show error message to user)
+  //     }
+  //   };
+
+  //   loadUserProfile();
+  // }, []);
+
+
+  // useEffect(() => {
+  //   // Mock fetching user data
+
+
+  //   const mockUserData = {
+  //     username: 'johndoe',
+  //     email: 'johndoe@example.com',
+  //     firstName: 'John',
+  //     lastName: 'Doe',
+  //     phoneNumber: '123-456-7890',
+  //     birthDate: '1990-01-01',
+  //     encryptionKey: 'abc123xyz789',
+  //     accountTier: 2,
+  //     profilePicture: 'https://mui.com/static/images/avatar/1.jpg'
+  //   };
+  //   setUserData(mockUserData);
+  // }, []);
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -54,6 +100,7 @@ const AccountPage = () => {
       [name]: value
     }));
   };
+
 
   const handleProfilePictureChange = (event) => {
     const file = event.target.files[0];
@@ -71,6 +118,7 @@ const AccountPage = () => {
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    // Here you would typically send the updated data to your backend
     console.log('Updating user data:', userData);
     setSnackbarMessage('Account updated successfully!');
     setOpenSnackbar(true);
@@ -218,34 +266,34 @@ const AccountPage = () => {
               </FormControl>
             </Grid>
           </Grid>
-          <Button 
+          <Button
             type="submit"
-            variant="contained" 
-            color="primary" 
+            variant="contained"
+            color="primary"
             sx={{ mt: 2 }}
           >
-            Save Changes
+            Update Tier
           </Button>
         </form>
         <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
-          <Button 
+          <Button
             type="submit"
-            variant="contained" 
+            variant="contained"
             color="primary"
           >
             Save Changes
           </Button>
           <Box>
-            <Button 
-              variant="outlined" 
-              color="error" 
+            <Button
+              variant="outlined"
+              color="error"
               onClick={() => setOpenDeleteDialog(true)}
               sx={{ mr: 1 }}
             >
               Delete Account
             </Button>
-            <Button 
-              variant="outlined" 
+            <Button
+              variant="outlined"
               onClick={handleLogout}
             >
               Logout

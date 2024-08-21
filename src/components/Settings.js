@@ -13,7 +13,7 @@ import {
   Snackbar,
 } from '@mui/material';
 
-const SettingsPage = () => {
+const Settings = () => {
   const [settings, setSettings] = useState({
     darkMode: false,
     emailFrequency: 'daily',
@@ -110,4 +110,4 @@ const SettingsPage = () => {
   );
 };
 
-export default SettingsPage;
+export default Settings;

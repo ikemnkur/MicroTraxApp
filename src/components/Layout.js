@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   AppBar,
   Toolbar,
@@ -12,6 +12,7 @@ import {
   IconButton,
   Box,
   CssBaseline,
+  Tooltip,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -34,6 +35,7 @@ const collapsedDrawerWidth = 60;
 const Layout = ({ children }) => {
   const [open, setOpen] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const menuItems = [
     { text: 'Dashboard', icon: <Dashboard />, path: '/' },
@@ -46,6 +48,12 @@ const Layout = ({ children }) => {
     { text: 'Messages', icon: <Message />, path: '/messages' },
     { text: 'Account', icon: <AccountCircle />, path: '/account' },
   ];
+
+  const hideLayout = ['/login', '/register'].includes(location.pathname);
+
+  if (hideLayout) {
+    return children;
+  }
 
   return (
     <Box sx={{ display: 'flex' }}>
@@ -74,9 +82,9 @@ const Layout = ({ children }) => {
         sx={{
           width: open ? drawerWidth : collapsedDrawerWidth,
           flexShrink: 0,
-          [`& .MuiDrawer-paper`]: { 
-            width: open ? drawerWidth : collapsedDrawerWidth, 
-            boxSizing: 'border-box', 
+          [`& .MuiDrawer-paper`]: {
+            width: open ? drawerWidth : collapsedDrawerWidth,
+            boxSizing: 'border-box',
             overflowX: 'hidden',
             transition: 'width 0.3s',
           },
@@ -87,30 +95,31 @@ const Layout = ({ children }) => {
         <Box sx={{ overflow: 'auto' }}>
           <List>
             {menuItems.map((item) => (
-              <ListItem 
-                button 
-                key={item.text} 
-                component={RouterLink} 
-                to={item.path}
-                sx={{ 
-                  justifyContent: open ? 'initial' : 'center',
-                  px: 2.5,
-                }}
-              >
-                <ListItemIcon
+              <Tooltip title={open ? '' : item.text} placement="right" key={item.text}>
+                <ListItem
+                  button
+                  component={RouterLink}
+                  to={item.path}
                   sx={{
-                    minWidth: 0,
-                    mr: open ? 3 : 'auto',
-                    justifyContent: 'center',
+                    justifyContent: open ? 'initial' : 'center',
+                    px: 2.5,
                   }}
                 >
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText 
-                  primary={item.text} 
-                  sx={{ opacity: open ? 1 : 0 }}
-                />
-              </ListItem>
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 0,
+                      mr: open ? 3 : 'auto',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={open ? item.text : ''}
+                    sx={{ opacity: open ? 1 : 0 }}
+                  />
+                </ListItem>
+              </Tooltip>
             ))}
           </List>
         </Box>
