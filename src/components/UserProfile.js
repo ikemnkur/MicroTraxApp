@@ -1,39 +1,69 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { Typography, Button, Avatar, Paper, Box, Snackbar } from '@mui/material';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Typography, Button, Avatar, Paper, Box, Snackbar, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material';
 import { Send as SendIcon, Favorite as FavoriteIcon, Report as ReportIcon, Message as MessageIcon } from '@mui/icons-material';
+import { fetchUserProfile, updateFavoriteStatus, submitUserReport } from './api'; // You'll need to implement these API functions
 
 const UserProfile = () => {
   const { userId } = useParams();
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [openReportDialog, setOpenReportDialog] = useState(false);
+  const [reportMessage, setReportMessage] = useState('');
 
   useEffect(() => {
-    // Mock fetching user data
-    const mockUser = { 
-      id: userId, 
-      username: 'exampleUser', 
-      avatar: 'https://mui.com/static/images/avatar/1.jpg' 
+    const loadUserProfile = async () => {
+      try {
+        const userData = await fetchUserProfile(userId);
+        setUser(userData);
+        setIsFavorite(userData.isFavorite);
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+        setSnackbarMessage('Failed to load user profile');
+        setOpenSnackbar(true);
+      }
     };
-    setUser(mockUser);
+
+    loadUserProfile();
   }, [userId]);
 
   const handleSendMoney = () => {
-    setSnackbarMessage('Redirecting to Send Money page...');
-    setOpenSnackbar(true);
+    navigate(`/send?recipient=${user.username}`);
   };
 
-  const handleToggleFavorite = () => {
-    setIsFavorite(!isFavorite);
-    setSnackbarMessage(isFavorite ? 'User removed from favorites' : 'User added to favorites');
-    setOpenSnackbar(true);
+  const handleToggleFavorite = async () => {
+    try {
+      const newFavoriteStatus = !isFavorite;
+      await updateFavoriteStatus(userId, newFavoriteStatus);
+      setIsFavorite(newFavoriteStatus);
+      setSnackbarMessage(newFavoriteStatus ? 'User added to favorites' : 'User removed from favorites');
+      setOpenSnackbar(true);
+    } catch (error) {
+      console.error('Error updating favorite status:', error);
+      setSnackbarMessage('Failed to update favorite status');
+      setOpenSnackbar(true);
+    }
   };
 
   const handleReport = () => {
-    setSnackbarMessage('Report submitted');
-    setOpenSnackbar(true);
+    setOpenReportDialog(true);
+  };
+
+  const handleSubmitReport = async () => {
+    try {
+      await submitUserReport(userId, reportMessage);
+      setOpenReportDialog(false);
+      setReportMessage('');
+      setSnackbarMessage('Report submitted successfully');
+      setOpenSnackbar(true);
+    } catch (error) {
+      console.error('Error submitting report:', error);
+      setSnackbarMessage('Failed to submit report');
+      setOpenSnackbar(true);
+    }
   };
 
   if (!user) return <Typography>Loading...</Typography>;
@@ -48,9 +78,9 @@ const UserProfile = () => {
         <Button variant="contained" startIcon={<SendIcon />} onClick={handleSendMoney}>
           Send Money
         </Button>
-        <Button 
-          variant={isFavorite ? "contained" : "outlined"} 
-          startIcon={<FavoriteIcon />} 
+        <Button
+          variant={isFavorite ? "contained" : "outlined"}
+          startIcon={<FavoriteIcon />}
           onClick={handleToggleFavorite}
         >
           {isFavorite ? "Remove Favorite" : "Add Favorite"}
@@ -59,7 +89,7 @@ const UserProfile = () => {
           Report
         </Button>
       </Box>
-      <Button variant="text" startIcon={<MessageIcon />} href={`/messages/${userId}`}>
+      <Button variant="text" startIcon={<MessageIcon />} onClick={() => navigate(`/messages/${userId}`)}>
         Send Message
       </Button>
       <Snackbar
@@ -69,6 +99,26 @@ const UserProfile = () => {
         onClose={() => setOpenSnackbar(false)}
         message={snackbarMessage}
       />
+      <Dialog open={openReportDialog} onClose={() => setOpenReportDialog(false)}>
+        <DialogTitle>Report User</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Reason for report"
+            type="text"
+            fullWidth
+            multiline
+            rows={4}
+            value={reportMessage}
+            onChange={(e) => setReportMessage(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenReportDialog(false)}>Cancel</Button>
+          <Button onClick={handleSubmitReport}>Submit Report</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

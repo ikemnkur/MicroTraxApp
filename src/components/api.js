@@ -41,9 +41,19 @@ api.interceptors.response.use(
   }
 );
 
-export const fetchUserProfile = async () => {
+// export const fetchUserProfile = async () => {
+//   try {
+//     const response = await api.get('/user/profile');
+//     return response.data;
+//   } catch (error) {
+//     console.error('Error fetching user profile:', error);
+//     throw error;
+//   }
+// };
+
+export const fetchUserProfile = async (userId) => {
   try {
-    const response = await api.get('/user/profile');
+    const response = await api.get(`/user/${userId}/profile`);
     return response.data;
   } catch (error) {
     console.error('Error fetching user profile:', error);
@@ -68,6 +78,26 @@ export const fetchDashboardData = async () => {
     return response.data;
   } catch (error) {
     console.error('Error fetching dashboard data:', error);
+    throw error;
+  }
+};
+
+export const updateFavoriteStatus = async (userId, isFavorite) => {
+  try {
+    const response = await api.put(`/user/${userId}/favorite`, { isFavorite });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating favorite status:', error);
+    throw error;
+  }
+};
+
+export const submitUserReport = async (userId, reportMessage) => {
+  try {
+    const response = await api.post(`/user/${userId}/report`, { reportMessage });
+    return response.data;
+  } catch (error) {
+    console.error('Error submitting user report:', error);
     throw error;
   }
 };
