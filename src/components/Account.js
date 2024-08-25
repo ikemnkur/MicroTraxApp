@@ -21,9 +21,13 @@ import {
 } from '@mui/material';
 import { PhotoCamera } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { fetchUserProfile } from './api';
+import { fetchUserProfile, updateUserProfile } from './api';
+// // In Dashboard.js, AccountPage.js, and other protected components
+import { useAuthCheck } from './useAuthCheck';
+
 
 const AccountPage = () => {
+  useAuthCheck(); // This will check the token and redirect if necessary
   const [userData, setUserData] = useState({
     username: '',
     email: '',
@@ -38,7 +42,26 @@ const AccountPage = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+
+  // useEffect(() => {
+  //   const loadUserProfile = async () => {
+  //     try {
+  //       const profile = await fetchUserProfile();
+  //       setUserData(prevData => ({
+  //         ...prevData,
+  //         ...profile,
+  //         birthDate: profile.birthDate ? profile.birthDate.split('T')[0] : '', // Format date for input
+  //       }));
+  //     } catch (error) {
+  //       setSnackbarMessage('Failed to load user profile');
+  //       setOpenSnackbar(true);
+  //     }
+  //   };
+  //   loadUserProfile();
+  // }, []);
 
   useEffect(() => {
     const loadUserProfile = async () => {
@@ -47,51 +70,21 @@ const AccountPage = () => {
         setUserData(prevData => ({
           ...prevData,
           ...profile,
-          birthDate: profile.birthDate ? profile.birthDate.split('T')[0] : '', // Format date for input
+          birthDate: profile.birthDate ? profile.birthDate.split('T')[0] : '',
         }));
       } catch (error) {
-        setSnackbarMessage('Failed to load user profile');
+        console.error('Error fetching user profile:', error);
+        setSnackbarMessage(error.response?.data?.message || 'Failed to load user profile');
         setOpenSnackbar(true);
+        if (error.response?.status === 401) {
+          // Unauthorized, token might be expired
+          setTimeout(() => navigate('/login'), 1500);
+        }
       }
     };
     loadUserProfile();
-  }, []);
+  }, [navigate]);
 
-  // // ... in your useEffect or wherever you're fetching the profile
-  // useEffect(() => {
-  //   const loadUserProfile = async () => {
-  //     try {
-  //       const profile = await fetchUserProfile();
-  //       setUserData(profile);
-  //     } catch (error) {
-  //       console.error('Failed to load user profile:', error);
-  //       setSnackbarMessage('Failed to load user profile');
-  //       setOpenSnackbar(true);
-  //       // Handle error (e.g., show error message to user)
-  //     }
-  //   };
-
-  //   loadUserProfile();
-  // }, []);
-
-
-  // useEffect(() => {
-  //   // Mock fetching user data
-
-
-  //   const mockUserData = {
-  //     username: 'johndoe',
-  //     email: 'johndoe@example.com',
-  //     firstName: 'John',
-  //     lastName: 'Doe',
-  //     phoneNumber: '123-456-7890',
-  //     birthDate: '1990-01-01',
-  //     encryptionKey: 'abc123xyz789',
-  //     accountTier: 2,
-  //     profilePicture: 'https://mui.com/static/images/avatar/1.jpg'
-  //   };
-  //   setUserData(mockUserData);
-  // }, []);
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -116,13 +109,9 @@ const AccountPage = () => {
     }
   };
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    // Here you would typically send the updated data to your backend
-    console.log('Updating user data:', userData);
-    setSnackbarMessage('Account updated successfully!');
-    setOpenSnackbar(true);
-  };
+  async function deleteUserAccount() {
+
+  }
 
   const tiers = [
     { id: 1, name: 'Basic', limit: 100, fee: 0 },
@@ -134,28 +123,50 @@ const AccountPage = () => {
     { id: 7, name: 'Ultimate', limit: 100000, fee: 75 },
   ];
 
-  const handleDeleteAccount = () => {
-    console.log('Deleting account...');
+  const handleDeleteAccount = async () => {
+    try {
+      await deleteUserAccount(); // You'll need to implement this function in your API
+      localStorage.removeItem('token');
+      setSnackbarMessage('Account deleted successfully.');
+      setOpenSnackbar(true);
+      setTimeout(() => navigate('/'), 1500);
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      setSnackbarMessage(error.response?.data?.message || 'Failed to delete account. Please try again.');
+      setOpenSnackbar(true);
+    }
     setOpenDeleteDialog(false);
-    setSnackbarMessage('Account deleted successfully.');
-    setOpenSnackbar(true);
-    // In a real app, you'd want to navigate to a logout page or home page after a short delay
-    setTimeout(() => navigate('/'), 3000);
   };
 
   const handleLogout = () => {
-    console.log('Logging out...');
+    localStorage.removeItem('token');
     setSnackbarMessage('Logged out successfully.');
     setOpenSnackbar(true);
     // In a real app, you'd want to clear user session/tokens here
-    setTimeout(() => navigate('/login'), 3000);
+    setTimeout(() => navigate('/login'), 1500);
+  };
+
+  const handleUpdateAccount = async (event) => {
+    event.preventDefault(); // Prevent default form submission
+    setIsUpdating(true);
+    try {
+      await updateUserProfile(userData);
+      setSnackbarMessage('Account updated successfully!');
+      setOpenSnackbar(true);
+    } catch (error) {
+      console.error('Error updating account:', error);
+      setSnackbarMessage(error.response?.data?.message || 'Failed to update account. Please try again.');
+      setOpenSnackbar(true);
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   return (
     <Box>
       <Typography variant="h4" gutterBottom>Account Settings</Typography>
       <Paper sx={{ p: 2 }}>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleUpdateAccount}>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6} md={4} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <Avatar
@@ -181,6 +192,7 @@ const AccountPage = () => {
                 margin="normal"
                 name="username"
                 label="Username"
+                disabled={isUpdating}
                 value={userData.username}
                 onChange={handleInputChange}
               />
@@ -190,6 +202,7 @@ const AccountPage = () => {
                 name="email"
                 label="Email"
                 type="email"
+                disabled={isUpdating}
                 value={userData.email}
                 onChange={handleInputChange}
               />
@@ -200,6 +213,7 @@ const AccountPage = () => {
                 margin="normal"
                 name="firstName"
                 label="First Name"
+                disabled={isUpdating}
                 value={userData.firstName}
                 onChange={handleInputChange}
               />
@@ -210,6 +224,7 @@ const AccountPage = () => {
                 margin="normal"
                 name="lastName"
                 label="Last Name"
+                disabled={isUpdating}
                 value={userData.lastName}
                 onChange={handleInputChange}
               />
@@ -220,6 +235,7 @@ const AccountPage = () => {
                 margin="normal"
                 name="phoneNumber"
                 label="Phone Number"
+                disabled={isUpdating}
                 value={userData.phoneNumber}
                 onChange={handleInputChange}
               />
@@ -231,6 +247,7 @@ const AccountPage = () => {
                 name="birthDate"
                 label="Birth Date"
                 type="date"
+                disabled={isUpdating}
                 value={userData.birthDate}
                 onChange={handleInputChange}
                 InputLabelProps={{
@@ -246,6 +263,7 @@ const AccountPage = () => {
                 label="Encryption Key"
                 value={userData.encryptionKey}
                 onChange={handleInputChange}
+                disabled={isUpdating}
               />
             </Grid>
             <Grid item xs={12}>
@@ -266,40 +284,35 @@ const AccountPage = () => {
               </FormControl>
             </Grid>
           </Grid>
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            sx={{ mt: 2 }}
-          >
-            Update Tier
-          </Button>
-        </form>
-        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-          >
-            Save Changes
-          </Button>
-          <Box>
+
+          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
             <Button
-              variant="outlined"
-              color="error"
-              onClick={() => setOpenDeleteDialog(true)}
-              sx={{ mr: 1 }}
+              type="submit"
+              variant="contained"
+              color="primary"
+              disabled={isUpdating}
             >
-              Delete Account
+              Save Changes
             </Button>
-            <Button
-              variant="outlined"
-              onClick={handleLogout}
-            >
-              Logout
-            </Button>
+            <Box>
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={() => setOpenDeleteDialog(true)}
+                sx={{ mr: 1 }}
+              >
+                Delete Account
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={handleLogout}
+              >
+                Logout
+              </Button>
+            </Box>
           </Box>
-        </Box>
+        </form>
+
       </Paper>
       <Snackbar
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}

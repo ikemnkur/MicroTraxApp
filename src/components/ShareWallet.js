@@ -13,7 +13,7 @@ const ShareWallet = () => {
   }, []);
 
   useEffect(() => {
-    setShareLink(`https://yourapp.com/send?to=${username}`);
+    setShareLink(`https://microtrax.com/send?to=${username}`);
   }, [username]);
 
   const handleCopyLink = () => {

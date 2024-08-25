@@ -41,21 +41,6 @@ const Auth = ({ isLogin }) => {
     }
   };
 
-  // const handleSubmit = (e) => {
-  //   // e.preventDefault();
-  //   // if (isLogin) {
-  //   //   console.log('Logging in with:', { email, password });
-  //   // } else {
-  //   //   if (password !== confirmPassword) {
-  //   //     alert('Passwords do not match!');
-  //   //     return;
-  //   //   }
-  //   //   console.log('Signing up with:', { username, email, password });
-  //   // }
-
-  // };
-
-
   return (
     <Box 
       sx={{
