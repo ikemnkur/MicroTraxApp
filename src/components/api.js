@@ -102,4 +102,26 @@ export const submitUserReport = async (userId, reportMessage) => {
   }
 };
 
+export const fetchWalletData = async () => {
+  try {
+    const response = await api.get('/wallet');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching wallet data:', error);
+    throw error;
+  }
+};
+
+// In api.js
+
+export const searchUsers = async (searchTerm) => {
+  try {
+    const response = await api.get(`/users/search?term=${encodeURIComponent(searchTerm)}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error searching users:', error);
+    throw error;
+  }
+};
+
 export default api;

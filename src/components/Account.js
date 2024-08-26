@@ -72,6 +72,8 @@ const AccountPage = () => {
           ...profile,
           birthDate: profile.birthDate ? profile.birthDate.split('T')[0] : '',
         }));
+        localStorage.setItem("userdata", JSON.stringify(userData))
+        console.log("Account Tier: ", profile.accountTier)
       } catch (error) {
         console.error('Error fetching user profile:', error);
         setSnackbarMessage(error.response?.data?.message || 'Failed to load user profile');
