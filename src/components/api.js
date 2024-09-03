@@ -41,22 +41,26 @@ api.interceptors.response.use(
   }
 );
 
-// export const fetchUserProfile = async () => {
-//   try {
-//     const response = await api.get('/user/profile');
-//     return response.data;
-//   } catch (error) {
-//     console.error('Error fetching user profile:', error);
-//     throw error;
-//   }
-// };
+export const fetchUserProfile = async () => {
+  try {
+    const response = await api.get('/user/profile');
+    return response.data;
+  } catch (error) {
+    console.error('API - Error fetching user profile:', error);
+    setTimeout(() => {
+      navigate("/login");
+      setOpenSnackbar(true);
+    }, 1000)
+    throw error;
+  }
+};
 
-export const fetchUserProfile = async (userId) => {
+export const fetchOtherUserProfile = async (userId) => {
   try {
     const response = await api.get(`/user/${userId}/profile`);
     return response.data;
   } catch (error) {
-    console.error('Error fetching user profile:', error);
+    console.error('API - Error fetching user profile:', error);
     throw error;
   }
 };
@@ -66,7 +70,7 @@ export const updateUserProfile = async (userData) => {
     const response = await api.put('/user/profile', userData);
     return response.data;
   } catch (error) {
-    console.error('Error updating user profile:', error);
+    console.error('API - Error updating user profile:', error);
     throw error;
   }
 };
@@ -77,7 +81,11 @@ export const fetchDashboardData = async () => {
     const response = await api.get('/user/dashboard');
     return response.data;
   } catch (error) {
-    console.error('Error fetching dashboard data:', error);
+    console.error('API - Error fetching dashboard data:', error);
+    setTimeout(() => {
+      navigate("/login");
+      setOpenSnackbar(true);
+    }, 1000)
     throw error;
   }
 };
@@ -87,7 +95,7 @@ export const updateFavoriteStatus = async (userId, isFavorite) => {
     const response = await api.put(`/user/${userId}/favorite`, { isFavorite });
     return response.data;
   } catch (error) {
-    console.error('Error updating favorite status:', error);
+    console.error('API - Error updating favorite status:', error);
     throw error;
   }
 };
@@ -97,7 +105,7 @@ export const submitUserReport = async (userId, reportMessage) => {
     const response = await api.post(`/user/${userId}/report`, { reportMessage });
     return response.data;
   } catch (error) {
-    console.error('Error submitting user report:', error);
+    console.error('API - Error submitting user report:', error);
     throw error;
   }
 };
@@ -107,7 +115,7 @@ export const fetchWalletData = async () => {
     const response = await api.get('/wallet');
     return response.data;
   } catch (error) {
-    console.error('Error fetching wallet data:', error);
+    console.error('API - Error fetching wallet data:', error);
     throw error;
   }
 };
@@ -119,7 +127,7 @@ export const searchUsers = async (searchTerm) => {
     const response = await api.get(`/users/search?term=${encodeURIComponent(searchTerm)}`);
     return response.data;
   } catch (error) {
-    console.error('Error searching users:', error);
+    console.error('API - Error searching users:', error);
     throw error;
   }
 };

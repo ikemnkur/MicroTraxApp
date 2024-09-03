@@ -10,7 +10,7 @@ import SendMoney from './components/SendMoney';
 import ReceivedPayments from './components/ReceivedPayments';
 import ReloadWallet from './components/ReloadWallet';
 import WithdrawWallet from './components/WithdrawWallet';
-import SearchUser from './components/SearchUser';
+import SearchUser from './components/Search4User';
 import UserProfile from './components/UserProfile';
 import ShareWallet from './components/ShareWallet';
 import Messages from './components/Messages';
@@ -36,6 +36,7 @@ function App() {
             <Route path="/user/:userId" element={<UserProfile />} />
             <Route path="/share" element={<ShareWallet />} />
             <Route path="/messages" element={<Messages />} />
+            <Route path="/messages/:username" element={<Messages />} />
             <Route path="/account" element={<Account />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/wallet" element={<Wallet />} />

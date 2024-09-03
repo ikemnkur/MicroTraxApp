@@ -37,79 +37,139 @@ const AccountPage = () => {
     birthDate: '',
     encryptionKey: '',
     accountTier: 1,
-    profilePicture: null
+    profilePicture: ""
   });
   const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [profilePicturePreview, setProfilePicturePreview] = useState(null);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [tier, setTier] = useState(1);
   const navigate = useNavigate();
 
-  // useEffect(() => {
-  //   const loadUserProfile = async () => {
-  //     try {
-  //       const profile = await fetchUserProfile();
-  //       setUserData(prevData => ({
-  //         ...prevData,
-  //         ...profile,
-  //         birthDate: profile.birthDate ? profile.birthDate.split('T')[0] : '', // Format date for input
-  //       }));
-  //     } catch (error) {
-  //       setSnackbarMessage('Failed to load user profile');
-  //       setOpenSnackbar(true);
-  //     }
-  //   };
-  //   loadUserProfile();
-  // }, []);
+  useEffect(() => {
+    localStorage.setItem("userdata", JSON.stringify(userData));
+  }, [userData]);
 
   useEffect(() => {
     const loadUserProfile = async () => {
       try {
         const profile = await fetchUserProfile();
-        setUserData(prevData => ({
-          ...prevData,
+
+        const updatedUserData = {
           ...profile,
           birthDate: profile.birthDate ? profile.birthDate.split('T')[0] : '',
-        }));
-        localStorage.setItem("userdata", JSON.stringify(userData))
-        console.log("Account Tier: ", profile.accountTier)
+          accountTier: profile.accountTier || 1, // Ensure accountTier is set
+          encryptionKey: profile.encryptionKey || '' // Ensure encryptionKey is set
+        };
+
+        setUserData(updatedUserData);
+        localStorage.setItem("userdata", JSON.stringify(updatedUserData));
+
+        console.log("Account Tier: ", updatedUserData.accountTier);
+        setTier(parseInt(updatedUserData.accountTier));
       } catch (error) {
-        console.error('Error fetching user profile:', error);
-        setSnackbarMessage(error.response?.data?.message || 'Failed to load user profile');
+        console.error('DashBrdPG - Error fetching user profile:', error);
+        setSnackbarMessage(error.response?.data?.message || 'Failed to load user profile, refresh page or login again');
         setOpenSnackbar(true);
         if (error.response?.status === 401) {
-          // Unauthorized, token might be expired
           setTimeout(() => navigate('/login'), 1500);
         }
       }
     };
+
     loadUserProfile();
   }, [navigate]);
-
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
     setUserData(prevData => ({
       ...prevData,
-      [name]: value
+      [name]: name === 'accountTier' ? parseInt(value) : value
     }));
   };
 
+  // useEffect(() => {
+  //   const loadUserProfile = async () => {
+  //     try {
+  //       const profile = await fetchUserProfile();
+  //       // Map accountTierId to a number between 1 and 7
+  //       const accountTierMap = {
+  //         1: 1, // Basic
+  //         2: 2, // Standard
+  //         3: 3, // Premium
+  //         4: 4, // Gold
+  //         5: 5, // Platinum
+  //         6: 6, // Diamond
+  //         7: 7  // Ultimate
+  //       };
+
+  //       const updatedUserData = {
+  //         ...profile,
+  //         // accountTier: accountTierMap[userData.accountTier] ?? 1, // Default to 1 if not found
+  //         birthDate: profile.birthDate ? profile.birthDate.split('T')[0] : '',
+  //       };
+
+  //       setUserData(updatedUserData);
+  //       localStorage.setItem("userdata", JSON.stringify(updatedUserData));
+
+  //       console.log("Account Tier: ", profile.accountTier);
+  //       setTier(parseInt(userData.accountTier));
+  //       console.log("Tier#: ", tier)
+
+  //     } catch (error) {
+  //       console.error('DashBrdPG - Error fetching user profile:', error);
+  //       setSnackbarMessage(error.response?.data?.message || 'Failed to load user profile, refresh page or login again');
+  //       setOpenSnackbar(true);
+  //       if (error.response?.status === 401) {
+  //         // Unauthorized, token might be expired
+  //         setTimeout(() => navigate('/login'), 1500);
+  //       }
+  //     }
+  //   };
+
+  //   loadUserProfile();
+  // }, [navigate]);
+
+  // const handleInputChange = (event) => {
+  //   const { name, value } = event.target;
+  //   setUserData(prevData => ({
+  //     ...prevData,
+  //     [name]: value
+  //   }));
+  // };
+
+
+  // const handleProfilePictureChange = (event) => {
+  //   const file = event.target.files[0];
+  //   if (file) {
+  //     const reader = new FileReader();
+  //     reader.onloadend = () => {
+  //       setUserData(prevData => ({
+  //         ...prevData,
+  //         profilePicture: reader.result
+  //       }));
+  //     };
+  //     reader.readAsDataURL(file);
+  //   }
+  // };
 
   const handleProfilePictureChange = (event) => {
     const file = event.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
+        setProfilePicturePreview(reader.result);
         setUserData(prevData => ({
           ...prevData,
-          profilePicture: reader.result
+          profilePicture: file // Store the file object, not the data URL
         }));
       };
       reader.readAsDataURL(file);
     }
   };
+
 
   async function deleteUserAccount() {
 
@@ -133,7 +193,7 @@ const AccountPage = () => {
       setOpenSnackbar(true);
       setTimeout(() => navigate('/'), 1500);
     } catch (error) {
-      console.error('Error deleting account:', error);
+      console.error('AcntPG - Error deleting account:', error);
       setSnackbarMessage(error.response?.data?.message || 'Failed to delete account. Please try again.');
       setOpenSnackbar(true);
     }
@@ -156,7 +216,7 @@ const AccountPage = () => {
       setSnackbarMessage('Account updated successfully!');
       setOpenSnackbar(true);
     } catch (error) {
-      console.error('Error updating account:', error);
+      console.error('AcntPG - Error updating account:', error);
       setSnackbarMessage(error.response?.data?.message || 'Failed to update account. Please try again.');
       setOpenSnackbar(true);
     } finally {
@@ -170,9 +230,28 @@ const AccountPage = () => {
       <Paper sx={{ p: 2 }}>
         <form onSubmit={handleUpdateAccount}>
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={4} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            {/* <Grid item xs={12} sm={6} md={4} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <Avatar
                 src={userData.profilePicture}
+                sx={{ width: 100, height: 100, mb: 2 }}
+              />
+              <input
+                accept="image/*"
+                style={{ display: 'none' }}
+                id="icon-button-file"
+                type="file"
+                // value={""}
+                onChange={handleProfilePictureChange}
+              />
+              <label htmlFor="icon-button-file">
+                <IconButton color="primary" aria-label="upload picture" component="span">
+                  <PhotoCamera />
+                </IconButton>
+              </label>
+            </Grid> */}
+            <Grid item xs={12} sm={6} md={4} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <Avatar
+                src={profilePicturePreview || userData.profilePicture}
                 sx={{ width: 100, height: 100, mb: 2 }}
               />
               <input
@@ -209,6 +288,7 @@ const AccountPage = () => {
                 onChange={handleInputChange}
               />
             </Grid>
+            
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
@@ -220,6 +300,7 @@ const AccountPage = () => {
                 onChange={handleInputChange}
               />
             </Grid>
+
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
@@ -231,6 +312,7 @@ const AccountPage = () => {
                 onChange={handleInputChange}
               />
             </Grid>
+
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
@@ -242,6 +324,7 @@ const AccountPage = () => {
                 onChange={handleInputChange}
               />
             </Grid>
+
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
@@ -257,17 +340,31 @@ const AccountPage = () => {
                 }}
               />
             </Grid>
+            
+            <Grid item xs={24}>
+              <TextField
+                fullWidth
+                margin="normal"
+                name="bio"
+                label="Biograhpy"
+                disabled={isUpdating}
+                value={userData.bio}
+                onChange={handleInputChange}
+              />
+            </Grid>
+
             <Grid item xs={12}>
               <TextField
                 fullWidth
                 margin="normal"
                 name="encryptionKey"
                 label="Encryption Key"
+                disabled={isUpdating}
                 value={userData.encryptionKey}
                 onChange={handleInputChange}
-                disabled={isUpdating}
               />
             </Grid>
+
             <Grid item xs={12}>
               <FormControl fullWidth margin="normal">
                 <InputLabel>Account Tier</InputLabel>

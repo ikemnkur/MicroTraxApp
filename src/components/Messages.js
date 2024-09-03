@@ -1,28 +1,77 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, TextField, Button, List, ListItem, ListItemText, ListItemAvatar, Avatar, Paper, Box, Grid } from '@mui/material';
+import { Typography, TextField, Button, List, ListItem, ListItemText, ListItemAvatar, Avatar, Paper, Box, Grid, CircularProgress } from '@mui/material';
 import { Send as SendIcon } from '@mui/icons-material';
+import axios from 'axios';
+import { useParams } from 'react-router-dom';
 
 const Messages = () => {
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
+  const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(true);
+  const { username } = useParams(); // Get username from URL if available
 
   useEffect(() => {
-    // Fetch conversations - replace with actual API call
-    setConversations([
-      { id: 1, username: 'user1', avatar: '/path/to/avatar1.jpg', messages: [] },
-      { id: 2, username: 'user2', avatar: '/path/to/avatar2.jpg', messages: [] },
-    ]);
-  }, []);
+    fetchConversations();
+    if (username) {
+      startNewConversation(username);
+    }
+  }, [username]);
 
-  const handleSendMessage = (e) => {
-    e.preventDefault();
-    if (message.trim() && selectedConversation) {
-      // Send message logic here
-      console.log('Sending message to', selectedConversation.username, ':', message);
-      setMessage('');
+  const fetchConversations = async () => {
+    try {
+      const response = await axios.get('/api/messages/conversations');
+      setConversations(response.data);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching conversations:', error);
+      setLoading(false);
     }
   };
+
+  const startNewConversation = async (username) => {
+    try {
+      const response = await axios.post('/api/messages/conversations', { username });
+      const newConversation = response.data;
+      setConversations(prev => [newConversation, ...prev]);
+      setSelectedConversation(newConversation);
+      fetchMessages(newConversation.id);
+    } catch (error) {
+      console.error('Error starting new conversation:', error);
+    }
+  };
+
+  const fetchMessages = async (conversationId) => {
+    try {
+      const response = await axios.get(`/api/messages/conversations/${conversationId}/messages`);
+      setMessages(response.data);
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+    }
+  };
+
+  const handleSelectConversation = (conv) => {
+    setSelectedConversation(conv);
+    fetchMessages(conv.id);
+  };
+
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (message.trim() && selectedConversation) {
+      try {
+        await axios.post(`/api/messages/conversations/${selectedConversation.id}/messages`, { content: message });
+        setMessage('');
+        fetchMessages(selectedConversation.id);
+      } catch (error) {
+        console.error('Error sending message:', error);
+      }
+    }
+  };
+
+  if (loading) {
+    return <CircularProgress />;
+  }
 
   return (
     <Box>
@@ -32,17 +81,16 @@ const Messages = () => {
           <Paper>
             <List>
               {conversations.map((conv) => (
-                <ListItem 
-                  button 
-                  key={conv.id} 
-                  // selected={selectedConversation?.id === conv.id}
+                <ListItem
+                  button
+                  key={conv.id}
                   selected={selectedConversation && selectedConversation.id === conv.id}
-                  onClick={() => setSelectedConversation(conv)}
+                  onClick={() => handleSelectConversation(conv)}
                 >
                   <ListItemAvatar>
-                    <Avatar src={conv.avatar} alt={conv.username} />
+                    <Avatar>{conv.other_participants[0]}</Avatar>
                   </ListItemAvatar>
-                  <ListItemText primary={conv.username} />
+                  <ListItemText primary={conv.other_participants} />
                 </ListItem>
               ))}
             </List>
@@ -52,11 +100,11 @@ const Messages = () => {
           <Paper sx={{ p: 2, height: '70vh', display: 'flex', flexDirection: 'column' }}>
             {selectedConversation ? (
               <React.Fragment>
-                <Typography variant="h6" gutterBottom>{selectedConversation.username}</Typography>
+                <Typography variant="h6" gutterBottom>{selectedConversation.other_participants}</Typography>
                 <Box sx={{ flexGrow: 1, overflowY: 'auto', mb: 2 }}>
-                  {selectedConversation.messages.map((msg, index) => (
-                    <Box key={index} sx={{ mb: 1, textAlign: msg.sent ? 'right' : 'left' }}>
-                      <Paper sx={{ display: 'inline-block', p: 1, bgcolor: msg.sent ? 'primary.light' : 'grey.200' }}>
+                  {messages.map((msg) => (
+                    <Box key={msg.id} sx={{ mb: 1, textAlign: msg.sender_username === selectedConversation.other_participants ? 'left' : 'right' }}>
+                      <Paper sx={{ display: 'inline-block', p: 1, bgcolor: msg.sender_username === selectedConversation.other_participants ? 'grey.200' : 'primary.light' }}>
                         <Typography>{msg.content}</Typography>
                       </Paper>
                     </Box>

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Typography, TextField, Button, List, ListItem, ListItemText, ListItemAvatar, Avatar, Paper, Box } from '@mui/material';
+import { Typography, TextField, Button, List, ListItem, CircularProgress, ListItemText, ListItemAvatar, Avatar, Paper, Box } from '@mui/material';
 import { Search as SearchIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { searchUsers } from './api';
 
 const mockUsers = [
     { id: 1, username: 'alice123', avatar: 'https://mui.com/static/images/avatar/1.jpg' },
@@ -9,7 +10,7 @@ const mockUsers = [
     { id: 3, username: 'charlie789', avatar: 'https://mui./static/images/avatar/3.jpg' },
   ];
 
-  const SearchUser = () => {
+  const Search4User = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -24,6 +25,7 @@ const mockUsers = [
       try {
         const results = await searchUsers(searchTerm);
         setSearchResults(results);
+        console.log("search results: ", searchResults)
       } catch (err) {
         console.error('Error searching users:', err);
         setError('An error occurred while searching. Please try again.');
@@ -36,6 +38,7 @@ const mockUsers = [
       return Math.floor(Math.random() * (max - min + 1) + min);
     }
   
+    
     return (
       <Box>
         <Typography variant="h4" gutterBottom>Search Users</Typography>
@@ -69,7 +72,7 @@ const mockUsers = [
             >
               <ListItemAvatar>
                 <Avatar src={user.avatar} alt={user.username} />
-                <Avatar src={`https://mui.com/static/images/avatar/${randomIntFromInterval(1,5)}.jpg`} alt={user.username} />
+                {/* <Avatar src={`https://mui.com/static/images/avatar/${randomIntFromInterval(1,5)}.jpg`} alt={user.username} /> */}
               </ListItemAvatar>
               <ListItemText primary={user.username} />
             </ListItem>
@@ -79,4 +82,4 @@ const mockUsers = [
     );
   };
   
-  export default SearchUser;
+  export default Search4User;

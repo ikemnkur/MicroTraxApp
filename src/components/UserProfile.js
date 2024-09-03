@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Typography, Button, Avatar, Paper, Box, Snackbar, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material';
 import { Send as SendIcon, Favorite as FavoriteIcon, Report as ReportIcon, Message as MessageIcon } from '@mui/icons-material';
-import { fetchUserProfile, updateFavoriteStatus, submitUserReport } from './api'; // You'll need to implement these API functions
+import { fetchOtherUserProfile, updateFavoriteStatus, submitUserReport } from './api'; // You'll need to implement these API functions
 
 const UserProfile = () => {
   const { userId } = useParams();
@@ -17,12 +17,13 @@ const UserProfile = () => {
   useEffect(() => {
     const loadUserProfile = async () => {
       try {
-        const userData = await fetchUserProfile(userId);
+        const userData = await fetchOtherUserProfile(userId);
+        // alert(userId)
         setUser(userData);
         setIsFavorite(userData.isFavorite);
       } catch (error) {
         console.error('Error fetching user profile:', error);
-        setSnackbarMessage('Failed to load user profile');
+        setSnackbarMessage('Failed to load user profile of: ' + user);
         setOpenSnackbar(true);
       }
     };
@@ -70,9 +71,14 @@ const UserProfile = () => {
 
   return (
     <Box>
-      <Paper sx={{ p: 2, display: 'flex', alignItems: 'center', mb: 2 }}>
-        <Avatar src={user.avatar} alt={user.username} sx={{ width: 100, height: 100, mr: 2 }} />
-        <Typography variant="h4">{user.username}</Typography>
+      <Paper sx={{ p: 2, display: "block", alignItems: 'center', mb: 2 }}>
+        <div style={{display: "flex"}}>
+          <Avatar src={user.avatar} alt={user.username} sx={{ width: 100, height: 100, mr: 2 }} />
+          <Typography variant="h4">{user.username}</Typography>
+        </div>
+        <div style={{display: "flex", padding: 5, margin: "10px"}}>
+          <Typography variant="h4">Bio: {user.bio}</Typography>
+        </div>
       </Paper>
       <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
         <Button variant="contained" startIcon={<SendIcon />} onClick={handleSendMoney}>

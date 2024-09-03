@@ -1,33 +1,119 @@
-import React, { useState } from 'react';
-import { Typography, TextField, Button, Paper, Box, Snackbar } from '@mui/material';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { Typography, TextField, Button, Paper, Box, Snackbar, Avatar } from '@mui/material';
+import { fetchUserProfile, fetchOtherUserProfile, searchUsers } from './api'; // Make sure this import is correct
 
 const SendMoney = () => {
+  const { userId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [toUser, setToUser] = useState(null);
   const [recipient, setRecipient] = useState('');
   const [amount, setAmount] = useState('');
+  const [message, setMessage] = useState('');
   const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [thisUser, setThisUser] = useState(JSON.parse(localStorage.getItem("userdata")))
+  const usernameInputRef = useRef(null);
+
+  useEffect(() => {
+    let ud = JSON.parse(localStorage.getItem("userdata"))
+    console.log("this user data: ", ud)
+    setThisUser(ud)
+
+    const searchParams = new URLSearchParams(location.search);
+    const recipientFromUrl = searchParams.get('recipient');
+    const amountFromUrl = searchParams.get('amount');
+
+    if (recipientFromUrl) setRecipient(recipientFromUrl);
+    if (amountFromUrl) setAmount(amountFromUrl);
+
+
+    loadUserProfile();
+  }, [userId, location.search]);
+
+  const loadUserProfile = async () => {
+    if (userId) {
+    try {
+      const userData = await fetchUserProfile(userId);
+      // setToUser(userData);
+    } catch (error) {
+      console.error('Error fetching toUser profile:', error);
+      setSnackbarMessage('Failed to load toUser profile');
+      setOpenSnackbar(true);
+    }
+    console.log("User ID: ", userId);
+    console.log("toUser Data: ", toUser);
+    }
+  };
+
+  const search4user = async (e) => {
+    // if (userId) {
+    // let term = usernameInputRef.current;
+    // e.preventDefault();
+    try {
+      const s4uData = await fetchOtherUserProfile(recipient);
+      // alert(recipient)
+      setTimeout(() =>{
+        console.log("S4U: ", s4uData)
+        setToUser(s4uData);}
+        , 100
+      )
+      
+    } catch (error) {
+      console.error(`Error fetching ${term} profile:`, error);
+      setSnackbarMessage(`Failed to load ${term} profile`);
+      setOpenSnackbar(true);
+    }
+    console.log("User ID: ", userId);
+    console.log("toUser Data: ", toUser);
+    // }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log('Sending', amount, 'to', recipient);
+    setSnackbarMessage("Money sent successfully!");
     setOpenSnackbar(true);
     // Reset form
     setRecipient('');
     setAmount('');
   };
 
+  const goToUserProfile = (e) => {
+    // e.preventDefault();
+    navigate(`/user/${toUser.username}`)
+  }
+
   return (
     <Box>
       <Typography variant="h4" gutterBottom>Send Money</Typography>
+      {toUser && (
+        <Paper sx={{ p: 2, display: 'flex', alignItems: 'center', mb: 2 }}>
+          <Avatar src={toUser.avatar} alt={toUser.username} sx={{ width: 100, height: 100, mr: 2 }} />
+          <Typography variant="h4">{toUser.username}</Typography>
+          <Button style={{float: 'right', marginLeft: "50px"}} onClick={goToUserProfile} variant="contained" color="primary" sx={{ mt: 2 }}>
+              View Profile
+          </Button>
+        </Paper>
+      )}
       <Paper sx={{ p: 2 }}>
         <form onSubmit={handleSubmit}>
-          <TextField
-            label="Recipient Username"
-            fullWidth
-            margin="normal"
-            value={recipient}
-            onChange={(e) => setRecipient(e.target.value)}
-            required
-          />
+          <div style={{display: "flex", gap: 5}}>
+            <TextField
+              label="Recipient Username"
+              fullWidth
+              margin="normal"
+              value={recipient}
+              ref={usernameInputRef}
+              onChange={(e) => { setRecipient(e.target.value) }}
+              required
+            />
+            <Button onClick={ search4user } variant="contained" color="primary" sx={{ mt: 2 }}>
+              Search
+            </Button>
+          </div>
+
           <TextField
             label="Amount"
             fullWidth
@@ -37,6 +123,14 @@ const SendMoney = () => {
             onChange={(e) => setAmount(e.target.value)}
             required
             inputProps={{ min: "0.01", step: "0.01" }}
+          />
+          <TextField
+            label="Leave a Message"
+            fullWidth
+            margin="normal"
+            placeholder={`${recipient} Enjoy: ${amount} !!!, from ${thisUser.username}`}
+            onChange={(e) => setMessage(e.target.value)}
+            required
           />
           <Button type="submit" variant="contained" color="primary" sx={{ mt: 2 }}>
             Send Money
@@ -48,7 +142,7 @@ const SendMoney = () => {
         open={openSnackbar}
         autoHideDuration={3000}
         onClose={() => setOpenSnackbar(false)}
-        message="Money sent successfully!"
+        message={snackbarMessage}
       />
     </Box>
   );
