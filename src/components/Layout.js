@@ -27,6 +27,7 @@ import {
   Message,
   AccountCircle,
   Settings as SettingsIcon,
+  LockOutlined,
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
@@ -45,8 +46,9 @@ const Layout = ({ children }) => {
     { text: 'Wallet', icon: <AccountBalance />, path: '/wallet' },
     { text: 'Search User', icon: <Search />, path: '/search' },
     { text: 'Share Wallet', icon: <Share />, path: '/share' },
-    { text: 'Messages', icon: <Message />, path: '/messages' },
+    // { text: 'Messages', icon: <Message />, path: '/messages' },
     { text: 'Account', icon: <AccountCircle />, path: '/account' },
+    { text: 'Manage Content', icon: <LockOutlined />, path: '/manage-content' },
   ];
 
   const hideLayout = ['/login', '/register'].includes(location.pathname);

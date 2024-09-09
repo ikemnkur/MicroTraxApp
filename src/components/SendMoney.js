@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { Typography, TextField, Button, Paper, Box, Snackbar, Avatar } from '@mui/material';
-import { fetchUserProfile, fetchOtherUserProfile, searchUsers } from './api'; // Make sure this import is correct
+import { fetchUserProfile, fetchOtherUserProfile, sendMoneyToOtherUser } from './api'; // Make sure this import is correct
+
+
 
 const SendMoney = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const [toUser, setToUser] = useState(null);
+  const [UserNotFound, setUserNotFound] = useState(null);
   const [recipient, setRecipient] = useState('');
   const [amount, setAmount] = useState('');
   const [message, setMessage] = useState('');
@@ -48,36 +51,65 @@ const SendMoney = () => {
   };
 
   const search4user = async (e) => {
-    // if (userId) {
-    // let term = usernameInputRef.current;
-    // e.preventDefault();
+    let term = recipient;
     try {
-      const s4uData = await fetchOtherUserProfile(recipient);
-      // alert(recipient)
+      const s4uData = await fetchOtherUserProfile(term);
       setTimeout(() =>{
         console.log("S4U: ", s4uData)
         setToUser(s4uData);}
         , 100
       )
-      
+      setUserNotFound(false)
     } catch (error) {
+      setUserNotFound(true)
       console.error(`Error fetching ${term} profile:`, error);
-      setSnackbarMessage(`Failed to load ${term} profile`);
+      setSnackbarMessage(`Failed to find User: ${term}`);
       setOpenSnackbar(true);
     }
-    console.log("User ID: ", userId);
-    console.log("toUser Data: ", toUser);
-    // }
   };
 
-  const handleSubmit = (e) => {
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   
+  //   let sendmoneyData = {
+  //     sender: thisUser.username,
+  //     recipient:recipient,
+  //     amount: amount,
+  //     message: message
+  //   }
+  //   const sendMoneyReq = await sendMoneyToOtherUser(sendmoneyData);
+  //   setSnackbarMessage("Money sent successfully!");
+  //   setOpenSnackbar(true);
+  //   // Reset form
+  //   setRecipient('');
+  //   setAmount('');
+  //   setMessage('')
+  // };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     console.log('Sending', amount, 'to', recipient);
-    setSnackbarMessage("Money sent successfully!");
-    setOpenSnackbar(true);
-    // Reset form
-    setRecipient('');
-    setAmount('');
+    try {
+      const sendmoneyData = {
+        recipient,
+        amount: parseFloat(amount),
+        message
+      };
+      await sendMoneyToOtherUser(sendmoneyData);
+      setSnackbarMessage("Money sent successfully!");
+      setOpenSnackbar(true);
+      // Reset form
+      setRecipient('');
+      setAmount('');
+      setMessage('');
+    } catch (error) {
+      setSnackbarMessage(error.message || "Failed to send money. Please try again later.");
+      setOpenSnackbar(true);
+      if (error.response?.status === 401) {
+        // Unauthorized, token might be expired
+        setTimeout(() => navigate('/login'), 1500);
+      }
+    }
   };
 
   const goToUserProfile = (e) => {
@@ -88,6 +120,13 @@ const SendMoney = () => {
   return (
     <Box>
       <Typography variant="h4" gutterBottom>Send Money</Typography>
+      {UserNotFound && (
+        <Paper sx={{ p: 2, display: 'flex', color: "lightgrey", alignItems: 'center', mb: 2 }}>
+          
+          <Typography variant="h4">{`Username: "${recipient}" was not found in the database.`}</Typography>
+         
+        </Paper>
+      )}
       {toUser && (
         <Paper sx={{ p: 2, display: 'flex', alignItems: 'center', mb: 2 }}>
           <Avatar src={toUser.avatar} alt={toUser.username} sx={{ width: 100, height: 100, mr: 2 }} />

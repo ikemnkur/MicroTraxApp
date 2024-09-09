@@ -1,7 +1,9 @@
 import axios from 'axios';
+// import { useNavigate } from 'react-router-dom';
 
 const API_URL = 'http://localhost:5000/api'; // Adjust this if your API URL is different
 
+// const navigate = useNavigate();
 
 const api = axios.create({
   baseURL: API_URL,
@@ -47,10 +49,21 @@ export const fetchUserProfile = async () => {
     return response.data;
   } catch (error) {
     console.error('API - Error fetching user profile:', error);
-    setTimeout(() => {
-      navigate("/login");
-      setOpenSnackbar(true);
-    }, 1000)
+    // setTimeout(() => {
+    //   navigate("/login");
+    //   setOpenSnackbar(true);
+    // }, 1000)
+    throw error;
+  }
+};
+
+
+export const fetchTransactionHistory = async (userId) => {
+  try {
+    const response = await api.get(`/history`);
+    return response.data;
+  } catch (error) {
+    console.error('API - Error fetching user profile:', error);
     throw error;
   }
 };
@@ -75,6 +88,15 @@ export const updateUserProfile = async (userData) => {
   }
 };
 
+export const sendMoneyToOtherUser = async (sendmoneyData) => {
+  try {
+    const response = await axios.post('/transactions/send', sendmoneyData);
+    return response.data;
+  } catch (error) {
+    throw error.response.data;
+  }
+};
+
 // In api.js
 export const fetchDashboardData = async () => {
   try {
@@ -82,10 +104,10 @@ export const fetchDashboardData = async () => {
     return response.data;
   } catch (error) {
     console.error('API - Error fetching dashboard data:', error);
-    setTimeout(() => {
-      navigate("/login");
-      setOpenSnackbar(true);
-    }, 1000)
+    // setTimeout(() => {
+    //   navigate("/login");
+    //   setOpenSnackbar(true);
+    // }, 1000)
     throw error;
   }
 };
@@ -128,6 +150,72 @@ export const searchUsers = async (searchTerm) => {
     return response.data;
   } catch (error) {
     console.error('API - Error searching users:', error);
+    throw error;
+  }
+};
+
+// ... (previous code remains the same)
+
+export const fetchUserContent = async () => {
+  try {
+    const response = await api.get('/unlock/user-content');
+    return response.data;
+  } catch (error) {
+    console.error('API - Error fetching user content:', error);
+    throw error;
+  }
+};
+
+export const handleDeleteContent = async (contentId) => {
+  try {
+    const response = await api.delete(`/unlock/delete-content/${contentId}`);
+    return response.data;
+  } catch (error) {
+    console.error('API - Error deleting content:', error);
+    throw error;
+  }
+};
+
+export const handleSubmitNewContent = async (newContent) => {
+  try {
+    const response = await api.post('/unlock/add-content', newContent);
+    return response.data;
+  } catch (error) {
+    console.error('API - Error adding new content:', error);
+    throw error;
+  }
+};
+
+export const handleSubmitNewEdit = async (editedContent) => {
+  try {
+    const response = await api.post('/unlock/edit-content', editedContent);
+    return response.data;
+  } catch (error) {
+    console.error('API - Error adding new content:', error);
+    throw error;
+  }
+};
+
+export const confirmUnlockContent = async () => {
+  try {
+    const response = await api.post(`${API_URL}/unlock-content`, { contentId: contentData.id });
+    return response.data;
+  } catch (error) {
+    console.error('API - Error adding new content:', error);
+    throw error;
+  }
+};
+
+
+export const fetchLockedContent = async () => {
+  try {
+    const [contentResponse, balanceResponse] = await Promise.all([
+      api.get(`${API_URL}/unlock-content/${username}/${itemId}`),
+      api.get(`${API_URL}/user-balance`)
+    ]);
+    return [contentResponse, balanceResponse];
+  } catch (error) {
+    console.error('API - Error fetching user content:', error);
     throw error;
   }
 };

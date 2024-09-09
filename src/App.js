@@ -18,6 +18,14 @@ import Account from './components/Account';
 import Settings from './components/Settings';
 import Auth from './components/Auth';
 import Wallet from './components/Wallet';
+import UnlockContent from './components/UnlockContent';
+import ManageContent from './components/ManageContent';
+import AddToWallet from './components/AddToWallet';
+import { Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
+
+
+const stripePromise = loadStripe('your_stripe_publishable_key');
 
 function App() {
   return (
@@ -40,6 +48,9 @@ function App() {
             <Route path="/account" element={<Account />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/wallet" element={<Wallet />} />
+            <Route path="/unlock" element={<UnlockContent />} />
+            <Route path="/manage-content" element={<ManageContent />} />
+            <Route path="/reload-wallet" element={<AddToWallet />} />
             <Route path="/login" element={<Auth isLogin={true} />} />
             <Route path="/register" element={<Auth isLogin={false} />} />
             <Route path="*" element={<Navigate to="/" replace />} />
