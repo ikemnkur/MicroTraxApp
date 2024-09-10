@@ -48,7 +48,7 @@ function App() {
             <Route path="/account" element={<Account />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/wallet" element={<Wallet />} />
-            <Route path="/unlock" element={<UnlockContent />} />
+            <Route path="/unlock/:itemid" element={<UnlockContent />} />
             <Route path="/manage-content" element={<ManageContent />} />
             <Route path="/reload-wallet" element={<AddToWallet />} />
             <Route path="/login" element={<Auth isLogin={true} />} />

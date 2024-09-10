@@ -5,7 +5,7 @@ import { fetchLockedContent, confirmUnlockContent, } from './api';
 import axios from 'axios';
 
 const UnlockContent = () => {
-  const { username, itemId } = useParams();
+  const { itemid } = useParams();
   const navigate = useNavigate();
   const [contentData, setContentData] = useState(null);
   const [userBalance, setUserBalance] = useState(0);
@@ -16,18 +16,22 @@ const UnlockContent = () => {
   const [openDialog, setOpenDialog] = useState(false);
 
   const API_URL = 'http://localhost:5000/api/unlock'; // Adjust this if your API URL is different
-  alert("username: "+ username)
-  alert("ItemId: "+ itemId)
+  
 
   useEffect(() => {
-    
+    // alert("username: "+ username)
+    // alert("ItemId: "+ itemid)
     const fetchData = async () => {
       try {
         // const [contentResponse, balanceResponse] = await Promise.all([
         //   axios.get(`${API_URL}/unlock-content/${username}/${itemId}`),
         //   axios.get(`${API_URL}/user-balance`)
         // ]);
-        await fetchLockedContent();
+        const [contentResponse, balanceResponse] = await fetchLockedContent(itemid);
+        console.log("Content Resp. :" + contentResponse)
+        
+        console.log("Balance Resp. :" + balanceResponse)
+        // alert("Balance Resp: "+ balanceResponse)
         setContentData(contentResponse.data);
         setUserBalance(balanceResponse.data.balance);
       } catch (err) {
@@ -38,7 +42,7 @@ const UnlockContent = () => {
     };
 
     fetchData();
-  }, [username, itemId]);
+  }, [itemid]);
 
   const handleUnlock = async () => {
     if (userBalance < contentData.cost) {
@@ -51,7 +55,7 @@ const UnlockContent = () => {
   const confirmUnlock = async () => {
     try {
       // await axios.post(`${API_URL}/unlock-content`, { contentId: contentData.id });
-      await confirmUnlockContent();
+      await confirmUnlockContent(contentData);
       setUnlocked(true);
       setUserBalance(prevBalance => prevBalance - contentData.cost);
       setSnackbarMessage('Content unlocked successfully!');

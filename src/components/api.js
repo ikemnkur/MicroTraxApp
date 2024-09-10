@@ -196,9 +196,9 @@ export const handleSubmitNewEdit = async (editedContent) => {
   }
 };
 
-export const confirmUnlockContent = async () => {
+export const confirmUnlockContent = async (contentData) => {
   try {
-    const response = await api.post(`${API_URL}/unlock-content`, { contentId: contentData.id });
+    const response = await api.post(`/unlock/unlock-content`, { contentId: contentData.id });
     return response.data;
   } catch (error) {
     console.error('API - Error adding new content:', error);
@@ -207,12 +207,13 @@ export const confirmUnlockContent = async () => {
 };
 
 
-export const fetchLockedContent = async () => {
+export const fetchLockedContent = async (itemId) => {
   try {
     const [contentResponse, balanceResponse] = await Promise.all([
-      api.get(`${API_URL}/unlock-content/${username}/${itemId}`),
-      api.get(`${API_URL}/user-balance`)
+      api.get(`/unlock/unlock-content/${itemId}`),
+      api.get(`/unlock/user-balance`)
     ]);
+    console.log("fetchLockedContent = "+ JSON.stringify(contentResponse.data)+ "&"+ JSON.stringify(balanceResponse.data) )
     return [contentResponse, balanceResponse];
   } catch (error) {
     console.error('API - Error fetching user content:', error);
