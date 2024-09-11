@@ -90,7 +90,7 @@ export const updateUserProfile = async (userData) => {
 
 export const sendMoneyToOtherUser = async (sendmoneyData) => {
   try {
-    const response = await axios.post('/transactions/send', sendmoneyData);
+    const response = await api.post('/transactions/send', sendmoneyData);
     return response.data;
   } catch (error) {
     throw error.response.data;

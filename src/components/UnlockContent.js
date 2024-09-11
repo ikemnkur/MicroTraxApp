@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Typography, Button, Box, CircularProgress, Snackbar, Paper, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
+import { Typography, Button, Box, CircularProgress, Snackbar, Paper, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Input } from '@mui/material';
 import { fetchLockedContent, confirmUnlockContent, } from './api';
 import axios from 'axios';
+import { Margin } from '@mui/icons-material';
 
 const UnlockContent = () => {
   const { itemid } = useParams();
@@ -16,7 +17,7 @@ const UnlockContent = () => {
   const [openDialog, setOpenDialog] = useState(false);
 
   const API_URL = 'http://localhost:5000/api/unlock'; // Adjust this if your API URL is different
-  
+
 
   useEffect(() => {
     // alert("username: "+ username)
@@ -29,7 +30,7 @@ const UnlockContent = () => {
         // ]);
         const [contentResponse, balanceResponse] = await fetchLockedContent(itemid);
         console.log("Content Resp. :" + contentResponse)
-        
+
         console.log("Balance Resp. :" + balanceResponse)
         // alert("Balance Resp: "+ balanceResponse)
         setContentData(contentResponse.data);
@@ -60,6 +61,9 @@ const UnlockContent = () => {
       setUserBalance(prevBalance => prevBalance - contentData.cost);
       setSnackbarMessage('Content unlocked successfully!');
     } catch (err) {
+      setTimeout(() => {
+
+      }, 1000)
       setSnackbarMessage('Failed to unlock content. Please try again.');
     } finally {
       setOpenDialog(false);
@@ -67,6 +71,7 @@ const UnlockContent = () => {
   };
 
   const renderContent = () => {
+    console.log("contentData.type: ", contentData.type)
     switch (contentData.type) {
       case 'url':
         return <a href={contentData.content.url} target="_blank" rel="noopener noreferrer">Access Content</a>;
@@ -74,6 +79,10 @@ const UnlockContent = () => {
         return <img src={contentData.content.url} alt={contentData.title} style={{ maxWidth: '100%' }} />;
       case 'text':
         return <Typography>{contentData.content.text}</Typography>;
+      case 'code':
+        return <Typography>{contentData.content.text}</Typography>;
+      case 'video':
+        return <Typography>{contentData.content.url}</Typography>;
       case 'file':
         return <a href={contentData.content.url} download>Download File</a>;
       default:
@@ -86,17 +95,33 @@ const UnlockContent = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>{contentData.title}</Typography>
-      <Typography variant="body1" gutterBottom>{contentData.description}</Typography>
-      <Typography variant="h6" gutterBottom>Cost: ${contentData.cost}</Typography>
-      <Typography variant="subtitle1" gutterBottom>Your Balance: ${userBalance}</Typography>
-      
+      <Paper style={{ backgroundColor: "lightblue", padding: "10px" }}>
+        <Typography variant="h4" gutterBottom>Title: {contentData.title}</Typography>
+        <Typography variant="subtitle1" gutterBottom>Description: {contentData.description}</Typography>
+        <Typography variant="body 1" gutterBottom>Cost: ${contentData.cost}</Typography>
+        <Typography variant="body1" gutterBottom>Balance: ${userBalance}</Typography>
+
+      </Paper>
+
       {!unlocked ? (
-        <Button variant="contained" color="primary" onClick={handleUnlock}>
-          Unlock Content
-        </Button>
+        <>
+          <div style={{ marginTop: "10px" }}>
+            <Typography variant="subtitle1" gutterBottom>Leave a Message: </Typography>
+            <Input>
+
+            </Input>
+          </div>
+          <br></br>
+          <div style={{ arginTop: "10px" }}>
+            <Button variant="contained" color="primary" onClick={handleUnlock}>
+              Unlock Content
+            </Button>
+          </div>
+        </>
+
       ) : (
         <Paper elevation={3} sx={{ p: 2, mt: 2 }}>
+          <Typography variant="h6" gutterBottom> Unlocked Content </Typography>
           {renderContent()}
         </Paper>
       )}
