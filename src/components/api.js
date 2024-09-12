@@ -196,9 +196,9 @@ export const handleSubmitNewEdit = async (editedContent) => {
   }
 };
 
-export const confirmUnlockContent = async (contentData) => {
+export const confirmUnlockContent = async (contentData, message) => {
   try {
-    const response = await api.post(`/unlock/unlock-content`, { contentId: contentData.id });
+    const response = await api.post(`/unlock/unlock-content`, { contentId: contentData.id, msg : message });
     return response.data;
   } catch (error) {
     console.error('API - Error adding new content:', error);

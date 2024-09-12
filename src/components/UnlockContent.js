@@ -15,24 +15,18 @@ const UnlockContent = () => {
   const [unlocked, setUnlocked] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
+  const [recipient, setRecipient] = useState('');
+  const [amount, setAmount] = useState('');
+  const [message, setMessage] = useState('');
+  const [thisUser, setThisUser] = useState(JSON.parse(localStorage.getItem("userdata")))
 
   const API_URL = 'http://localhost:5000/api/unlock'; // Adjust this if your API URL is different
 
 
   useEffect(() => {
-    // alert("username: "+ username)
-    // alert("ItemId: "+ itemid)
     const fetchData = async () => {
       try {
-        // const [contentResponse, balanceResponse] = await Promise.all([
-        //   axios.get(`${API_URL}/unlock-content/${username}/${itemId}`),
-        //   axios.get(`${API_URL}/user-balance`)
-        // ]);
         const [contentResponse, balanceResponse] = await fetchLockedContent(itemid);
-        console.log("Content Resp. :" + contentResponse)
-
-        console.log("Balance Resp. :" + balanceResponse)
-        // alert("Balance Resp: "+ balanceResponse)
         setContentData(contentResponse.data);
         setUserBalance(balanceResponse.data.balance);
       } catch (err) {
@@ -56,13 +50,13 @@ const UnlockContent = () => {
   const confirmUnlock = async () => {
     try {
       // await axios.post(`${API_URL}/unlock-content`, { contentId: contentData.id });
-      await confirmUnlockContent(contentData);
+      await confirmUnlockContent(contentData, message);
       setUnlocked(true);
       setUserBalance(prevBalance => prevBalance - contentData.cost);
       setSnackbarMessage('Content unlocked successfully!');
     } catch (err) {
       setTimeout(() => {
-
+        navigate("/")
       }, 1000)
       setSnackbarMessage('Failed to unlock content. Please try again.');
     } finally {
@@ -98,7 +92,7 @@ const UnlockContent = () => {
       <Paper style={{ backgroundColor: "lightblue", padding: "10px" }}>
         <Typography variant="h4" gutterBottom>Title: {contentData.title}</Typography>
         <Typography variant="subtitle1" gutterBottom>Description: {contentData.description}</Typography>
-        <Typography variant="body 1" gutterBottom>Cost: ${contentData.cost}</Typography>
+        <Typography variant="body1" gutterBottom>Cost: ${contentData.cost}</Typography>
         <Typography variant="body1" gutterBottom>Balance: ${userBalance}</Typography>
 
       </Paper>
@@ -107,9 +101,15 @@ const UnlockContent = () => {
         <>
           <div style={{ marginTop: "10px" }}>
             <Typography variant="subtitle1" gutterBottom>Leave a Message: </Typography>
-            <Input>
+            <TextField
+              label="Leave a Message"
+              fullWidth
+              margin="normal"
+              placeholder={`${recipient} Enjoy: ${amount} !!!, from ${thisUser.username}`}
+              onChange={(e) => setMessage(e.target.value)}
+              required
+            />
 
-            </Input>
           </div>
           <br></br>
           <div style={{ arginTop: "10px" }}>
