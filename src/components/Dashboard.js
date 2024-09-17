@@ -26,30 +26,7 @@ const Dashboard = () => {
 
 
 
-  // useEffect(() => {
-  //   const loadUserProfile = async () => {
-  //     try {
-  //       const profile = await fetchUserProfile();
-  //       setUserData(prevData => ({
-  //         ...prevData,
-  //         ...profile,
-  //         birthDate: profile.birthDate ? profile.birthDate.split('T')[0] : '',
-  //       }));
-  //       localStorage.setItem("userdata", JSON.stringify(userData))
-  //       console.log("Account Tier: ", profile.accountTier)
-  //       setTier(parseInt(userData.accountTier))
-  //     } catch (error) {
-  //       console.error('DashBrdPG - Error fetching user profile:', error);
-  //       setSnackbarMessage(error.response?.data?.message || 'Failed to load user profile, refresh page or login again');
-  //       setOpenSnackbar(true);
-  //       if (error.response?.status === 401) {
-  //         // Unauthorized, token might be expired
-  //         setTimeout(() => navigate('/login'), 1500);
-  //       }
-  //     }
-  //   };
-  //   loadUserProfile();
-  // }, [navigate]);
+  
 
   useEffect(() => {
     const loadUserProfile = async () => {

@@ -90,71 +90,6 @@ const AccountPage = () => {
     }));
   };
 
-  // useEffect(() => {
-  //   const loadUserProfile = async () => {
-  //     try {
-  //       const profile = await fetchUserProfile();
-  //       // Map accountTierId to a number between 1 and 7
-  //       const accountTierMap = {
-  //         1: 1, // Basic
-  //         2: 2, // Standard
-  //         3: 3, // Premium
-  //         4: 4, // Gold
-  //         5: 5, // Platinum
-  //         6: 6, // Diamond
-  //         7: 7  // Ultimate
-  //       };
-
-  //       const updatedUserData = {
-  //         ...profile,
-  //         // accountTier: accountTierMap[userData.accountTier] ?? 1, // Default to 1 if not found
-  //         birthDate: profile.birthDate ? profile.birthDate.split('T')[0] : '',
-  //       };
-
-  //       setUserData(updatedUserData);
-  //       localStorage.setItem("userdata", JSON.stringify(updatedUserData));
-
-  //       console.log("Account Tier: ", profile.accountTier);
-  //       setTier(parseInt(userData.accountTier));
-  //       console.log("Tier#: ", tier)
-
-  //     } catch (error) {
-  //       console.error('DashBrdPG - Error fetching user profile:', error);
-  //       setSnackbarMessage(error.response?.data?.message || 'Failed to load user profile, refresh page or login again');
-  //       setOpenSnackbar(true);
-  //       if (error.response?.status === 401) {
-  //         // Unauthorized, token might be expired
-  //         setTimeout(() => navigate('/login'), 1500);
-  //       }
-  //     }
-  //   };
-
-  //   loadUserProfile();
-  // }, [navigate]);
-
-  // const handleInputChange = (event) => {
-  //   const { name, value } = event.target;
-  //   setUserData(prevData => ({
-  //     ...prevData,
-  //     [name]: value
-  //   }));
-  // };
-
-
-  // const handleProfilePictureChange = (event) => {
-  //   const file = event.target.files[0];
-  //   if (file) {
-  //     const reader = new FileReader();
-  //     reader.onloadend = () => {
-  //       setUserData(prevData => ({
-  //         ...prevData,
-  //         profilePicture: reader.result
-  //       }));
-  //     };
-  //     reader.readAsDataURL(file);
-  //   }
-  // };
-
   const handleProfilePictureChange = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -191,11 +126,15 @@ const AccountPage = () => {
       localStorage.removeItem('token');
       setSnackbarMessage('Account deleted successfully.');
       setOpenSnackbar(true);
-      setTimeout(() => navigate('/'), 1500);
+      setTimeout(() => navigate('/login'), 1500);
     } catch (error) {
       console.error('AcntPG - Error deleting account:', error);
       setSnackbarMessage(error.response?.data?.message || 'Failed to delete account. Please try again.');
       setOpenSnackbar(true);
+      if (error.response?.status === 403) {
+        // Unauthorized, token might be expired
+        setTimeout(() => navigate('/'), 1000);
+      }
     }
     setOpenDeleteDialog(false);
   };

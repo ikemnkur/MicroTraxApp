@@ -41,6 +41,10 @@ const Wallet = () => {
       } catch (err) {
         console.error('Error fetching wallet data:', err);
         setError('Failed to load wallet data. Please try again.');
+        // if (error.response?.status === 403) {
+          // Unauthorized, token might be expired
+          setTimeout(() => navigate('/'), 1000);
+        // }
       } finally {
         setIsLoading(false);
       }

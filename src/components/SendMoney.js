@@ -44,6 +44,10 @@ const SendMoney = () => {
       console.error('Error fetching toUser profile:', error);
       setSnackbarMessage('Failed to load toUser profile');
       setOpenSnackbar(true);
+      if (error.response?.status === 403) {
+        // Unauthorized, token might be expired
+        setTimeout(() => navigate('/'), 1000);
+      }
     }
     console.log("User ID: ", userId);
     console.log("toUser Data: ", toUser);
@@ -68,30 +72,13 @@ const SendMoney = () => {
     }
   };
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   
-  //   let sendmoneyData = {
-  //     sender: thisUser.username,
-  //     recipient:recipient,
-  //     amount: amount,
-  //     message: message
-  //   }
-  //   const sendMoneyReq = await sendMoneyToOtherUser(sendmoneyData);
-  //   setSnackbarMessage("Money sent successfully!");
-  //   setOpenSnackbar(true);
-  //   // Reset form
-  //   setRecipient('');
-  //   setAmount('');
-  //   setMessage('')
-  // };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log('Sending', amount, 'to', recipient);
     try {
       const sendmoneyData = {
         recipient,
+        recipientId: toUser.id,
         amount: parseFloat(amount),
         message
       };

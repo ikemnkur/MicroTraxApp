@@ -1,21 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Typography, TextField, Button, Select, Snackbar, MenuItem, Box, List, ListItem, ListItemText, ListItemSecondaryAction, IconButton } from '@mui/material';
+import { Typography, TextField, Button, Select, Snackbar, MenuItem, Box, List, ListItem, ListItemText, ListItemSecondaryAction, IconButton, Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle } from '@mui/material';
 import { Delete as DeleteIcon, EditAttributesRounded } from '@mui/icons-material';
 import EditNoteIcon from '@mui/icons-material/EditNote';
+import ShareIcon from '@mui/icons-material/Share';
 import { fetchUserContent, handleDeleteContent, handleSubmitNewContent, handleSubmitNewEdit } from './api';
+import QRCode from 'qrcode.react';
+import Clipboard from "../components/Clipboard.js";
 import axios from 'axios';
 import { lightGreen } from '@mui/material/colors';
 
 const ManageContent = () => {
     const navigate = useNavigate();
     const [openSnackbar, setOpenSnackbar] = useState(false);
+    const [contentData, setContentData] = useState(null);
     const [snackbarMessage, setSnackbarMessage] = useState('');
     const [contentList, setContentList] = useState([]);
-    const [openSnackbar, setOpenSnackbar] = useState(false);
     const [editing, setEditing] = useState(false);
+    const [openDialog, setOpenDialog] = useState(false);
     const [shareLink, setShareLink] = useState('');
+    const [shareItem, setShareItem] = useState('');
+    const [thisUser, setThisUser] = useState(JSON.parse(localStorage.getItem("userdata")))
     const [newContent, setNewContent] = useState({
+        username: thisUser.username,
         title: '',
         cost: 1,
         description: '',
@@ -24,9 +35,11 @@ const ManageContent = () => {
         reference_id: ''
     });
 
-    createShareLink((id) => {
+    const createShareLink = (id) => {
         setShareLink(`https://microtrax.com/unlock/${id}`);
-    }, [username]);
+        setOpenDialog(true)
+    }
+
     useEffect(() => {
         loadUserContent();
     }, []);
@@ -39,7 +52,7 @@ const ManageContent = () => {
             console.error('Failed to fetch user content:', error);
             if (error.response?.status === 403) {
                 // Unauthorized, token might be expired
-                setTimeout(() => navigate('/login'), 1500);
+                setTimeout(() => navigate('/'), 1250);
             }
             // Handle error (e.g., show error message to user)
             setSnackbarMessage('Failed to fetch user content');
@@ -63,7 +76,7 @@ const ManageContent = () => {
         e.preventDefault();
         try {
             await handleSubmitNewContent(newContent);
-            setNewContent({ title: '', cost: 1, description: '', content: '', type: 'url', reference_id: '' });
+            setNewContent({ title: '', username: thisUser.username, cost: 1, description: '', content: '', type: 'url', reference_id: '' });
             loadUserContent(); // Reload the content list after adding new content
         } catch (error) {
             console.error('Failed to add content:', error);
@@ -77,7 +90,7 @@ const ManageContent = () => {
         e.preventDefault();
         try {
             await handleSubmitNewEdit(newContent);
-            setNewContent({ title: '', cost: 1, description: '', content: '', type: 'url', reference_id: '' });
+            setNewContent({ title: '', username: thisUser.username, cost: 1, description: '', content: '', type: 'url', reference_id: '' });
             setEditing(false);
             loadUserContent(); // Reload the content list after adding new content
         } catch (error) {
@@ -93,7 +106,7 @@ const ManageContent = () => {
         try {
             // await handleSubmitNewContent(newContent);
             setEditing(true)
-            setNewContent({ title: item.title, cost: item.cost, description: item.description, content: (item.content.content), type: item.type, reference_id: '' });
+            setNewContent({ title: item.title, username: thisUser.username, cost: item.cost, description: item.description, content: (item.content.content), type: item.type, reference_id: '' });
             // loadUserContent(); // Reload the content list after adding new content
         } catch (error) {
             console.error('Failed to edit content:', error);
@@ -108,7 +121,7 @@ const ManageContent = () => {
         try {
             // await handleSubmitNewContent(newContent);
             setEditing(false)
-            setNewContent({ title: '', cost: 1, description: '', content: '', type: 'url', reference_id: '' });
+            setNewContent({ title: '', username: thisUser.username, cost: 1, description: '', content: '', type: 'url', reference_id: '' });
             // loadUserContent(); // Reload the content list after adding new content
         } catch (error) {
             console.error('Failed to edit content:', error);
@@ -127,15 +140,12 @@ const ManageContent = () => {
     const handleShare = (item) => {
         // e.preventDefault();
         try {
-
-            // await handleSubmitNewContent(newContent);
-            // setEditing(true)
-            // setNewContent({ title: item.title, cost: item.cost, description: item.description, content: (item.content.content), type: item.type, reference_id: ''  });
-            // loadUserContent(); // Reload the content list after adding new content
+           createShareLink(item.id)
+           setShareItem({ title: item.title, username: thisUser.username, cost: item.cost, description: item.description, content: (item.content.content), type: item.type, reference_id: '' });
         } catch (error) {
-            console.error('Failed to edit content:', error);
+            console.error('Failed to share content:', error);
             // Handle error (e.g., show error message to user)
-            setSnackbarMessage('Failed to edit content');
+            setSnackbarMessage('Failed to generate share content');
             setOpenSnackbar(true);
         }
     };
@@ -247,24 +257,42 @@ const ManageContent = () => {
 
                 ))}
             </List>
+         
             <Dialog
                 open={openDialog}
                 onClose={() => setOpenDialog(false)}
+                PaperProps={{
+                    style: {
+                        width: '400px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                    },
+                }}
             >
                 <DialogTitle>Share Locked Item</DialogTitle>
-                <DialogContent>
-                    <DialogContentText>
-                        Share this content: ${contentData.title}?
+                <DialogContent style={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    alignItems: 'center',
+                    width: '100%'
+                }}>
+                    <DialogContentText style={{ textAlign: 'center' }}>
+                        Share this content:
                     </DialogContentText>
+                    <Box sx={{ my: 2 }}>
+                        <QRCode value={shareLink} size={256} />
+                    </Box>
+               
+                    <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', mb: 2 }}>
+                        <Clipboard Item={shareLink} />
+                    </Box>
                 </DialogContent>
-                <Box sx={{ mb: 2 }}>
-                    <QRCode value={shareLink} size={200} />
-                </Box>
-                <DialogActions>
-                    <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
-                    <Button onClick={confirmUnlock} color="primary">Confirm</Button>
+                <DialogActions style={{ width: '100%', justifyContent: 'flex-end' }}>
+                    <Button onClick={() => setOpenDialog(false)}>Close</Button>
                 </DialogActions>
             </Dialog>
+            
             <Snackbar
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
                 open={openSnackbar}

@@ -25,6 +25,10 @@ const UserProfile = () => {
         console.error('Error fetching user profile:', error);
         setSnackbarMessage('Failed to load user profile of: ' + user);
         setOpenSnackbar(true);
+        if (error.response?.status === 403) {
+          // Unauthorized, token might be expired
+          setTimeout(() => navigate('/'), 1000);
+        }
       }
     };
 
