@@ -230,4 +230,15 @@ export const fetchLockedContent = async (itemId) => {
   }
 };
 
+
+export const fetchSubscriptions = async () => {
+  try {
+    const response = await api.get('/subscriptions/');
+    return response.data;
+  } catch (error) {
+    console.error('API - Error fetching user content:', error);
+    throw error;
+  }
+};
+
 export default api;

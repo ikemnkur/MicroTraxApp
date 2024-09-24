@@ -19,10 +19,13 @@ import Settings from './components/Settings';
 import Auth from './components/Auth';
 import Wallet from './components/Wallet';
 import UnlockContent from './components/UnlockContent';
+import Subscriptions from './components/Subscriptions';
+import SubToContent from './components/SubToContent';
 import ManageContent from './components/ManageContent';
 import AddToWallet from './components/AddToWallet';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
+import Subscriptions from './components/Subscriptions';
 
 
 const stripePromise = loadStripe('your_stripe_publishable_key');
@@ -48,6 +51,8 @@ function App() {
             <Route path="/account" element={<Account />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/wallet" element={<Wallet />} />
+            <Route path="/subscriptions" element={<Subscriptions />} />
+            <Route path="/sub/:itemid" element={<SubToContent />} />
             <Route path="/unlock/:itemid" element={<UnlockContent />} />
             <Route path="/manage-content" element={<ManageContent />} />
             <Route path="/reload-wallet" element={<AddToWallet />} />
