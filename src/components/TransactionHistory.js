@@ -7,6 +7,7 @@ const TransactionHistory = () => {
   const [sortBy, setSortBy] = useState('date');
   const [sortOrder, setSortOrder] = useState('desc');
   const [transactions, setTransactions] = useState([]);
+  const [filteredTransactions, setFilteredTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -17,17 +18,24 @@ const TransactionHistory = () => {
   //   // ... more transactions
   // ];
 
-  const filteredTransactions = transactions.filter(t => 
-    t.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    t.amount.toString().includes(searchTerm)
-  );
+  
 
   useEffect(() => {
     const loadTransactions = async () => {
       try {
         const data = await fetchTransactionHistory();
         console.log("Transaction History Data: ", data)
-        setTransactions(data);
+        setTransactions([data]);
+        setTimeout(()=>{
+          // const filteredTransactionz = data.filter(t => 
+          // t.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          // t.amount.toString().includes(searchTerm)
+          // );
+          // setFilteredTransactions(filteredTransactionz)
+          console.log("FTransc: " , filteredTransactions)
+          console.log("Transc: " , transactions)
+        }, 100)
+        
         setLoading(false);
       } catch (err) {
         console.error('Failed to fetch transaction history:', err);
@@ -79,14 +87,20 @@ const TransactionHistory = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredTransactions.map((transaction) => (
+              <TableRow key={"transaction.id"}>
+                <TableCell>{"transaction.date"}</TableCell>
+                <TableCell>{"transaction.type"}</TableCell>
+                <TableCell>{"transaction.username"}</TableCell>
+                <TableCell>${"transaction.amount.toFixed(2)"}</TableCell>
+              </TableRow>
+            {loading && filteredTransactions && (filteredTransactions.map((transaction) => (
               <TableRow key={transaction.id}>
                 <TableCell>{transaction.date}</TableCell>
                 <TableCell>{transaction.type}</TableCell>
                 <TableCell>{transaction.username}</TableCell>
                 <TableCell>${transaction.amount.toFixed(2)}</TableCell>
               </TableRow>
-            ))}
+            )))}
           </TableBody>
         </Table>
       </TableContainer>
