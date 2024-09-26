@@ -241,4 +241,15 @@ export const fetchSubscriptions = async () => {
   }
 };
 
+export const confirmSubToContent = async (contentData, message) => {
+  try {
+    const response = await api.post(`/sub/unlock-content`, { contentId: contentData.id, msg : message });
+    return response.data;
+  } catch (error) {
+    console.error('API - Error adding new content:', error);
+    throw error;
+  }
+};
+
+
 export default api;

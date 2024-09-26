@@ -25,7 +25,7 @@ import ManageContent from './components/ManageContent';
 import AddToWallet from './components/AddToWallet';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
-import Subscriptions from './components/Subscriptions';
+// import Subscriptions from './components/Subscriptions';
 
 
 const stripePromise = loadStripe('your_stripe_publishable_key');
