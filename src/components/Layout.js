@@ -28,9 +28,10 @@ import {
   AccountCircle,
   Settings as SettingsIcon,
   LockOutlined,
+  BookmarkAdd
 } from '@mui/icons-material';
 
-const drawerWidth = 240;
+const drawerWidth = 260;
 const collapsedDrawerWidth = 60;
 
 const Layout = ({ children }) => {
@@ -40,15 +41,21 @@ const Layout = ({ children }) => {
 
   const menuItems = [
     { text: 'Dashboard', icon: <Dashboard />, path: '/' },
-    { text: 'Transaction History', icon: <History />, path: '/transactions' },
+    { text: 'Your Wallet', icon: <AccountBalance />, path: '/wallet' },
     { text: 'Send Money', icon: <Send />, path: '/send' },
+    { text: 'Look for Users', icon: <Search />, path: '/search' },
+    { text: 'Share Your Wallet', icon: <Share />, path: '/share' },
     { text: 'Received Payments', icon: <Inbox />, path: '/received' },
-    { text: 'Wallet', icon: <AccountBalance />, path: '/wallet' },
-    { text: 'Search User', icon: <Search />, path: '/search' },
-    { text: 'Share Wallet', icon: <Share />, path: '/share' },
+    { text: 'Transaction History', icon: <History />, path: '/transactions' },
+    
+    
+    
+    
     // { text: 'Messages', icon: <Message />, path: '/messages' },
-    { text: 'Account', icon: <AccountCircle />, path: '/account' },
+   
     { text: 'Manage Content', icon: <LockOutlined />, path: '/manage-content' },
+    { text: 'Manage Subscriptions', icon: <BookmarkAdd />, path: '/subscriptions' },
+    { text: 'Account', icon: <AccountCircle />, path: '/account' },
   ];
 
   const hideLayout = ['/login', '/register'].includes(location.pathname);
