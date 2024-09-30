@@ -23,7 +23,7 @@ import EditNoteIcon from '@mui/icons-material/EditNote';
 import ShareIcon from '@mui/icons-material/Share';
 import { fetchUserContent, handleDeleteContent, handleSubmitNewContent, handleSubmitNewEdit, fetchWalletData} from './api';
 import QRCode from 'qrcode.react';
-import Clipboard from "../components/Clipboard.js";
+import Clipboard from "./Clipboard.js";
 import {  } from './api'; // You'll need to implement this function
 
 const YourStuff = () => {
