@@ -55,6 +55,7 @@ const Layout = ({ children }) => {
    
     { text: 'Manage Content', icon: <LockOutlined />, path: '/manage-content' },
     { text: 'Manage Subscriptions', icon: <BookmarkAdd />, path: '/subscriptions' },
+    { text: 'Your Stuff', icon: <BookmarkAdd />, path: '/your-stuff' },
     { text: 'Account', icon: <AccountCircle />, path: '/account' },
   ];
 
