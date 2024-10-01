@@ -19,10 +19,11 @@ import Settings from './components/Settings';
 import Auth from './components/Auth';
 import Wallet from './components/Wallet';
 import UnlockContent from './components/UnlockContent';
-import Subscriptions from './components/Subscriptions';
+import Subscriptions from './components/ManageSubscriptions';
 import SubToContent from './components/SubToContent';
 import ManageContent from './components/ManageContent';
 import AddToWallet from './components/AddToWallet';
+import YourStuff from './components/YourStuff';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 // import Subscriptions from './components/Subscriptions';
@@ -56,6 +57,7 @@ function App() {
             <Route path="/unlock/:itemid" element={<UnlockContent />} />
             <Route path="/manage-content" element={<ManageContent />} />
             <Route path="/reload-wallet" element={<AddToWallet />} />
+            <Route path="/your-stuff" element={<YourStuff />} />
             <Route path="/login" element={<Auth isLogin={true} />} />
             <Route path="/register" element={<Auth isLogin={false} />} />
             <Route path="*" element={<Navigate to="/" replace />} />

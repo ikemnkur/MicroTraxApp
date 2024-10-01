@@ -28,8 +28,10 @@ import {
   AccountCircle,
   Settings as SettingsIcon,
   LockOutlined,
-  BookmarkAdd
+  BookmarkAdd,
 } from '@mui/icons-material';
+import CategoryIcon from '@mui/icons-material/Category';
+
 
 const drawerWidth = 260;
 const collapsedDrawerWidth = 60;
@@ -55,7 +57,7 @@ const Layout = ({ children }) => {
    
     { text: 'Manage Content', icon: <LockOutlined />, path: '/manage-content' },
     { text: 'Manage Subscriptions', icon: <BookmarkAdd />, path: '/subscriptions' },
-    { text: 'Your Stuff', icon: <BookmarkAdd />, path: '/your-stuff' },
+    { text: 'Your Stuff', icon: <CategoryIcon />, path: '/your-stuff' },
     { text: 'Account', icon: <AccountCircle />, path: '/account' },
   ];
 

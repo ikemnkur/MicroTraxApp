@@ -13,26 +13,24 @@ import {
   CircularProgress,
 } from '@mui/material';
 
-import { Typography, TextField, Button, Select, Snackbar, MenuItem, Box, List, ListItem, ListItemText, ListItemSecondaryAction, IconButton, Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle } from '@mui/material';
+import { TextField, Select, Snackbar, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, List, ListItem, ListItemText, ListItemSecondaryAction, IconButton } from '@mui/material';
 import { Delete as DeleteIcon, EditAttributesRounded } from '@mui/icons-material';
 import EditNoteIcon from '@mui/icons-material/EditNote';
 import ShareIcon from '@mui/icons-material/Share';
-import { fetchUserContent, handleDeleteContent, handleSubmitNewContent, handleSubmitNewEdit, fetchWalletData} from './api';
+import { fetchUserContent, handleDeleteContent, handleSubmitNewContent, handleSubmitNewEdit, fetchWalletData } from './api';
 import QRCode from 'qrcode.react';
 import Clipboard from "./Clipboard.js";
-import {  } from './api'; // You'll need to implement this function
+import { } from './api'; // You'll need to implement this function
 
 const YourStuff = () => {
-  const [openDialog, setOpenDialog] = useState(false);
-  const [action, setAction] = useState('');
-  const [walletData, setWalletData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const navigate = useNavigate();
+
+  // Mock data - replace with actual data fetching
+  const subscriptions = [
+    { id: 1, date: '2023-08-18', name: "YT Channel", type: 'Daily', username: 'user1', AccountID: "ACC132145936", amount: 1 },
+    { id: 2, date: '2023-08-17', name: " GameHub Sub", type: 'Monthly', username: 'user2', AccountID: "ACC132145936", amount: 2 },
+    { id: 3, date: '2023-08-17', name: "Cool Artilces.com", type: 'Weekly', username: 'user3', AccountID: "ACC132145936", amount: 4 },
+    // ... more subs
+  ];
 
   const tiers = [
     { id: 1, name: 'Basic', limit: 100, fee: 0 },
@@ -44,13 +42,22 @@ const YourStuff = () => {
     { id: 7, name: 'Ultimate', limit: 100000, fee: 75 },
   ];
 
-    // Mock data - replace with actual data fetching
-    const subscriptions = [
-      { id: 1, date: '2023-08-18', name: "YT Channel", type: 'Daily', username: 'user1', AccountID: "ACC132145936", amount: 1 },
-      { id: 2, date: '2023-08-17', name: " GameHub Sub", type: 'Monthly', username: 'user2', AccountID: "ACC132145936", amount: 2 },
-      { id: 3, date: '2023-08-17', name: "Cool Artilces.com", type: 'Weekly', username: 'user3', AccountID: "ACC132145936", amount: 4 },
-      // ... more subs
-    ];
+
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [openDialog, setOpenDialog] = useState(false);
+  const [action, setAction] = useState('');
+  const [walletData, setWalletData] = useState(null);
+  const [contentList, setContentList] = useState([]);
+  const [subs, setSubs] = useState(subscriptions);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
+
+  const filteredSubs = subs.filter(t =>
+    t.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    t.amount.toString().includes(searchTerm)
+  );
 
   useEffect(() => {
     const loadWalletData = async () => {
@@ -62,8 +69,8 @@ const YourStuff = () => {
         console.error('Error fetching wallet data:', err);
         setError('Failed to load wallet data. Please try again.');
         // if (error.response?.status === 403) {
-          // Unauthorized, token might be expired
-          setTimeout(() => navigate('/'), 1000);
+        // Unauthorized, token might be expired
+        setTimeout(() => navigate('/'), 1000);
         // }
       } finally {
         setIsLoading(false);
@@ -101,70 +108,72 @@ const YourStuff = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>My Services</Typography>
+      <Typography variant="h4" gutterBottom>Your Stuff</Typography>
       <Paper sx={{ p: 2, mb: 2 }}>
         <Typography variant="h6" gutterBottom>Current Balance: ${walletData?.balance}</Typography>
         <Typography variant="body1" gutterBottom>Account Tier: {walletData?.accountTier}</Typography>
         <Typography variant="body1" gutterBottom>Daily Transaction Limit: ${walletData?.dailyTransactionLimit}</Typography>
         <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 2 }}>
-          <Typography variant="h4" gutterBottom>My Unlocked Content</Typography>
+          {/* <Typography variant="h4" gutterBottom>My Unlocked Content</Typography> */}
           <List style={{ gap: "3px" }}>
-                {contentList && contentList.map((item) => (
-                    <>
-                        <div>
-                            <ListItem key={item.id} style={{ background: "lightGreen", borderRadius: "5px", gap: "3px", padding: "5px", margin: "2px" }}>
-                                <ListItemText
-                                    primary={item.title}
-                                    secondary={`Cost: $${item.cost} | Type: ${item.type} | Item Id: ${item.reference_id}`}
-                                />
-                            
-                            </ListItem>
-                        </div>
+          <Typography variant="h4" gutterBottom>My Unlocked Content</Typography>
+            {contentList && contentList.map((item) => (
+              <>
+                <div>
+                  <ListItem key={item.id} style={{ background: "lightGreen", borderRadius: "5px", gap: "3px", padding: "5px", margin: "2px" }}>
+                    <ListItemText
+                      primary={item.title}
+                      secondary={`Cost: $${item.cost} | Type: ${item.type} | Item Id: ${item.reference_id}`}
+                    />
 
-                        <br></br>
-                    </>
+                  </ListItem>
+                </div>
 
-                ))}
-            </List>
+                <br></br>
+              </>
+
+            ))}
+          </List>
         </Box>
         <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 2 }}>
-        <Typography variant="h4" gutterBottom>My Subscriptions</Typography>
-        <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Title</TableCell>
-              <TableCell>Date</TableCell>
-              <TableCell>Type</TableCell>
-              <TableCell>User</TableCell>
-              <TableCell>Amount</TableCell>
-              <TableCell>Action</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody style={{ backgroundColor: "cyan", borderRadius: 10 }}>
-            {filteredSubs.map((sub) => (
-              <TableRow key={sub.id} style={{ backgroundColor: "lightblue", borderRadius: 5 }}>
-                <TableCell>{sub.name}</TableCell>
-                <TableCell>{sub.date}</TableCell>
-                <TableCell>{sub.type}</TableCell>
-                <TableCell>{sub.username}</TableCell>
-                <TableCell>${sub.amount.toFixed(2)}</TableCell>
-                <TableCell>
-                  <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(item.id)}>
-                    <DeleteIcon style={{ paddingRight: "5px", fontSize: 24 }} />
-                  </IconButton>
-                  <IconButton edge="end" aria-label="delete" onClick={() => handleEdit(item)}>
-                    <EditNoteIcon style={{ paddingLeft: "5px" }} />
-                  </IconButton>
-                  <IconButton edge="end" aria-label="delete" onClick={() => handleShare(item)}>
-                    <ShareIcon style={{ paddingLeft: "5px" }} />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+          {/* <Typography variant="h4" gutterBottom>My Subscriptions</Typography> */}
+          <TableContainer component={Paper}>
+          <Typography variant="h4" gutterBottom>My Subscriptions</Typography>
+            <Table>
+              <TableHead>
+                <TableRow style={{ backgroundColor: "lightgrey", borderRadius: 10 }}>
+                  <TableCell>Title</TableCell>
+                  <TableCell>Date</TableCell>
+                  <TableCell>Type</TableCell>
+                  <TableCell>User</TableCell>
+                  <TableCell>Amount</TableCell>
+                  <TableCell>Action</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody style={{ backgroundColor: "cyan", borderRadius: 10 }}>
+                {filteredSubs.map((sub) => (
+                  <TableRow key={sub.id} style={{ backgroundColor: "lightblue", borderRadius: 5 }}>
+                    <TableCell>{sub.name}</TableCell>
+                    <TableCell>{sub.date}</TableCell>
+                    <TableCell>{sub.type}</TableCell>
+                    <TableCell>{sub.username}</TableCell>
+                    <TableCell>${sub.amount.toFixed(2)}</TableCell>
+                    <TableCell>
+                      <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(item.id)}>
+                        <DeleteIcon style={{ paddingRight: "5px", fontSize: 24 }} />
+                      </IconButton>
+                      <IconButton edge="end" aria-label="delete" onClick={() => handleEdit(item)}>
+                        <EditNoteIcon style={{ paddingLeft: "5px" }} />
+                      </IconButton>
+                      <IconButton edge="end" aria-label="delete" onClick={() => handleShare(item)}>
+                        <ShareIcon style={{ paddingLeft: "5px" }} />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         </Box>
       </Paper>
       <Dialog open={openDialog} onClose={handleCloseDialog}>

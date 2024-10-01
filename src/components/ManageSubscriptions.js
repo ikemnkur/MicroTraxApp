@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Typography, TextField, Button, Select, Snackbar, MenuItem, Box, List, ListItem, ListItemText, ListItemSecondaryAction, IconButton, Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle } from '@mui/material';
+import {
+  Typography, TextField, Button, Select, Snackbar, Paper, MenuItem, Box, List, ListItem, ListItemText, ListItemSecondaryAction, IconButton, Dialog,
+  DialogActions, DialogContent, DialogContentText, DialogTitle, Table, TableBody, TableCell, TableContainer, TableHead, TableRow
+} from '@mui/material';
 import { Delete as DeleteIcon, EditAttributesRounded } from '@mui/icons-material';
 import EditNoteIcon from '@mui/icons-material/EditNote';
 import ShareIcon from '@mui/icons-material/Share';
-import { fetchUserContent, handleDeleteContent, handleSubmitNewContent, handleSubmitNewEdit } from './api';
+import { fetchUserContent, handleDeleteContent, handleSubmitNewContent, handleSubmitNewEdit } from './api.js';
 import QRCode from 'qrcode.react';
-import Clipboard from "../components/Clipboard.js";
+import Clipboard from "./Clipboard.js";
 
-import { fetchSubscriptions } from './api';
+import { fetchSubscriptions } from './api.js';
 
 const Subscriptions = () => {
 
@@ -31,6 +30,8 @@ const Subscriptions = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [contentList, setContentList] = useState([]);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
   const [shareLink, setShareLink] = useState('');
   const [shareItem, setShareItem] = useState('');
   const [thisUser, setThisUser] = useState(JSON.parse(localStorage.getItem("userdata")))
@@ -52,6 +53,23 @@ const Subscriptions = () => {
   useEffect(() => {
     loadUserContent();
   }, []);
+
+  const loadUserContent = async () => {
+    try {
+      const content = await fetchUserContent();
+      setContentList(content);
+    } catch (error) {
+      console.error('Failed to fetch user content:', error);
+      if (error.response?.status === 403) {
+        // Unauthorized, token might be expired
+        setTimeout(() => navigate('/'), 1250);
+      }
+      // Handle error (e.g., show error message to user)
+      setSnackbarMessage('Failed to fetch user content');
+      setOpenSnackbar(true);
+    }
+  };
+
 
   const filteredSubs = subs.filter(t =>
     t.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -210,7 +228,7 @@ const Subscriptions = () => {
           </TableBody>
         </Table>
       </TableContainer>
-      
+
       <Dialog
         open={openDialog}
         onClose={() => setOpenDialog(false)}
