@@ -98,6 +98,93 @@ const YourStuff = () => {
     }
   };
 
+  const loadUserContent = async () => {
+    try {
+      const content = await fetchUserContent();
+      setContentList(content);
+    } catch (error) {
+      console.error('Failed to fetch user content:', error);
+      if (error.response?.status === 403) {
+        // Unauthorized, token might be expired
+        setTimeout(() => navigate('/'), 1250);
+      }
+      // Handle error (e.g., show error message to user)
+      setSnackbarMessage('Failed to fetch user content');
+      setOpenSnackbar(true);
+    }
+  };
+
+  const handleDelete = async (contentId) => {
+    try {
+      await handleDeleteContent(contentId);
+      loadUserContent(); // Reload the content list after deletion
+    } catch (error) {
+      console.error('Failed to delete content:', error);
+      // Handle error (e.g., show error message to user)
+      setSnackbarMessage('Failed to delete content');
+      setOpenSnackbar(true);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await handleSubmitNewContent(newContent);
+      setNewContent({ title: '', username: thisUser.username, cost: 1, description: '', content: '', type: 'url', reference_id: '' });
+      loadUserContent(); // Reload the content list after adding new content
+    } catch (error) {
+      console.error('Failed to add content:', error);
+      // Handle error (e.g., show error message to user)
+      setSnackbarMessage('Failed to load add content');
+      setOpenSnackbar(true);
+    }
+  };
+
+  const handleSubmitEdit = async (e) => {
+    e.preventDefault();
+    try {
+      await handleSubmitNewEdit(newContent);
+      setNewContent({ title: '', username: thisUser.username, cost: 1, description: '', content: '', type: 'url', reference_id: '' });
+      setEditing(false);
+      loadUserContent(); // Reload the content list after adding new content
+    } catch (error) {
+      console.error('Failed to add content:', error);
+      // Handle error (e.g., show error message to user)
+      setSnackbarMessage('Failed to load add content');
+      setOpenSnackbar(true);
+    }
+  };
+
+  const handleEdit = (item) => {
+    // e.preventDefault();
+    try {
+      // await handleSubmitNewContent(newContent);
+      setEditing(true)
+      setNewContent({ title: item.title, username: thisUser.username, cost: item.cost, description: item.description, content: (item.content.content), type: item.type, reference_id: '' });
+      // loadUserContent(); // Reload the content list after adding new content
+    } catch (error) {
+      console.error('Failed to edit content:', error);
+      // Handle error (e.g., show error message to user)
+      setSnackbarMessage('Failed to edit content');
+      setOpenSnackbar(true);
+    }
+  };
+
+  const cancelEdit = (item) => {
+    // e.preventDefault();
+    try {
+      // await handleSubmitNewContent(newContent);
+      setEditing(false)
+      setNewContent({ title: '', username: thisUser.username, cost: 1, description: '', content: '', type: 'url', reference_id: '' });
+      // loadUserContent(); // Reload the content list after adding new content
+    } catch (error) {
+      console.error('Failed to edit content:', error);
+      // Handle error (e.g., show error message to user)
+      setSnackbarMessage('Failed to edit content');
+      setOpenSnackbar(true);
+    }
+  };
+
   if (isLoading) {
     return <CircularProgress />;
   }
@@ -116,7 +203,7 @@ const YourStuff = () => {
         <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 2 }}>
           {/* <Typography variant="h4" gutterBottom>My Unlocked Content</Typography> */}
           <List style={{ gap: "3px" }}>
-          <Typography variant="h4" gutterBottom>My Unlocked Content</Typography>
+            <Typography variant="h4" gutterBottom>My Unlocked Content</Typography>
             {contentList && contentList.map((item) => (
               <>
                 <div>
@@ -138,7 +225,7 @@ const YourStuff = () => {
         <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 2 }}>
           {/* <Typography variant="h4" gutterBottom>My Subscriptions</Typography> */}
           <TableContainer component={Paper}>
-          <Typography variant="h4" gutterBottom>My Subscriptions</Typography>
+            <Typography variant="h4" gutterBottom>My Subscriptions</Typography>
             <Table>
               <TableHead>
                 <TableRow style={{ backgroundColor: "lightgrey", borderRadius: 10 }}>

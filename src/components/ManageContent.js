@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Typography, TextField, Button, Select, Snackbar, MenuItem, Box, List, ListItem, ListItemText, ListItemSecondaryAction, IconButton, Dialog,
+import {
+    Typography, TextField, Button, Select, Snackbar, MenuItem, Box, List, ListItem, ListItemText, ListItemSecondaryAction, IconButton, Dialog,
     DialogActions,
     DialogContent,
     DialogContentText,
-    DialogTitle } from '@mui/material';
+    DialogTitle
+} from '@mui/material';
 import { Delete as DeleteIcon, EditAttributesRounded } from '@mui/icons-material';
 import EditNoteIcon from '@mui/icons-material/EditNote';
 import ShareIcon from '@mui/icons-material/Share';
@@ -16,12 +18,16 @@ import { lightGreen } from '@mui/material/colors';
 
 const ManageContent = () => {
     const navigate = useNavigate();
+    const [searchTerm, setSearchTerm] = useState('');
+    const [sortBy, setSortBy] = useState('date');
+    const [sortOrder, setSortOrder] = useState('desc');
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [contentData, setContentData] = useState(null);
     const [snackbarMessage, setSnackbarMessage] = useState('');
     const [contentList, setContentList] = useState([]);
     const [editing, setEditing] = useState(false);
-    const [openDialog, setOpenDialog] = useState(false);
+    const [openCreateDialog, setOpenCreateDialog] = useState(false);
+    const [openShareDialog, setOpenShareDialog] = useState(false);
     const [shareLink, setShareLink] = useState('');
     const [shareItem, setShareItem] = useState('');
     const [thisUser, setThisUser] = useState(JSON.parse(localStorage.getItem("userdata")))
@@ -37,7 +43,7 @@ const ManageContent = () => {
 
     const createShareLink = (id) => {
         setShareLink(`https://microtrax.com/unlock/${id}`);
-        setOpenDialog(true)
+        setOpenShareDialog(true)
     }
 
     useEffect(() => {
@@ -59,6 +65,11 @@ const ManageContent = () => {
             setOpenSnackbar(true);
         }
     };
+
+    const handleOpenDialog = (selectedAction) => {
+        setAction(selectedAction);
+        setOpenDialog(true);
+      };
 
     const handleDelete = async (contentId) => {
         try {
@@ -140,8 +151,8 @@ const ManageContent = () => {
     const handleShare = (item) => {
         // e.preventDefault();
         try {
-           createShareLink(item.id)
-           setShareItem({ title: item.title, username: thisUser.username, cost: item.cost, description: item.description, content: (item.content.content), type: item.type, reference_id: '' });
+            createShareLink(item.id)
+            setShareItem({ title: item.title, username: thisUser.username, cost: item.cost, description: item.description, content: (item.content.content), type: item.type, reference_id: '' });
         } catch (error) {
             console.error('Failed to share content:', error);
             // Handle error (e.g., show error message to user)
@@ -153,80 +164,35 @@ const ManageContent = () => {
     return (
         <Box>
             <Typography variant="h4" gutterBottom>Manage Unlockable Content</Typography>
-            <Typography variant="h5" sx={{ mt: 4, mb: 2 }}>Create Unlockable Content</Typography>
-            <form onSubmit={handleSubmit}>
+            <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
                 <TextField
-                    label="Title"
-                    name="title"
-                    value={newContent.title}
-                    onChange={handleInputChange}
-                    fullWidth
-                    margin="normal"
-                    required
-                />
-                <TextField
-                    label="Cost"
-                    name="cost"
-                    type="number"
-                    value={newContent.cost}
-                    onChange={handleInputChange}
-                    fullWidth
-                    margin="normal"
-                    required
-                />
-                <TextField
-                    label="Description"
-                    name="description"
-                    value={newContent.description}
-                    onChange={handleInputChange}
-                    fullWidth
-                    margin="normal"
-                    multiline
-                    rows={2}
-                />
-                <TextField
-                    label="Content"
-                    name="content"
-                    value={newContent.content}
-                    onChange={handleInputChange}
-                    fullWidth
-                    margin="normal"
-                    rows={3}
-                    multiline
-                    required
-                    helperText="Enter URL, text, or file path based on content type"
+                    label="Search"
+                    variant="outlined"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                 />
                 <Select
-                    label="Content Type"
-                    name="type"
-                    value={newContent.type}
-                    onChange={handleInputChange}
-                    fullWidth
-                    margin="normal"
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    variant="outlined"
                 >
-                    <MenuItem value="url">URL</MenuItem>
-                    <MenuItem value="image">Image</MenuItem>
-                    <MenuItem value="code">Code</MenuItem>
-                    <MenuItem value="video">Video</MenuItem>
-                    <MenuItem value="file">File</MenuItem>
+                    <MenuItem value="date">Date</MenuItem>
+                    <MenuItem value="amount">Amount</MenuItem>
+                    <MenuItem value="username">Username</MenuItem>
                 </Select>
-                {!editing && (
-                    <Button type="submit" variant="contained" color="primary" sx={{ mt: 2 }}>
-                        Add Content
-                    </Button>
-                )}
-                {editing && (
-                    <>
-                        <Button onChange={handleSubmitEdit} variant="contained" color="primary" style={{ background: "green", marginRight: 10 }} sx={{ mt: 2 }}>
-                            Edit
-                        </Button>
-                        <Button onClick={cancelEdit} ariant="contained" color="primary" style={{ color: "white", background: "red", marginRight: 0 }} sx={{ mt: 2 }}>
-                            Cancel Edit
-                        </Button>
-                    </>
-                )}
+                <Select
+                    value={sortOrder}
+                    onChange={(e) => setSortOrder(e.target.value)}
+                    variant="outlined"
+                >
+                    <MenuItem value="asc">Ascending</MenuItem>
+                    <MenuItem value="desc">Descending</MenuItem>
+                </Select>
+                <Button variant="contained" color="primary" onClick={() => handleOpenDialog('reload')}>
+                    Create Subscription
+                </Button>
+            </Box>
 
-            </form>
 
             <Typography variant="h5" sx={{ mt: 4, mb: 2 }}>Your Content</Typography>
             <List style={{ gap: "3px" }}>
@@ -257,10 +223,10 @@ const ManageContent = () => {
 
                 ))}
             </List>
-         
+
             <Dialog
-                open={openDialog}
-                onClose={() => setOpenDialog(false)}
+                open={openShareDialog}
+                onClose={() => setOpenShareDialog(false)}
                 PaperProps={{
                     style: {
                         width: '400px',
@@ -271,9 +237,9 @@ const ManageContent = () => {
                 }}
             >
                 <DialogTitle>Share Locked Item</DialogTitle>
-                <DialogContent style={{ 
-                    display: 'flex', 
-                    flexDirection: 'column', 
+                <DialogContent style={{
+                    display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
                     width: '100%'
                 }}>
@@ -283,16 +249,124 @@ const ManageContent = () => {
                     <Box sx={{ my: 2 }}>
                         <QRCode value={shareLink} size={256} />
                     </Box>
-               
+
                     <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', mb: 2 }}>
                         <Clipboard Item={shareLink} />
                     </Box>
                 </DialogContent>
                 <DialogActions style={{ width: '100%', justifyContent: 'flex-end' }}>
-                    <Button onClick={() => setOpenDialog(false)}>Close</Button>
+                    <Button onClick={() => setOpenShareDialog(false)}>Close</Button>
                 </DialogActions>
             </Dialog>
-            
+
+            <Dialog
+                open={openCreateDialog}
+                onClose={() => setOpenCreateDialog(false)}
+                PaperProps={{
+                    style: {
+                        width: '512px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                    },
+                }}
+            >
+                <DialogTitle>Share Locked Item</DialogTitle>
+                <DialogContent style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    width: '100%'
+                }}>
+                    <DialogContentText style={{ textAlign: 'center' }}>
+                        Create some content:
+                    </DialogContentText>
+                    {/* <Box sx={{ my: 2 }}>
+                        <QRCode value={shareLink} size={256} />
+                    </Box> */}
+
+                    <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', mb: 2 }}>
+                        <Typography variant="h5" sx={{ mt: 4, mb: 2 }}>Create Unlockable Content</Typography>
+                        <form onSubmit={handleSubmit}>
+                            <TextField
+                                label="Title"
+                                name="title"
+                                value={newContent.title}
+                                onChange={handleInputChange}
+                                fullWidth
+                                margin="normal"
+                                required
+                            />
+                            <TextField
+                                label="Cost"
+                                name="cost"
+                                type="number"
+                                value={newContent.cost}
+                                onChange={handleInputChange}
+                                fullWidth
+                                margin="normal"
+                                required
+                            />
+                            <TextField
+                                label="Description"
+                                name="description"
+                                value={newContent.description}
+                                onChange={handleInputChange}
+                                fullWidth
+                                margin="normal"
+                                multiline
+                                rows={2}
+                            />
+                            <TextField
+                                label="Content"
+                                name="content"
+                                value={newContent.content}
+                                onChange={handleInputChange}
+                                fullWidth
+                                margin="normal"
+                                rows={3}
+                                multiline
+                                required
+                                helperText="Enter URL, text, or file path based on content type"
+                            />
+                            <Select
+                                label="Content Type"
+                                name="type"
+                                value={newContent.type}
+                                onChange={handleInputChange}
+                                fullWidth
+                                margin="normal"
+                            >
+                                <MenuItem value="url">URL</MenuItem>
+                                <MenuItem value="image">Image</MenuItem>
+                                <MenuItem value="code">Code</MenuItem>
+                                <MenuItem value="video">Video</MenuItem>
+                                <MenuItem value="file">File</MenuItem>
+                            </Select>
+                            {!editing && (
+                                <Button type="submit" variant="contained" color="primary" sx={{ mt: 2 }}>
+                                    Add Content
+                                </Button>
+                            )}
+                            {editing && (
+                                <>
+                                    <Button onChange={handleSubmitEdit} variant="contained" color="primary" style={{ background: "green", marginRight: 10 }} sx={{ mt: 2 }}>
+                                        Edit
+                                    </Button>
+                                    <Button onClick={cancelEdit} ariant="contained" color="primary" style={{ color: "white", background: "red", marginRight: 0 }} sx={{ mt: 2 }}>
+                                        Cancel Edit
+                                    </Button>
+                                </>
+                            )}
+
+                        </form>
+                    </Box>
+                </DialogContent>
+                <DialogActions style={{ width: '100%', justifyContent: 'flex-end' }}>
+                    <Button onClick={() => setOpenCreateDialog(false)}>Close</Button>
+                </DialogActions>
+            </Dialog>
+
             <Snackbar
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
                 open={openSnackbar}

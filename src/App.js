@@ -52,7 +52,7 @@ function App() {
             <Route path="/account" element={<Account />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/wallet" element={<Wallet />} />
-            <Route path="/subscriptions" element={<Subscriptions />} />
+            <Route path="/manage-subscriptions" element={<Subscriptions />} />
             <Route path="/sub/:itemid" element={<SubToContent />} />
             <Route path="/unlock/:itemid" element={<UnlockContent />} />
             <Route path="/manage-content" element={<ManageContent />} />
