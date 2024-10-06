@@ -20,7 +20,7 @@ const SubToContent = () => {
   const [message, setMessage] = useState('');
   const [thisUser, setThisUser] = useState(JSON.parse(localStorage.getItem("userdata")))
 
-  const API_URL = 'http://localhost:5000/api/unlock'; // Adjust this if your API URL is different
+  const API_URL = process.env.REACT_APP_API_SERVER_URL+'/api/unlock'; // Adjust this if your API URL is different
 
 
   useEffect(() => {

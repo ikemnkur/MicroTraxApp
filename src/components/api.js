@@ -1,7 +1,7 @@
 import axios from 'axios';
 // import { useNavigate } from 'react-router-dom';
 
-const API_URL = 'http://localhost:5000/api'; // Adjust this if your API URL is different
+const API_URL = process.env.REACT_APP_API_SERVER_URL+'/api'; // Adjust this if your API URL is different
 
 // const navigate = useNavigate();
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Typography, TextField, Button, Paper, Box, Snackbar } from '@mui/material';
 import QRCode from 'qrcode.react';
 
+
 const ShareWallet = () => {
   const [username, setUsername] = useState('');
   const [shareLink, setShareLink] = useState('');

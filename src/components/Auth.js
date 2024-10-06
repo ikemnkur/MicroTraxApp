@@ -23,6 +23,13 @@ const Auth = ({ isLogin }) => {
 
   const navigate = useNavigate();
 
+  var x = ( process.env.REACT_APP_API_SERVER_URL  === undefined) ? "http://localhost:5000" : process.env.REACT_APP_API_SERVER_URL;
+  
+  const API_URL = x
+ 
+  
+
+  console.log(API_URL)
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,7 +37,10 @@ const Auth = ({ isLogin }) => {
       const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
       const payload = isLogin ? { email, password } : { username, email, password };
       
-      const response = await axios.post(`http://localhost:5000${endpoint}`, payload);
+      const link = API_URL + `${endpoint}`
+      console.log("link: "+ API_URL)
+
+      const response = await axios.post(link, payload);
       
       localStorage.setItem('token', response.data.token);
       // Store user info or update global state here

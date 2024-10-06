@@ -26,6 +26,7 @@ import AddToWallet from './components/AddToWallet';
 import YourStuff from './components/YourStuff';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
+import AdminDashboard from './components/AdminDashboard';
 // import Subscriptions from './components/Subscriptions';
 
 
@@ -59,8 +60,9 @@ function App() {
             <Route path="/reload-wallet" element={<AddToWallet />} />
             <Route path="/your-stuff" element={<YourStuff />} />
             <Route path="/login" element={<Auth isLogin={true} />} />
-            <Route path="/register" element={<Auth isLogin={false} />} />
+            <Route path="/register" element={<Auth isLogin={ false} />} />
             <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="/Admin" element={<AdminDashboard />} />
           </Routes>
         </Layout>
       </Router>

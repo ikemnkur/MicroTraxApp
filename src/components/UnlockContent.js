@@ -20,7 +20,7 @@ const UnlockContent = () => {
   const [message, setMessage] = useState('');
   const [thisUser, setThisUser] = useState(JSON.parse(localStorage.getItem("userdata")))
 
-  const API_URL = 'http://localhost:5000/api/unlock'; // Adjust this if your API URL is different
+  const API_URL = process.env.REACT_APP_API_SERVER_URL+'/api/unlock'; // Adjust this if your API URL is different
 
 
   useEffect(() => {
@@ -42,7 +42,8 @@ const UnlockContent = () => {
     const handleBeforeUnload = (e) => {
       if (unlocked) {
         e.preventDefault();
-        e.returnValue = 'This is a pay-per-view site. If you leave, you\'ll need to pay again to view this content.';
+        // e.returnValue = 'This is a pay-per-view site. If you leave, you\'ll need to pay again to view this content.';
+        e.returnValue = 'Go to the unlocked content section in the your Your Stuff Tab';
       }
     };
 
