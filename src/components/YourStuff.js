@@ -60,23 +60,8 @@ const YourStuff = () => {
   );
 
   useEffect(() => {
-    const loadWalletData = async () => {
-      try {
-        setIsLoading(true);
-        const data = await fetchWalletData();
-        setWalletData(data);
-      } catch (err) {
-        console.error('Error fetching wallet data:', err);
-        setError('Failed to load wallet data. Please try again.');
-        // if (error.response?.status === 403) {
-        // Unauthorized, token might be expired
-        setTimeout(() => navigate('/'), 1000);
-        // }
-      } finally {
-        setIsLoading(false);
-      }
-    };
 
+    loadUserContent()
     loadWalletData();
   }, []);
 
@@ -112,6 +97,25 @@ const YourStuff = () => {
       setSnackbarMessage('Failed to fetch user content');
       setOpenSnackbar(true);
     }
+  };
+
+  const loadWalletData = async () => {
+    try {
+      setIsLoading(true);
+      const data = await fetchWalletData();
+      setWalletData(data);
+    } catch (err) {
+      console.error('Error fetching wallet data:', err);
+      setError('Failed to load wallet data. Please try again.');
+      // if (error.response?.status === 403) {
+      // Unauthorized, token might be expired
+      setTimeout(() => navigate('/'), 1000);
+      // }
+    } finally {
+      setIsLoading(false);
+    }
+
+
   };
 
   const handleDelete = async (contentId) => {
@@ -197,14 +201,54 @@ const YourStuff = () => {
     <Box>
       <Typography variant="h4" gutterBottom>Your Stuff</Typography>
       <Paper sx={{ p: 2, mb: 2 }}>
-        <Typography variant="h6" gutterBottom>Current Balance: ${walletData?.balance}</Typography>
-        <Typography variant="body1" gutterBottom>Account Tier: {walletData?.accountTier}</Typography>
-        <Typography variant="body1" gutterBottom>Daily Transaction Limit: ${walletData?.dailyTransactionLimit}</Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 2 }}>
+          <Typography variant="h6" gutterBottom>Current Balance: ${walletData?.balance}</Typography>
+          <Typography variant="body1" gutterBottom>Account Tier: {walletData?.accountTier}</Typography>
+          <Typography variant="body1" gutterBottom>Daily Transaction Limit: ${walletData?.dailyTransactionLimit}</Typography>
+        </Box>
         <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 2 }}>
           {/* <Typography variant="h4" gutterBottom>My Unlocked Content</Typography> */}
-          <List style={{ gap: "3px" }}>
+          {/* <List style={{ gap: "3px" }}> */}
+          {/* <Typography variant="h4" gutterBottom>My Unlocked Content</Typography> */}
+          <TableContainer component={Paper}>
             <Typography variant="h4" gutterBottom>My Unlocked Content</Typography>
-            {contentList && contentList.map((item) => (
+            <Table style={{ background: "lightGreen", borderRadius: "5px", gap: "3px", padding: "5px", margin: "2px" }}>
+              <TableHead>
+                <TableRow style={{ backgroundColor: "lightgrey", borderRadius: 10 }}>
+                  <TableCell>Title</TableCell>
+                  <TableCell>Date</TableCell>
+                  <TableCell>Type</TableCell>
+                  <TableCell>User</TableCell>
+                  <TableCell>Amount</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody style={{ backgroundColor: "cyan", borderRadius: 10 }}>
+                {contentList && contentList.map((item) => (
+                  <TableRow key={item.id} style={{ backgroundColor: "lightblue", borderRadius: 5 }}>
+                    <TableCell>{item.name}</TableCell>
+                    <TableCell>{item.date}</TableCell>
+                    <TableCell>{item.type}</TableCell>
+                    <TableCell>{item.username}</TableCell>
+                    
+                    <TableCell>${Math.round(Math.random() * 10)}</TableCell>
+                    <TableCell>
+                      <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(item.id)}>
+                        <DeleteIcon style={{ paddingRight: "5px", fontSize: 24 }} />
+                      </IconButton>
+                      <IconButton edge="end" aria-label="delete" onClick={() => handleEdit(item)}>
+                        <EditNoteIcon style={{ paddingLeft: "5px" }} />
+                      </IconButton>
+                      <IconButton edge="end" aria-label="delete" onClick={() => handleShare(item)}>
+                        <ShareIcon style={{ paddingLeft: "5px" }} />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          {/* {contentList && contentList.map((item) => (
               <>
                 <div>
                   <ListItem key={item.id} style={{ background: "lightGreen", borderRadius: "5px", gap: "3px", padding: "5px", margin: "2px" }}>
@@ -214,13 +258,14 @@ const YourStuff = () => {
                     />
 
                   </ListItem>
+
                 </div>
 
                 <br></br>
               </>
 
-            ))}
-          </List>
+            ))} */}
+          {/* </List> */}
         </Box>
         <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 2 }}>
           {/* <Typography variant="h4" gutterBottom>My Subscriptions</Typography> */}
@@ -246,13 +291,13 @@ const YourStuff = () => {
                     <TableCell>{sub.username}</TableCell>
                     <TableCell>${sub.amount.toFixed(2)}</TableCell>
                     <TableCell>
-                      <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(item.id)}>
+                      <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(sub.id)}>
                         <DeleteIcon style={{ paddingRight: "5px", fontSize: 24 }} />
                       </IconButton>
-                      <IconButton edge="end" aria-label="delete" onClick={() => handleEdit(item)}>
+                      <IconButton edge="end" aria-label="delete" onClick={() => handleEdit(sub)}>
                         <EditNoteIcon style={{ paddingLeft: "5px" }} />
                       </IconButton>
-                      <IconButton edge="end" aria-label="delete" onClick={() => handleShare(item)}>
+                      <IconButton edge="end" aria-label="delete" onClick={() => handleShare(sub)}>
                         <ShareIcon style={{ paddingLeft: "5px" }} />
                       </IconButton>
                     </TableCell>
