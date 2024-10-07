@@ -47,7 +47,7 @@ const Layout = ({ children }) => {
     { text: 'Send Money', icon: <Send />, path: '/send' },
     { text: 'Look for Users', icon: <Search />, path: '/search' },
     { text: 'Share Your Wallet', icon: <Share />, path: '/share' },
-    { text: 'Received Payments', icon: <Inbox />, path: '/received' },
+    // { text: 'Received Payments', icon: <Inbox />, path: '/received' },
     { text: 'Transaction History', icon: <History />, path: '/transactions' },
     
     

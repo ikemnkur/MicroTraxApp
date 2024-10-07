@@ -42,7 +42,7 @@ function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/transactions" element={<TransactionHistory />} />
             <Route path="/send" element={<SendMoney />} />
-            <Route path="/received" element={<ReceivedPayments />} />
+            {/* <Route path="/received" element={<ReceivedPayments />} /> */}
             <Route path="/reload" element={<ReloadWallet />} />
             <Route path="/withdraw" element={<WithdrawWallet />} />
             <Route path="/search" element={<SearchUser />} />

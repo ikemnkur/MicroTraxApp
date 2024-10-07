@@ -17,7 +17,7 @@ import { TextField, Select, Snackbar, MenuItem, Table, TableBody, TableCell, Tab
 import { Delete as DeleteIcon, EditAttributesRounded } from '@mui/icons-material';
 import EditNoteIcon from '@mui/icons-material/EditNote';
 import ShareIcon from '@mui/icons-material/Share';
-import { fetchUserContent, handleDeleteContent, handleSubmitNewContent, handleSubmitNewEdit, fetchWalletData } from './api';
+import { fetchUserContent, fetchSubscriptions, handleDeleteContent, handleSubmitNewContent, handleSubmitNewEdit, fetchWalletData } from './api';
 import QRCode from 'qrcode.react';
 import Clipboard from "./Clipboard.js";
 import { } from './api'; // You'll need to implement this function
@@ -49,6 +49,10 @@ const YourStuff = () => {
   const [action, setAction] = useState('');
   const [walletData, setWalletData] = useState(null);
   const [contentList, setContentList] = useState([]);
+  const [editing, setEditing] = useState(false);
+  const [openCreateDialog, setOpenCreateDialog] = useState(false);
+  const [openShareDialog, setOpenShareDialog] = useState(false);
+  const [subscriptionList, setSubscriptionList] = useState([]);
   const [subs, setSubs] = useState(subscriptions);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -62,6 +66,7 @@ const YourStuff = () => {
   useEffect(() => {
 
     loadUserContent()
+    loadUserSubscriptions()
     loadWalletData();
   }, []);
 
@@ -87,11 +92,29 @@ const YourStuff = () => {
     try {
       const content = await fetchUserContent();
       setContentList(content);
+      console.log("Content: "+ JSON.stringify(content))
     } catch (error) {
       console.error('Failed to fetch user content:', error);
       if (error.response?.status === 403) {
         // Unauthorized, token might be expired
-        setTimeout(() => navigate('/'), 1250);
+        setTimeout(() => navigate('/'), 250);
+      }
+      // Handle error (e.g., show error message to user)
+      setSnackbarMessage('Failed to fetch user content');
+      setOpenSnackbar(true);
+    }
+  };
+
+  const loadUserSubscriptions = async () => {
+    try {
+      const subscriptions = await fetchSubscriptions();
+      setSubscriptionList(subscriptions);
+      console.log("Subscriptions: "+ JSON.stringify(subscriptions))
+    } catch (error) {
+      console.error('Failed to fetch user content:', error);
+      if (error.response?.status === 403) {
+        // Unauthorized, token might be expired
+        setTimeout(() => navigate('/'), 250);
       }
       // Handle error (e.g., show error message to user)
       setSnackbarMessage('Failed to fetch user content');
@@ -207,9 +230,6 @@ const YourStuff = () => {
           <Typography variant="body1" gutterBottom>Daily Transaction Limit: ${walletData?.dailyTransactionLimit}</Typography>
         </Box>
         <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 2 }}>
-          {/* <Typography variant="h4" gutterBottom>My Unlocked Content</Typography> */}
-          {/* <List style={{ gap: "3px" }}> */}
-          {/* <Typography variant="h4" gutterBottom>My Unlocked Content</Typography> */}
           <TableContainer component={Paper}>
             <Typography variant="h4" gutterBottom>My Unlocked Content</Typography>
             <Table style={{ background: "lightGreen", borderRadius: "5px", gap: "3px", padding: "5px", margin: "2px" }}>
@@ -219,19 +239,19 @@ const YourStuff = () => {
                   <TableCell>Date</TableCell>
                   <TableCell>Type</TableCell>
                   <TableCell>User</TableCell>
-                  <TableCell>Amount</TableCell>
+                  <TableCell>Cost</TableCell>
                   <TableCell>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody style={{ backgroundColor: "cyan", borderRadius: 10 }}>
                 {contentList && contentList.map((item) => (
                   <TableRow key={item.id} style={{ backgroundColor: "lightblue", borderRadius: 5 }}>
-                    <TableCell>{item.name}</TableCell>
-                    <TableCell>{item.date}</TableCell>
+                    <TableCell>{item.title}</TableCell>
+                    <TableCell>{item.created_at.slice(0,10)}</TableCell>
                     <TableCell>{item.type}</TableCell>
-                    <TableCell>{item.username}</TableCell>
+                    <TableCell>{item.host_username}</TableCell>
                     
-                    <TableCell>${Math.round(Math.random() * 10)}</TableCell>
+                    <TableCell>${item.cost}</TableCell>
                     <TableCell>
                       <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(item.id)}>
                         <DeleteIcon style={{ paddingRight: "5px", fontSize: 24 }} />
@@ -248,25 +268,9 @@ const YourStuff = () => {
               </TableBody>
             </Table>
           </TableContainer>
-          {/* {contentList && contentList.map((item) => (
-              <>
-                <div>
-                  <ListItem key={item.id} style={{ background: "lightGreen", borderRadius: "5px", gap: "3px", padding: "5px", margin: "2px" }}>
-                    <ListItemText
-                      primary={item.title}
-                      secondary={`Cost: $${item.cost} | Type: ${item.type} | Item Id: ${item.reference_id}`}
-                    />
 
-                  </ListItem>
-
-                </div>
-
-                <br></br>
-              </>
-
-            ))} */}
-          {/* </List> */}
         </Box>
+        <br></br>
         <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 2 }}>
           {/* <Typography variant="h4" gutterBottom>My Subscriptions</Typography> */}
           <TableContainer component={Paper}>
