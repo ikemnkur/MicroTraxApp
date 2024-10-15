@@ -11,62 +11,63 @@ import {
   DialogContentText,
   DialogTitle,
   CircularProgress,
+  TextField,
+  Select,
+  Snackbar,
+  MenuItem,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  IconButton,
 } from '@mui/material';
-
-import { TextField, Select, Snackbar, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, List, ListItem, ListItemText, ListItemSecondaryAction, IconButton } from '@mui/material';
-import { Delete as DeleteIcon, EditAttributesRounded } from '@mui/icons-material';
-import EditNoteIcon from '@mui/icons-material/EditNote';
-import ShareIcon from '@mui/icons-material/Share';
-import { fetchUserContent, fetchSubscriptions, handleDeleteContent, handleSubmitNewContent, handleSubmitNewEdit, fetchWalletData } from './api';
-import QRCode from 'qrcode.react';
-import Clipboard from "./Clipboard.js";
-import { } from './api'; // You'll need to implement this function
+import { Delete as DeleteIcon, EditNote as EditNoteIcon, Share as ShareIcon } from '@mui/icons-material';
+import {
+  fetchUserContent,
+  fetchSubscriptions,
+  handleDeleteContent,
+  handleSubmitNewContent,
+  handleSubmitNewEdit,
+  fetchWalletData,
+} from './api';
+import Clipboard from './Clipboard.js'; // If you have a Clipboard component
+import QRCode from 'qrcode.react'; // If you use QR codes
 
 const YourStuff = () => {
-
-  // Mock data - replace with actual data fetching
-  const subscriptions = [
-    { id: 1, date: '2023-08-18', name: "YT Channel", type: 'Daily', username: 'user1', AccountID: "ACC132145936", amount: 1 },
-    { id: 2, date: '2023-08-17', name: " GameHub Sub", type: 'Monthly', username: 'user2', AccountID: "ACC132145936", amount: 2 },
-    { id: 3, date: '2023-08-17', name: "Cool Artilces.com", type: 'Weekly', username: 'user3', AccountID: "ACC132145936", amount: 4 },
-    // ... more subs
-  ];
-
-  const tiers = [
-    { id: 1, name: 'Basic', limit: 100, fee: 0 },
-    { id: 2, name: 'Standard', limit: 500, fee: 5 },
-    { id: 3, name: 'Premium', limit: 1000, fee: 10 },
-    { id: 4, name: 'Gold', limit: 5000, fee: 20 },
-    { id: 5, name: 'Platinum', limit: 10000, fee: 35 },
-    { id: 6, name: 'Diamond', limit: 50000, fee: 50 },
-    { id: 7, name: 'Ultimate', limit: 100000, fee: 75 },
-  ];
-
-
-
   const [searchTerm, setSearchTerm] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [action, setAction] = useState('');
   const [walletData, setWalletData] = useState(null);
   const [contentList, setContentList] = useState([]);
+  const [filteredContent, setFilteredContent] = useState([]);
   const [editing, setEditing] = useState(false);
-  const [openCreateDialog, setOpenCreateDialog] = useState(false);
-  const [openShareDialog, setOpenShareDialog] = useState(false);
   const [subscriptionList, setSubscriptionList] = useState([]);
-  const [subs, setSubs] = useState(subscriptions);
+  const [subs, setSubs] = useState([]);
+  const [filteredSubs, setFilteredSubs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [sortBy, setSortBy] = useState('date');
+  const [sortOrder, setSortOrder] = useState('asc');
+  const [newContent, setNewContent] = useState({
+    title: '',
+    username: '',
+    cost: 1,
+    description: '',
+    content: '',
+    type: 'url',
+    reference_id: '',
+  });
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [openSnackbar, setOpenSnackbar] = useState(false);
   const navigate = useNavigate();
 
-  const filteredSubs = subs.filter(t =>
-    t.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    t.amount.toString().includes(searchTerm)
-  );
+  const thisUser = { username: walletData?.username || 'CurrentUser' };
 
   useEffect(() => {
-
-    loadUserContent()
-    loadUserSubscriptions()
+    loadUserContent();
+    loadUserSubscriptions();
     loadWalletData();
   }, []);
 
@@ -92,14 +93,13 @@ const YourStuff = () => {
     try {
       const content = await fetchUserContent();
       setContentList(content);
-      console.log("Content: "+ JSON.stringify(content))
+      setFilteredContent(content);
+      console.log('Content: ' + JSON.stringify(content));
     } catch (error) {
       console.error('Failed to fetch user content:', error);
       if (error.response?.status === 403) {
-        // Unauthorized, token might be expired
         setTimeout(() => navigate('/'), 250);
       }
-      // Handle error (e.g., show error message to user)
       setSnackbarMessage('Failed to fetch user content');
       setOpenSnackbar(true);
     }
@@ -108,16 +108,15 @@ const YourStuff = () => {
   const loadUserSubscriptions = async () => {
     try {
       const subscriptions = await fetchSubscriptions();
-      setSubscriptionList(subscriptions);
-      console.log("Subscriptions: "+ JSON.stringify(subscriptions))
+      setSubs(subscriptions);
+      setFilteredSubs(subscriptions);
+      console.log('Subscriptions: ' + JSON.stringify(subscriptions));
     } catch (error) {
-      console.error('Failed to fetch user content:', error);
+      console.error('Failed to fetch subscriptions:', error);
       if (error.response?.status === 403) {
-        // Unauthorized, token might be expired
         setTimeout(() => navigate('/'), 250);
       }
-      // Handle error (e.g., show error message to user)
-      setSnackbarMessage('Failed to fetch user content');
+      setSnackbarMessage('Failed to fetch subscriptions');
       setOpenSnackbar(true);
     }
   };
@@ -130,24 +129,18 @@ const YourStuff = () => {
     } catch (err) {
       console.error('Error fetching wallet data:', err);
       setError('Failed to load wallet data. Please try again.');
-      // if (error.response?.status === 403) {
-      // Unauthorized, token might be expired
       setTimeout(() => navigate('/'), 1000);
-      // }
     } finally {
       setIsLoading(false);
     }
-
-
   };
 
   const handleDelete = async (contentId) => {
     try {
       await handleDeleteContent(contentId);
-      loadUserContent(); // Reload the content list after deletion
+      loadUserContent();
     } catch (error) {
       console.error('Failed to delete content:', error);
-      // Handle error (e.g., show error message to user)
       setSnackbarMessage('Failed to delete content');
       setOpenSnackbar(true);
     }
@@ -158,11 +151,10 @@ const YourStuff = () => {
     try {
       await handleSubmitNewContent(newContent);
       setNewContent({ title: '', username: thisUser.username, cost: 1, description: '', content: '', type: 'url', reference_id: '' });
-      loadUserContent(); // Reload the content list after adding new content
+      loadUserContent();
     } catch (error) {
       console.error('Failed to add content:', error);
-      // Handle error (e.g., show error message to user)
-      setSnackbarMessage('Failed to load add content');
+      setSnackbarMessage('Failed to add content');
       setOpenSnackbar(true);
     }
   };
@@ -173,44 +165,155 @@ const YourStuff = () => {
       await handleSubmitNewEdit(newContent);
       setNewContent({ title: '', username: thisUser.username, cost: 1, description: '', content: '', type: 'url', reference_id: '' });
       setEditing(false);
-      loadUserContent(); // Reload the content list after adding new content
+      loadUserContent();
     } catch (error) {
-      console.error('Failed to add content:', error);
-      // Handle error (e.g., show error message to user)
-      setSnackbarMessage('Failed to load add content');
+      console.error('Failed to edit content:', error);
+      setSnackbarMessage('Failed to edit content');
       setOpenSnackbar(true);
     }
   };
 
   const handleEdit = (item) => {
-    // e.preventDefault();
     try {
-      // await handleSubmitNewContent(newContent);
-      setEditing(true)
-      setNewContent({ title: item.title, username: thisUser.username, cost: item.cost, description: item.description, content: (item.content.content), type: item.type, reference_id: '' });
-      // loadUserContent(); // Reload the content list after adding new content
+      setEditing(true);
+      setNewContent({
+        title: item.title,
+        username: thisUser.username,
+        cost: item.cost,
+        description: item.description,
+        content: item.content.content,
+        type: item.type,
+        reference_id: '',
+      });
     } catch (error) {
       console.error('Failed to edit content:', error);
-      // Handle error (e.g., show error message to user)
       setSnackbarMessage('Failed to edit content');
       setOpenSnackbar(true);
     }
   };
 
-  const cancelEdit = (item) => {
-    // e.preventDefault();
+  const cancelEdit = () => {
     try {
-      // await handleSubmitNewContent(newContent);
-      setEditing(false)
+      setEditing(false);
       setNewContent({ title: '', username: thisUser.username, cost: 1, description: '', content: '', type: 'url', reference_id: '' });
-      // loadUserContent(); // Reload the content list after adding new content
     } catch (error) {
-      console.error('Failed to edit content:', error);
-      // Handle error (e.g., show error message to user)
-      setSnackbarMessage('Failed to edit content');
+      console.error('Failed to cancel edit:', error);
+      setSnackbarMessage('Failed to cancel edit');
       setOpenSnackbar(true);
     }
   };
+
+  const [shareLink, setShareLink] = useState('');
+  const [shareItem, setShareItem] = useState('');
+  const [openShareDialog, setOpenShareDialog] = useState(false);
+
+  const handleShare = (item, type) => {
+    // Implement sharing functionality here
+    if(type === "content"){
+      setShareLink(`https://microtrax.com/unlock/${item.id}`);
+    }
+    if(type === "subscription"){
+      setShareLink(`https://microtrax.com/subscription/${item.id}`);
+    }
+   
+    try {
+      setShareItem({ title: item.title, username: thisUser.username, cost: item.cost, description: item.description, content: (item.content.content), type: item.type, reference_id: '' });
+    } catch (error) {
+      console.error('Failed to share content:', error);
+      // Handle error (e.g., show error message to user)
+      setSnackbarMessage('Failed to generate share content');
+      setOpenSnackbar(true);
+    } 
+    console.log('Share item:', item)
+    setOpenShareDialog(true);
+  };
+
+  const searchSubscriptions = () => {
+    const filtered = subs.filter((s) => {
+      return (
+        s.host_username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        s.cost.toString().includes(searchTerm)
+      );
+    });
+    setFilteredSubs(filtered);
+  };
+
+  const handleSearchSubs = () => {
+    searchSubscriptions();
+  };
+
+  const searchContent = () => {
+    const filtered = contentList.filter((c) => {
+      return (
+        c.host_username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.cost.toString().includes(searchTerm)
+      );
+    });
+    setFilteredContent(filtered);
+  };
+
+  const handleSearchContent = () => {
+    searchContent();
+  };
+
+  const sortSubscriptions = (subscriptionsToSort) => {
+    return [...subscriptionsToSort].sort((a, b) => {
+      let aValue, bValue;
+
+      switch (sortBy) {
+        case 'date':
+          aValue = new Date(a.created_at);
+          bValue = new Date(b.created_at);
+          break;
+        case 'amount':
+          aValue = parseFloat(a.cost);
+          bValue = parseFloat(b.cost);
+          break;
+        case 'username':
+          aValue = a.host_username.toLowerCase();
+          bValue = b.host_username.toLowerCase();
+          break;
+        default:
+          aValue = a.id;
+          bValue = b.id;
+      }
+
+      if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+  };
+
+  const sortContent = (contentToSort) => {
+    return [...contentToSort].sort((a, b) => {
+      let aValue, bValue;
+
+      switch (sortBy) {
+        case 'date':
+          aValue = new Date(a.created_at);
+          bValue = new Date(b.created_at);
+          break;
+        case 'amount':
+          aValue = parseFloat(a.cost);
+          bValue = parseFloat(b.cost);
+          break;
+        case 'username':
+          aValue = a.host_username.toLowerCase();
+          bValue = b.host_username.toLowerCase();
+          break;
+        default:
+          aValue = a.id;
+          bValue = b.id;
+      }
+
+      if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+  };
+
+  const contentToDisplay = sortContent(filteredContent);
+  const subscriptionsToDisplay = sortSubscriptions(filteredSubs);
 
   if (isLoading) {
     return <CircularProgress />;
@@ -222,19 +325,55 @@ const YourStuff = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>Your Stuff</Typography>
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 2 }}>
-          <Typography variant="h6" gutterBottom>Current Balance: ${walletData?.balance}</Typography>
-          <Typography variant="body1" gutterBottom>Account Tier: {walletData?.accountTier}</Typography>
-          <Typography variant="body1" gutterBottom>Daily Transaction Limit: ${walletData?.dailyTransactionLimit}</Typography>
+     
+      <Paper sx={{ p: 2, mb: 2 }}> 
+        <Typography variant="h3" gutterBottom>
+        Your Stuff
+      </Typography>
+        <Box sx={{ display: 'block', justifyContent: 'space-around', mt: 2 , padding: "5px"}}>
+          <Typography variant="h6" gutterBottom>
+            Current Balance: ₡{walletData?.balance}
+          </Typography>
+          <Typography variant="body1" gutterBottom>
+            Account Tier: {walletData?.accountTier}
+          </Typography>
+          <Typography variant="body1" gutterBottom>
+            Daily Transaction Limit: ₡{walletData?.dailyTransactionLimit}
+          </Typography>
         </Box>
-        <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 2 }}>
+        <Box sx={{ mt: 2 }}>
           <TableContainer component={Paper}>
-            <Typography variant="h4" gutterBottom>My Unlocked Content</Typography>
-            <Table style={{ background: "lightGreen", borderRadius: "5px", gap: "3px", padding: "5px", margin: "2px" }}>
+            <Typography variant="h4" gutterBottom>
+              My Unlocked Content
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+              <TextField
+                label="Search"
+                variant="outlined"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <Button variant="contained" color="primary" onClick={handleSearchContent}>
+                Search
+              </Button>
+              <strong style={{ padding: '15px' }}>Filter:</strong>
+              <Select value={sortBy} onChange={(e) => setSortBy(e.target.value)} variant="outlined">
+                <MenuItem value="date">Date</MenuItem>
+                <MenuItem value="amount">Amount</MenuItem>
+                <MenuItem value="username">Username</MenuItem>
+              </Select>
+              <strong style={{ padding: '15px' }}>Sort:</strong>
+              <Select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} variant="outlined">
+                <MenuItem value="asc">Ascending</MenuItem>
+                <MenuItem value="desc">Descending</MenuItem>
+              </Select>
+              {/* <Button variant="contained" color="primary" onClick={() => handleOpenDialog('create')}>
+                Create New Content
+              </Button> */}
+            </Box>
+            <Table>
               <TableHead>
-                <TableRow style={{ backgroundColor: "lightgrey", borderRadius: 10 }}>
+                <TableRow style={{ backgroundColor: 'lightgrey', borderRadius: 10 }}>
                   <TableCell>Title</TableCell>
                   <TableCell>Date</TableCell>
                   <TableCell>Type</TableCell>
@@ -243,41 +382,68 @@ const YourStuff = () => {
                   <TableCell>Actions</TableCell>
                 </TableRow>
               </TableHead>
-              <TableBody style={{ backgroundColor: "cyan", borderRadius: 10 }}>
-                {contentList && contentList.map((item) => (
-                  <TableRow key={item.id} style={{ backgroundColor: "lightblue", borderRadius: 5 }}>
+              <TableBody>
+                {contentToDisplay && contentToDisplay.map((item) => (
+                  <TableRow key={item.id}>
                     <TableCell>{item.title}</TableCell>
-                    <TableCell>{item.created_at.slice(0,10)}</TableCell>
+                    <TableCell>{item.created_at.slice(0, 10)}</TableCell>
                     <TableCell>{item.type}</TableCell>
                     <TableCell>{item.host_username}</TableCell>
-                    
-                    <TableCell>${item.cost}</TableCell>
+                    <TableCell>${parseFloat(item.cost).toFixed(2)}</TableCell>
                     <TableCell>
                       <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(item.id)}>
-                        <DeleteIcon style={{ paddingRight: "5px", fontSize: 24 }} />
+                        <DeleteIcon />
                       </IconButton>
-                      <IconButton edge="end" aria-label="delete" onClick={() => handleEdit(item)}>
-                        <EditNoteIcon style={{ paddingLeft: "5px" }} />
+                      <IconButton edge="end" aria-label="edit" onClick={() => handleEdit(item)}>
+                        <EditNoteIcon />
                       </IconButton>
-                      <IconButton edge="end" aria-label="delete" onClick={() => handleShare(item)}>
-                        <ShareIcon style={{ paddingLeft: "5px" }} />
+                      <IconButton edge="end" aria-label="share" onClick={() => handleShare(item, "content")}>
+                        <ShareIcon />
                       </IconButton>
                     </TableCell>
                   </TableRow>
                 ))}
+                {contentToDisplay.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} align="center">
+                      No content found.
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </TableContainer>
-
         </Box>
-        <br></br>
-        <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 2 }}>
-          {/* <Typography variant="h4" gutterBottom>My Subscriptions</Typography> */}
+        <Box sx={{ mt: 4 }}>
           <TableContainer component={Paper}>
-            <Typography variant="h4" gutterBottom>My Subscriptions</Typography>
+            <Typography variant="h4" gutterBottom>
+              My Subscriptions
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+              <TextField
+                label="Search"
+                variant="outlined"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <Button variant="contained" color="primary" onClick={handleSearchSubs}>
+                Search
+              </Button>
+              <strong style={{ padding: '15px' }}>Filter:</strong>
+              <Select value={sortBy} onChange={(e) => setSortBy(e.target.value)} variant="outlined">
+                <MenuItem value="date">Date</MenuItem>
+                <MenuItem value="amount">Amount</MenuItem>
+                <MenuItem value="username">Username</MenuItem>
+              </Select>
+              <strong style={{ padding: '15px' }}>Sort:</strong>
+              <Select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} variant="outlined">
+                <MenuItem value="asc">Ascending</MenuItem>
+                <MenuItem value="desc">Descending</MenuItem>
+              </Select>
+            </Box>
             <Table>
               <TableHead>
-                <TableRow style={{ backgroundColor: "lightgrey", borderRadius: 10 }}>
+                <TableRow style={{ backgroundColor: 'lightgrey', borderRadius: 10 }}>
                   <TableCell>Title</TableCell>
                   <TableCell>Date</TableCell>
                   <TableCell>Type</TableCell>
@@ -286,32 +452,75 @@ const YourStuff = () => {
                   <TableCell>Action</TableCell>
                 </TableRow>
               </TableHead>
-              <TableBody style={{ backgroundColor: "cyan", borderRadius: 10 }}>
-                {filteredSubs.map((sub) => (
-                  <TableRow key={sub.id} style={{ backgroundColor: "lightblue", borderRadius: 5 }}>
-                    <TableCell>{sub.name}</TableCell>
-                    <TableCell>{sub.date}</TableCell>
+              <TableBody>
+                {subscriptionsToDisplay && subscriptionsToDisplay.map((sub) => (
+                  <TableRow key={sub.id}>
+                    <TableCell>{sub.title}</TableCell>
+                    <TableCell>{sub.created_at.slice(0, 10)}</TableCell>
                     <TableCell>{sub.type}</TableCell>
-                    <TableCell>{sub.username}</TableCell>
-                    <TableCell>${sub.amount.toFixed(2)}</TableCell>
+                    <TableCell>{sub.host_username}</TableCell>
+                    <TableCell>${parseFloat(sub.cost).toFixed(2)}</TableCell>
                     <TableCell>
                       <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(sub.id)}>
-                        <DeleteIcon style={{ paddingRight: "5px", fontSize: 24 }} />
+                        <DeleteIcon />
                       </IconButton>
-                      <IconButton edge="end" aria-label="delete" onClick={() => handleEdit(sub)}>
-                        <EditNoteIcon style={{ paddingLeft: "5px" }} />
+                      <IconButton edge="end" aria-label="edit" onClick={() => handleEdit(sub)}>
+                        <EditNoteIcon />
                       </IconButton>
-                      <IconButton edge="end" aria-label="delete" onClick={() => handleShare(sub)}>
-                        <ShareIcon style={{ paddingLeft: "5px" }} />
+                      <IconButton edge="end" aria-label="share" onClick={() => handleShare(sub, "subscription")}>
+                        <ShareIcon />
                       </IconButton>
                     </TableCell>
                   </TableRow>
                 ))}
+                {subscriptionsToDisplay.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} align="center">
+                      No subscriptions found.
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </TableContainer>
         </Box>
       </Paper>
+
+      <Dialog
+        open={openShareDialog}
+        onClose={() => setOpenShareDialog(false)}
+        PaperProps={{
+          style: {
+            width: '400px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          },
+        }}
+      >
+        <DialogTitle>Share Item</DialogTitle>
+        <DialogContent style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          width: '100%'
+        }}>
+          <DialogContentText style={{ textAlign: 'center' }}>
+            Share this:
+          </DialogContentText>
+          <Box sx={{ my: 2 }}>
+            <QRCode value={shareLink} size={256} />
+          </Box>
+
+          <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', mb: 2 }}>
+            <Clipboard Item={shareLink} />
+          </Box>
+        </DialogContent>
+        <DialogActions style={{ width: '100%', justifyContent: 'flex-end' }}>
+          <Button onClick={() => setOpenShareDialog(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
       <Dialog open={openDialog} onClose={handleCloseDialog}>
         <DialogTitle>{action === 'reload' ? 'Reload Wallet' : 'Withdraw Funds'}</DialogTitle>
         <DialogContent>
@@ -326,6 +535,13 @@ const YourStuff = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      {/* Snackbar for messages */}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={6000}
+        onClose={() => setOpenSnackbar(false)}
+        message={snackbarMessage}
+      />
     </Box>
   );
 };

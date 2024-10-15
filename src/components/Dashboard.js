@@ -50,7 +50,7 @@ const Dashboard = () => {
         setOpenSnackbar(true);
         if (error.response?.status === 401) {
           // Unauthorized, token might be expired
-          setTimeout(() => navigate('/login'), 1500);
+          setTimeout(() => navigate('/login'), 500);
         }
       }
     };
@@ -68,7 +68,7 @@ const Dashboard = () => {
         setTimeout(() => {
           navigate("/login");
           setOpenSnackbar(true);
-        }, 1500)
+        }, 500)
       } finally {
         setIsLoading(false);
       }
@@ -98,7 +98,7 @@ const Dashboard = () => {
             </Typography>
             <Typography variant="h4">
               {/* ${dashboardData?.balance?.toFixed(2) ?? 'N/A'} */}
-              ${dashboardData?.balance ?? 'N/A'}
+              ₡{dashboardData?.balance ?? 'N/A'}
             </Typography>
           </Paper>
         </Grid>
@@ -109,6 +109,46 @@ const Dashboard = () => {
             </Typography>
             <Typography variant="h4">
               Tier {dashboardData?.accountTier ?? 'N/A'}
+            </Typography>
+          </Paper>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h6" gutterBottom>
+              Transactions Limits
+            </Typography>
+            <Typography>
+              Times Sent: {dashboardData?.sentTransactions ?? 0} / {dashboardData?.dailyLimit ?? 'N/A'}
+              {/* <Typography>
+                Times: {dashboardData?.sentTransactions ?? 0} / {dashboardData?.dailyLimit ?? 'N/A'}
+              </Typography> */}
+            </Typography>
+            <Typography>
+              Times Received: {dashboardData?.receivedTransactions ?? 0} / {dashboardData?.dailyLimit ?? 'N/A'}
+              {/* <Typography>
+                Times: {dashboardData?.sentTransactions ?? 0} / {dashboardData?.dailyLimit ?? 'N/A'}
+              </Typography> */}
+            </Typography>
+
+          </Paper>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h6" gutterBottom>
+              Subscriptions
+            </Typography>
+            <Typography variant="h4">
+              Count: {dashboardData?.accountTier ?? 'N/A'}
+            </Typography>
+          </Paper>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h6" gutterBottom>
+              Unlocked Content
+            </Typography>
+            <Typography variant="h4">
+              Count: {dashboardData?.accountTier ?? 'N/A'}
             </Typography>
           </Paper>
         </Grid>
@@ -122,33 +162,17 @@ const Dashboard = () => {
             </Typography>
           </Paper>
         </Grid> */}
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Daily Transactions Limits
-            </Typography>
-            <Typography>
-              Sent Amount: {dashboardData?.sentTransactions ?? 0} / {dashboardData?.dailyLimit ?? 'N/A'}
-              {/* <Typography>
-                Times: {dashboardData?.sentTransactions ?? 0} / {dashboardData?.dailyLimit ?? 'N/A'}
-              </Typography> */}
-            </Typography>
-            <Typography>
-              Received: {dashboardData?.receivedTransactions ?? 0} / {dashboardData?.dailyLimit ?? 'N/A'}
-              {/* <Typography>
-                Times: {dashboardData?.sentTransactions ?? 0} / {dashboardData?.dailyLimit ?? 'N/A'}
-              </Typography> */}
-            </Typography>
-
-          </Paper>
-        </Grid>
+       
         <Grid item xs={12} md={4}>
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
               Recent Transactions
             </Typography>
             <Typography>
-              Sent: {dashboardData?.sentTransactions ?? 0} / {dashboardData?.dailyLimit ?? 'N/A'}
+              Sent: ₡{dashboardData?.sentTransactions ?? 0}
+            </Typography>
+            <Typography>
+              Received: ₡{dashboardData?.sentTransactions ?? 0} 
             </Typography>
 
           </Paper>

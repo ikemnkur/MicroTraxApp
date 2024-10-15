@@ -83,9 +83,9 @@ const Wallet = () => {
     <Box>
       <Typography variant="h4" gutterBottom>Wallet</Typography>
       <Paper sx={{ p: 2, mb: 2 }}>
-        <Typography variant="h6" gutterBottom>Current Balance: ${walletData?.balance}</Typography>
+        <Typography variant="h6" gutterBottom>Current Balance: ₡{walletData?.balance}</Typography>
         <Typography variant="body1" gutterBottom>Account Tier: {walletData?.accountTier}</Typography>
-        <Typography variant="body1" gutterBottom>Daily Transaction Limit: ${walletData?.dailyTransactionLimit}</Typography>
+        <Typography variant="body1" gutterBottom>Daily Transaction Limit: ₡{walletData?.dailyTransactionLimit}</Typography>
         <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 2 }}>
           <Button variant="contained" color="primary" onClick={() => handleOpenDialog('reload')}>
             Reload Wallet

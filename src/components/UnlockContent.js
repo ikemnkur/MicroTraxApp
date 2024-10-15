@@ -109,8 +109,8 @@ const UnlockContent = () => {
       <Paper style={{ backgroundColor: "lightblue", padding: "10px" }}>
         <Typography variant="h4" gutterBottom>Title: {contentData.title}</Typography>
         <Typography variant="subtitle1" gutterBottom>Description: {contentData.description}</Typography>
-        <Typography variant="body1" gutterBottom>Cost: ${contentData.cost}</Typography>
-        <Typography variant="body1" gutterBottom>Balance: ${userBalance}</Typography>
+        <Typography variant="body1" gutterBottom>Cost: ₡{contentData.cost}</Typography>
+        <Typography variant="body1" gutterBottom>Balance: ₡{userBalance}</Typography>
 
       </Paper>
 
@@ -122,7 +122,7 @@ const UnlockContent = () => {
               label="Leave a Message"
               fullWidth
               margin="normal"
-              placeholder={`${recipient} Enjoy: ${amount} !!!, from ${thisUser.username}`}
+              placeholder={`${recipient} Enjoy: ₡{amount} !!!, from ${thisUser.username}`}
               onChange={(e) => setMessage(e.target.value)}
               required
             />
@@ -148,7 +148,7 @@ const UnlockContent = () => {
         <DialogTitle>Confirm Unlock</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to unlock this content for ${contentData.cost}?
+            Are you sure you want to unlock this content for: ₡{contentData.cost}?
           </DialogContentText>
         </DialogContent>
         <DialogActions>

@@ -315,7 +315,7 @@ const AccountPage = () => {
                 >
                   {tiers.map((tier) => (
                     <MenuItem key={tier.id} value={tier.id}>
-                      {`${tier.name} - Daily Limit: $${tier.limit.toLocaleString()}, Monthly Fee: $${tier.fee}`}
+                      {`${tier.name} - Daily Limit: ₡${tier.limit.toLocaleString()}, Monthly Fee: ₡${tier.fee}`}
                     </MenuItem>
                   ))}
                 </Select>

@@ -67,7 +67,7 @@ const SendMoney = () => {
     } catch (error) {
       setUserNotFound(true)
       console.error(`Error fetching ${term} profile:`, error);
-      setSnackbarMessage(`Failed to find User: ${term}`);
+      setSnackbarMessage(`Failed to find User: ₡{term}`);
       setOpenSnackbar(true);
     }
   };
@@ -155,7 +155,7 @@ const SendMoney = () => {
             label="Leave a Message"
             fullWidth
             margin="normal"
-            placeholder={`${recipient} Enjoy: ${amount} !!!, from ${thisUser.username}`}
+            placeholder={`${recipient} Enjoy: ₡{amount} !!!, from ${thisUser.username}`}
             onChange={(e) => setMessage(e.target.value)}
             required
           />

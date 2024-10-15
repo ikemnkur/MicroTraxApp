@@ -18,13 +18,17 @@ import { lightGreen } from '@mui/material/colors';
 
 const ManageContent = () => {
     const navigate = useNavigate();
+    // const [openDialog, setOpenDialog] = useState(false);
+    const [action, setAction] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('date');
     const [sortOrder, setSortOrder] = useState('desc');
     const [openSnackbar, setOpenSnackbar] = useState(false);
-    const [contentData, setContentData] = useState(null);
-    const [snackbarMessage, setSnackbarMessage] = useState('');
+    // const [contentData, setContentData] = useState(null);
     const [contentList, setContentList] = useState([]);
+    const [filteredContentList, setFilteredContentList] = useState([]);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+
     const [editing, setEditing] = useState(false);
     const [openCreateDialog, setOpenCreateDialog] = useState(false);
     const [openShareDialog, setOpenShareDialog] = useState(false);
@@ -43,6 +47,7 @@ const ManageContent = () => {
 
     const createShareLink = (id) => {
         setShareLink(`https://microtrax.com/unlock/${id}`);
+        setShareLink(`http://localhost:3000/unlock/${id}`);
         setOpenShareDialog(true)
     }
 
@@ -54,6 +59,8 @@ const ManageContent = () => {
         try {
             const content = await fetchUserContent();
             setContentList(content);
+            setFilteredContentList(content)
+            console.log("Content: ", content)
         } catch (error) {
             console.error('Failed to fetch user content:', error);
             if (error.response?.status === 403) {
@@ -68,8 +75,8 @@ const ManageContent = () => {
 
     const handleOpenDialog = (selectedAction) => {
         setAction(selectedAction);
-        setOpenDialog(true);
-      };
+        setOpenCreateDialog(true);
+    };
 
     const handleDelete = async (contentId) => {
         try {
@@ -151,7 +158,7 @@ const ManageContent = () => {
     const handleShare = (item) => {
         // e.preventDefault();
         try {
-            createShareLink(item.id)
+            createShareLink(item.reference_id)
             setShareItem({ title: item.title, username: thisUser.username, cost: item.cost, description: item.description, content: (item.content.content), type: item.type, reference_id: '' });
         } catch (error) {
             console.error('Failed to share content:', error);
@@ -159,6 +166,22 @@ const ManageContent = () => {
             setSnackbarMessage('Failed to generate share content');
             setOpenSnackbar(true);
         }
+    };
+
+    const searchContent = () => {
+        const filtered = contentList.filter(c => {
+            return (
+                c.host_username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                c.cost.toString().includes(searchTerm)
+            );
+        });
+        console.log("FC: " + JSON.stringify(filtered))
+        setFilteredContentList(filtered);
+    };
+
+    const handleSearch = () => {
+        searchContent();
     };
 
     return (
@@ -171,6 +194,10 @@ const ManageContent = () => {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
+                <Button variant="contained" color="primary" onClick={handleSearch}>
+                    Search
+                </Button>
+                <strong style={{ padding: "15px" }}>Filter:</strong>
                 <Select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
@@ -180,6 +207,7 @@ const ManageContent = () => {
                     <MenuItem value="amount">Amount</MenuItem>
                     <MenuItem value="username">Username</MenuItem>
                 </Select>
+                <strong style={{ padding: "15px" }}>Sort:</strong>
                 <Select
                     value={sortOrder}
                     onChange={(e) => setSortOrder(e.target.value)}
@@ -188,21 +216,24 @@ const ManageContent = () => {
                     <MenuItem value="asc">Ascending</MenuItem>
                     <MenuItem value="desc">Descending</MenuItem>
                 </Select>
-                <Button variant="contained" color="primary" onClick={() => handleOpenDialog('reload')}>
-                    Create Subscription
+                <Button variant="contained" color="primary" onClick={() => handleOpenDialog('create')}>
+                    Create New Content
                 </Button>
             </Box>
 
 
             <Typography variant="h5" sx={{ mt: 4, mb: 2 }}>Your Content</Typography>
             <List style={{ gap: "3px" }}>
-                {contentList && contentList.map((item) => (
+                {filteredContentList && filteredContentList.map((item) => (
                     <>
                         <div>
                             <ListItem key={item.id} style={{ background: "lightGreen", borderRadius: "5px", gap: "3px", padding: "5px", margin: "2px" }}>
                                 <ListItemText
                                     primary={item.title}
-                                    secondary={`Cost: $${item.cost} | Type: ${item.type} | Item Id: ${item.reference_id}`}
+                                    secondary={`Cost: ₡${item.cost} | Type: ${item.type} | Item Id: ${item.reference_id}`}
+                                />
+                                <ListItemText
+                                    secondary={`Content: ${item.content}`}
                                 />
                                 <ListItemSecondaryAction style={{ gap: "10px" }}>
                                     <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(item.id)}>

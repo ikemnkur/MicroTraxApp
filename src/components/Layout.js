@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   AppBar,
@@ -31,6 +31,7 @@ import {
   BookmarkAdd,
 } from '@mui/icons-material';
 import CategoryIcon from '@mui/icons-material/Category';
+import { fetchUserProfile } from './api';
 
 
 const drawerWidth = 260;
@@ -49,12 +50,12 @@ const Layout = ({ children }) => {
     { text: 'Share Your Wallet', icon: <Share />, path: '/share' },
     // { text: 'Received Payments', icon: <Inbox />, path: '/received' },
     { text: 'Transaction History', icon: <History />, path: '/transactions' },
-    
-    
-    
-    
+
+
+
+
     // { text: 'Messages', icon: <Message />, path: '/messages' },
-   
+
     { text: 'Manage Content', icon: <LockOutlined />, path: '/manage-content' },
     { text: 'Manage Subscriptions', icon: <BookmarkAdd />, path: '/manage-subscriptions' },
     { text: 'Your Stuff', icon: <CategoryIcon />, path: '/your-stuff' },
@@ -65,7 +66,46 @@ const Layout = ({ children }) => {
 
   if (hideLayout) {
     return children;
+  } else {
+    useEffect(() => {
+      const loadDashboardData = async () => {
+        try {
+
+          const profile = await fetchUserProfile();
+
+          const updatedUserData = {
+            ...profile,
+            birthDate: profile.birthDate ? profile.birthDate.split('T')[0] : '',
+            accountTier: profile.accountTier || 1, // Ensure accountTier is set
+            encryptionKey: profile.encryptionKey || '' // Ensure encryptionKey is set
+          };
+
+          // setUserData(updatedUserData);
+          localStorage.setItem("userdata", JSON.stringify(updatedUserData));
+
+        } catch (err) {
+          console.log("Error: ", err)
+          alert('Failed to load dashboard data, Please Re-Login');
+          setTimeout(() => {
+            navigate("/login");
+            // setOpenSnackbar(true);
+          }, 500)
+        } finally {
+          // setIsLoading(false);
+        }
+      };
+
+      setTimeout(() => {
+        loadDashboardData();
+        // navigate("/login");
+        // setOpenSnackbar(true);
+      }, 250)
+      // loadDashboardData();
+    }, []);
   }
+
+
+
 
   return (
     <Box sx={{ display: 'flex' }}>

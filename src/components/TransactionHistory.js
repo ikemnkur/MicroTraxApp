@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TextField, Select, MenuItem, Box } from '@mui/material';
+import {
+  Button, Typography, Table, TableBody, TableCell, TableContainer,
+  TableHead, TableRow, Paper, TextField, Select, MenuItem, Box
+} from '@mui/material';
 import { fetchTransactionHistory } from './api';
 
 const TransactionHistory = () => {
@@ -11,30 +14,14 @@ const TransactionHistory = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Mock data - replace with actual data fetching
-  // const transactions = [
-  //   { id: 1, date: '2023-08-18', type: 'Send', username: 'user1', amount: 50 },
-  //   { id: 2, date: '2023-08-17', type: 'Receive', username: 'user2', amount: 30 },
-  //   // ... more transactions
-  // ];
-
-  let transactionHist = [];
-  let filteredTransactionHist = [];
-
   useEffect(() => {
     const loadTransactions = async () => {
       try {
         const data = await fetchTransactionHistory();
-        transactionHist = data;
-        console.log("Transaction History Data: ", data)
-        // setTransactions(...data);
-        searchTransactions();
-        
-        setTimeout(() => {
-          console.log("Transc: ", transactionHist)
-          setLoading(false);
-        }, 150)
-        
+        const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
+        setTransactions(parsedData);
+        setFilteredTransactions(parsedData);
+        setLoading(false);
       } catch (err) {
         console.error('Failed to fetch transaction history:', err);
         setError('Failed to load transaction history. Please try again later.');
@@ -45,31 +32,49 @@ const TransactionHistory = () => {
     loadTransactions();
   }, []);
 
-  const searchTransactions = async (e) => {
-    if (searchTerm) {
-      filteredTransactionHist = transactionHist.filter(t => {
-        console.log("Transaction Item: ", t)
+  const searchTransactions = () => {
+    const filtered = transactions.filter(t => {
+      return (
         t.recieving_user.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          t.amount.toString().includes(searchTerm)
-      });
-    } else {
-      filteredTransactionHist = transactionHist
-    }
-    if (searchTerm) {
-      setFilteredTransactions(filteredTransactionHist)
-    } else {
-      setFilteredTransactions(transactionHist)
-      console.log("else")
-    }
-    setTimeout(() => {
-      console.log("Filtered Transcations: ", filteredTransactionHist)
-    }, 100)
-  }
+        t.amount.toString().includes(searchTerm)
+      );
+    });
+    setFilteredTransactions(filtered);
+  };
 
-  const handleSearch = async (e) => {
+  const handleSearch = () => {
     searchTransactions();
-  }
+  };
 
+  const sortTransactions = (transactionsToSort) => {
+    return [...transactionsToSort].sort((a, b) => {
+      let aValue, bValue;
+
+      switch (sortBy) {
+        case 'date':
+          aValue = new Date(a.created_at);
+          bValue = new Date(b.created_at);
+          break;
+        case 'amount':
+          aValue = parseFloat(a.amount);
+          bValue = parseFloat(b.amount);
+          break;
+        case 'username':
+          aValue = a.recieving_user.toLowerCase();
+          bValue = b.recieving_user.toLowerCase();
+          break;
+        default:
+          aValue = a.id;
+          bValue = b.id;
+      }
+
+      if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+  };
+
+  const transactionsToDisplay = sortTransactions(filteredTransactions);
 
   return (
     <Box>
@@ -81,13 +86,10 @@ const TransactionHistory = () => {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        <Button variant="contained" color="primary" onClick={() => handleSearch()}>
+        <Button variant="contained" color="primary" onClick={handleSearch}>
           Search
         </Button>
-        <strong style={{ padding: "15px" }}>
-          Filter:
-        </strong>
-
+        <strong style={{ padding: "15px" }}>Filter:</strong>
         <Select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
@@ -97,9 +99,7 @@ const TransactionHistory = () => {
           <MenuItem value="amount">Amount</MenuItem>
           <MenuItem value="username">Username</MenuItem>
         </Select>
-        <strong style={{ padding: "15px" }}>
-          Sort:
-        </strong>
+        <strong style={{ padding: "15px" }}>Sort:</strong>
         <Select
           value={sortOrder}
           onChange={(e) => setSortOrder(e.target.value)}
@@ -109,6 +109,7 @@ const TransactionHistory = () => {
           <MenuItem value="desc">Descending</MenuItem>
         </Select>
       </Box>
+      {error && <Typography color="error">{error}</Typography>}
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
@@ -121,14 +122,7 @@ const TransactionHistory = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {/* <TableRow key={"transaction.id"}>
-              <TableCell>{"transaction.date"}</TableCell>
-              <TableCell>{"transaction.time"}</TableCell>
-              <TableCell>{"transaction.type"}</TableCell>
-              <TableCell>{"transaction.username"}</TableCell>
-              <TableCell>${"transaction.amount.toFixed(2)"}</TableCell>
-            </TableRow> */}
-            {!loading && (filteredTransactions.map((transaction) => (
+            {!loading && transactionsToDisplay.map((transaction) => (
               <TableRow key={transaction.id}>
                 <TableCell>{transaction.created_at.slice(0, 10)}</TableCell>
                 <TableCell>{transaction.created_at.slice(11, 19)}</TableCell>
@@ -136,7 +130,14 @@ const TransactionHistory = () => {
                 <TableCell>{transaction.recieving_user}</TableCell>
                 <TableCell>${transaction.amount}</TableCell>
               </TableRow>
-            )))}
+            ))}
+            {!loading && transactionsToDisplay.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={5} align="center">
+                  No transactions found.
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </TableContainer>
