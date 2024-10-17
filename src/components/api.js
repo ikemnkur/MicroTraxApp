@@ -1,7 +1,7 @@
 import axios from 'axios';
 // import { useNavigate } from 'react-router-dom';
 
-const API_URL = process.env.REACT_APP_API_SERVER_URL+'/api'; // Adjust this if your API URL is different
+const API_URL = 'http://localhost:5000/api'; // Adjust this if your API URL is different
 
 // const navigate = useNavigate();
 
@@ -175,40 +175,65 @@ export const fetchUserContent = async () => {
   }
 };
 
-export const handleDeleteContent = async (contentId) => {
-  try {
-    const response = await api.delete(`/unlock/delete-content/${contentId}`);
-    return response.data;
+export const handleDeleteContent = async (contentId, mode) => {
+  try { 
+    if (mode == "subscription") {
+      const response = await api.delete(`/sub/delete-content/${contentId}`);
+      return response.data;
+    } else {
+       const response = await api.delete(`/unlock/delete-content/${contentId}`);
+       return response.data;
+    }
+    
   } catch (error) {
     console.error('API - Error deleting content:', error);
     throw error;
   }
 };
 
-export const handleSubmitNewContent = async (newContent) => {
+export const handleSubmitNewContent = async (newContent, mode) => {
   try {
-    const response = await api.post('/unlock/add-content', newContent);
-    return response.data;
+    if (mode == "subscription") {
+      const response = await api.post('/sub/add-content', newContent);
+      return response.data;
+    } else {
+      const response = await api.post('/unlock/add-content', newContent);
+      return response.data;
+    }
+    
+    
   } catch (error) {
     console.error('API - Error adding new content:', error);
     throw error;
   }
 };
 
-export const handleSubmitNewEdit = async (editedContent) => {
+export const handleSubmitNewEdit = async (editedContent, mode) => {
   try {
-    const response = await api.post('/unlock/edit-content', editedContent);
-    return response.data;
+    if (mode == "subscription") {
+      const response = await api.post('/sub/edit-content', editedContent);
+      return response.data;
+    } else {
+      const response = await api.post('/unlock/edit-content', editedContent);
+      return response.data;
+    }
+    
   } catch (error) {
     console.error('API - Error adding new content:', error);
     throw error;
   }
 };
 
-export const confirmUnlockContent = async (contentData, message) => {
+export const confirmUnlockContent = async (contentData, message, mode) => {
   try {
-    const response = await api.post(`/unlock/unlock-content`, { contentId: contentData.id, msg : message });
-    return response.data;
+    if (mode == "subscription") { 
+      const response = await api.post(`/sub/sub-to-content`, { contentId: contentData.id, msg: message });
+      return response.data;
+    } else {
+      const response = await api.post(`/unlock/unlock-content`, { contentId: contentData.id, msg: message });
+      return response.data;
+    }
+   
   } catch (error) {
     console.error('API - Error adding new content:', error);
     throw error;
@@ -222,7 +247,7 @@ export const fetchLockedContent = async (itemId) => {
       api.get(`/unlock/unlock-content/${itemId}`),
       api.get(`/unlock/user-balance`)
     ]);
-    console.log("fetchLockedContent = "+ JSON.stringify(contentResponse.data)+ "&"+ JSON.stringify(balanceResponse.data) )
+    console.log("fetchLockedContent = " + JSON.stringify(contentResponse.data) + "&" + JSON.stringify(balanceResponse.data))
     return [contentResponse, balanceResponse];
   } catch (error) {
     console.error('API - Error fetching user content:', error);
@@ -243,7 +268,7 @@ export const fetchSubscriptions = async () => {
 
 export const confirmSubToContent = async (contentData, message) => {
   try {
-    const response = await api.post(`/sub/unlock-content`, { contentId: contentData.id, msg : message });
+    const response = await api.post(`/sub/unlock-content`, { contentId: contentData.id, msg: message });
     return response.data;
   } catch (error) {
     console.error('API - Error adding new content:', error);

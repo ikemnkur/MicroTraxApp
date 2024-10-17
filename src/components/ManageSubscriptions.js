@@ -15,29 +15,28 @@ import { fetchSubscriptions } from './api.js';
 
 const Subscriptions = () => {
 
-  // // Mock data - replace with actual data fetching
-  // const subscriptions = [
-  //   { id: 1, date: '2023-08-18', name: "YT Channel", type: 'Daily', username: 'user1', AccountID: "ACC132145936", cost: 1 },
-  //   { id: 2, date: '2023-08-17', name: " GameHub Sub", type: 'Monthly', username: 'user2', AccountID: "ACC132145936", cost: 2 },
-  //   { id: 3, date: '2023-08-17', name: "Cool Artilces.com", type: 'Weekly', username: 'user3', AccountID: "ACC132145936", cost: 4 },
-  //   // ... more subs
-  // ];
+  // Mock data - replace with actual data fetching
+  const subscriptions = [
+    { id: 1, date: '2023-08-18', name: "YT Channel", type: 'Daily', username: 'user1', AccountID: "ACC132145936", amount: 1 },
+    { id: 2, date: '2023-08-17', name: " GameHub Sub", type: 'Monthly', username: 'user2', AccountID: "ACC132145936", amount: 2 },
+    { id: 3, date: '2023-08-17', name: "Cool Artilces.com", type: 'Weekly', username: 'user3', AccountID: "ACC132145936", amount: 4 },
+    // ... more subs
+  ];
 
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('date');
   const [sortOrder, setSortOrder] = useState('desc');
-  const [subs, setSubs] = useState([]);
-  const [filteredSubs, setFilteredSubs] = useState([]);
+  const [subs, setSubs] = useState(subscriptions);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
-  // const [openShareDialog, setOpenShareDialog] = useState(false);
+  const [openShareDialog, setOpenShareDialog] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [contentList, setContentList] = useState([]);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  // const [shareLink, setShareLink] = useState('');
-  // const [shareItem, setShareItem] = useState('');
+  const [shareLink, setShareLink] = useState('');
+  const [shareItem, setShareItem] = useState('');
   const [editing, setEditing] = useState(false);
   const [creating, setCreating] = useState(false);
   const [thisUser, setThisUser] = useState(JSON.parse(localStorage.getItem("userdata")))
@@ -77,40 +76,25 @@ const Subscriptions = () => {
   // };
 
 
-  // const filteredSubs = subs.filter(t =>
-  //   t.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //   t.cost.toString().includes(searchTerm)
-  // );
-
-  const searchSubscriptions = () => {
-    const filtered = subs.filter(t => {
-      return (
-        t.host_username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        t.cost.toString().includes(searchTerm)
-      );
-    });
-    setFilteredSubs(filtered);
-  };
-
-  const handleSearch = () => {
-    searchSubscriptions();
-  };
-
-  const loadSubscriptions = async () => {
-    try {
-      const data = await fetchSubscriptions();
-      console.log("Subsc. History Data: ", data)
-      setSubs(data);
-      setFilteredSubs(data);
-      setLoading(false);
-    } catch (err) {
-      console.error('Failed to fetch Subscriptions:', err);
-      setError('Failed to load Subscriptions history. Please try again later.');
-      setLoading(false);
-    }
-  };
+  const filteredSubs = subs.filter(t =>
+    t.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    t.amount.toString().includes(searchTerm)
+  );
 
   useEffect(() => {
+    const loadSubscriptions = async () => {
+      try {
+        const data = await fetchSubscriptions();
+        console.log("Subsc. History Data: ", data)
+        setSubs(data);
+        setLoading(false);
+      } catch (err) {
+        console.error('Failed to fetch Subscriptions:', err);
+        setError('Failed to load Subscriptions history. Please try again later.');
+        setLoading(false);
+      }
+    };
+
     loadSubscriptions();
   }, []);
 
@@ -120,46 +104,38 @@ const Subscriptions = () => {
   };
 
   const handleDelete = async (contentId) => {
-
-    let text = "A you sure you want to delete this item?";
-    if (confirm(text) == true) {
-      try {
-        await handleDeleteContent(contentId);
-        loadUserContent(); // Reload the content list after deletion
-      } catch (error) {
-        console.error('Failed to delete content:', error);
-        // Handle error (e.g., show error message to user)
-        setSnackbarMessage('Failed to delete content');
-        setOpenSnackbar(true);
-      }
-    } else {
-      text = "You canceled!";
+    try {
+      await handleDeleteContent(contentId, );
+      loadUserContent(); // Reload the content list after deletion
+    } catch (error) {
+      console.error('Failed to delete content:', error);
+      // Handle error (e.g., show error message to user)
+      setSnackbarMessage('Failed to delete content');
+      setOpenSnackbar(true);
     }
-
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await handleSubmitNewContent(newContent);
+      await handleSubmitNewContent(newContent, "Content");
       setNewContent({ title: '', username: thisUser.username, cost: 1, description: '', content: '', type: 'url', reference_id: '' });
-      loadSubscriptions(); // Reload the content list after adding new content
+      loadUserContent(); // Reload the content list after adding new content
     } catch (error) {
       console.error('Failed to add content:', error);
       // Handle error (e.g., show error message to user)
       setSnackbarMessage('Failed to load add content');
       setOpenSnackbar(true);
-      setOpenDialog(false)
     }
   };
 
   const handleSubmitEdit = async (e) => {
     e.preventDefault();
     try {
-      await handleSubmitNewEdit(newContent);
+      await handleSubmitNewEdit(newContent, "subscription");
       setNewContent({ title: '', username: thisUser.username, cost: 1, description: '', content: '', type: 'url', reference_id: '' });
       setEditing(false);
-      loadSubscriptions(); // Reload the content list after adding new content
+      loadUserContent(); // Reload the content list after adding new content
     } catch (error) {
       console.error('Failed to add content:', error);
       // Handle error (e.g., show error message to user)
@@ -202,33 +178,6 @@ const Subscriptions = () => {
     setOpenDialog(true);
   };
 
-
-  const [shareLink, setShareLink] = useState('');
-  const [shareItem, setShareItem] = useState('');
-  const [openShareDialog, setOpenShareDialog] = useState(false);
-
-  const handleShare = (item, type) => {
-    // Implement sharing functionality here
-    if (type === "content") {
-      setShareLink(`https://microtrax.com/unlock/${item.id}`);
-    }
-    if (type === "subscription") {
-      setShareLink(`https://microtrax.com/subscription/${item.id}`);
-    }
-
-    try {
-      setShareItem({ title: item.title, username: thisUser.username, cost: item.cost, description: item.description, content: (item.content.content), type: item.type, reference_id: '' });
-    } catch (error) {
-      console.error('Failed to share content:', error);
-      // Handle error (e.g., show error message to user)
-      setSnackbarMessage('Failed to generate share content');
-      setOpenSnackbar(true);
-    }
-    console.log('Share item:', item)
-    setOpenShareDialog(true);
-  };
-
-
   return (
     <Box>
       <Typography variant="h4" gutterBottom>Manage Subcsription Services</Typography>
@@ -239,20 +188,15 @@ const Subscriptions = () => {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        <Button variant="contained" color="primary" onClick={handleSearch}>
-          Search
-        </Button>
-        <strong style={{ padding: "15px" }}>Filter:</strong>
         <Select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
           variant="outlined"
         >
           <MenuItem value="date">Date</MenuItem>
-          <MenuItem value="cost">cost</MenuItem>
+          <MenuItem value="amount">Amount</MenuItem>
           <MenuItem value="username">Username</MenuItem>
         </Select>
-        <strong style={{ padding: "15px" }}>Sort:</strong>
         <Select
           value={sortOrder}
           onChange={(e) => setSortOrder(e.target.value)}
@@ -270,30 +214,29 @@ const Subscriptions = () => {
           <TableHead>
             <TableRow>
               <TableCell>Title</TableCell>
-              <TableCell>Create Date</TableCell>
-              <TableCell>Create Time</TableCell>
+              <TableCell>Date</TableCell>
               <TableCell>Type</TableCell>
-              <TableCell>Price</TableCell>
+              <TableCell>User</TableCell>
+              <TableCell>Amount</TableCell>
               <TableCell>Action</TableCell>
             </TableRow>
           </TableHead>
           <TableBody style={{ backgroundColor: "cyan", borderRadius: 10 }}>
-            {!loading && filteredSubs.map((sub) => (
+            {filteredSubs.map((sub) => (
               <TableRow key={sub.id} style={{ backgroundColor: "lightblue", borderRadius: 5 }}>
-                <TableCell>{sub.title}</TableCell>
-                <TableCell>{sub.end_date.slice(0, 10)}</TableCell>
-                <TableCell>{sub.end_date.slice(11, 19)}</TableCell>
+                <TableCell>{sub.name}</TableCell>
+                <TableCell>{sub.date}</TableCell>
                 <TableCell>{sub.type}</TableCell>
-
-                <TableCell>₡{sub.cost}</TableCell>
+                <TableCell>{sub.username}</TableCell>
+                <TableCell>${sub.amount.toFixed(2)}</TableCell>
                 <TableCell>
-                  <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(item.id)}>
+                  <IconButton edge="end" aria-label="Delete" onClick={() => handleDelete(item.id)}>
                     <DeleteIcon style={{ paddingRight: "5px", fontSize: 24 }} />
                   </IconButton>
-                  <IconButton edge="end" aria-label="delete" onClick={() => handleEdit(item)}>
+                  <IconButton edge="end" aria-label="Edit" onClick={() => handleEdit(item)}>
                     <EditNoteIcon style={{ paddingLeft: "5px" }} />
                   </IconButton>
-                  <IconButton edge="end" aria-label="delete" onClick={() => handleShare(item)}>
+                  <IconButton edge="end" aria-label="Share" onClick={() => handleShare(item)}>
                     <ShareIcon style={{ paddingLeft: "5px" }} />
                   </IconButton>
                 </TableCell>
@@ -347,15 +290,13 @@ const Subscriptions = () => {
                 margin="normal"
                 required
               />
-              <Select
+               <Select
                 label="Subscription Type"
-                name="type1"
+                name="type"
                 value={newContent.type}
                 onChange={handleInputChange}
                 fullWidth
                 margin="normal"
-              // multiline
-              // rows={2}
               >
                 <MenuItem value="Daily">Daily</MenuItem>
                 <MenuItem value="Weekly">Weekly</MenuItem>
@@ -386,7 +327,7 @@ const Subscriptions = () => {
               />
               <Select
                 label="Media Type"
-                name="type2"
+                name="type"
                 value={newContent.type}
                 onChange={handleInputChange}
                 fullWidth
