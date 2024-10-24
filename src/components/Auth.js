@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { Link as RouterLink } from 'react-router-dom';
+require('dotenv').config();
 
 const Auth = ({ isLogin }) => {
   const [email, setEmail] = useState('');

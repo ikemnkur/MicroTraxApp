@@ -26,17 +26,19 @@ import {
 import { Delete as DeleteIcon, EditNote as EditNoteIcon, Share as ShareIcon } from '@mui/icons-material';
 import {
   fetchUserContent,
-  fetchSubscriptions,
-  handleDeleteContent,
-  handleSubmitNewContent,
-  handleSubmitNewEdit,
+  fetchUserSubscriptions,
+  handleDeleteUserContent,
+  // handleSubmitNewContent_YourStuff,
+  // handleSubmitNewEdit_YourStuff,
   fetchWalletData,
 } from './api';
 import Clipboard from './Clipboard.js'; // If you have a Clipboard component
 import QRCode from 'qrcode.react'; // If you use QR codes
 
 const YourStuff = () => {
-  const [searchTerm, setSearchTerm] = useState('');
+  
+  const [searchTermContent, setSearchTermContent] = useState('');
+  const [searchTermSub, setSearchTermSub] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [action, setAction] = useState('');
   const [walletData, setWalletData] = useState(null);
@@ -107,7 +109,7 @@ const YourStuff = () => {
 
   const loadUserSubscriptions = async () => {
     try {
-      const subscriptions = await fetchSubscriptions();
+      const subscriptions = await fetchUserSubscriptions();
       setSubs(subscriptions);
       setFilteredSubs(subscriptions);
       console.log('Subscriptions: ' + JSON.stringify(subscriptions));
@@ -137,7 +139,7 @@ const YourStuff = () => {
 
   const handleDelete = async (contentId) => {
     try {
-      await handleDeleteContent(contentId);
+      await handleDeleteUserContent(contentId);
       loadUserContent();
     } catch (error) {
       console.error('Failed to delete content:', error);
@@ -146,62 +148,62 @@ const YourStuff = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await handleSubmitNewContent(newContent);
-      setNewContent({ title: '', username: thisUser.username, cost: 1, description: '', content: '', type: 'url', reference_id: '' });
-      loadUserContent();
-    } catch (error) {
-      console.error('Failed to add content:', error);
-      setSnackbarMessage('Failed to add content');
-      setOpenSnackbar(true);
-    }
-  };
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   try {
+  //     await handleSubmitNewContent_YourStuff(newContent);
+  //     setNewContent({ title: '', username: thisUser.username, cost: 1, description: '', content: '', type: 'url', reference_id: '' });
+  //     loadUserContent();
+  //   } catch (error) {
+  //     console.error('Failed to add content:', error);
+  //     setSnackbarMessage('Failed to add content');
+  //     setOpenSnackbar(true);
+  //   }
+  // };
 
-  const handleSubmitEdit = async (e) => {
-    e.preventDefault();
-    try {
-      await handleSubmitNewEdit(newContent);
-      setNewContent({ title: '', username: thisUser.username, cost: 1, description: '', content: '', type: 'url', reference_id: '' });
-      setEditing(false);
-      loadUserContent();
-    } catch (error) {
-      console.error('Failed to edit content:', error);
-      setSnackbarMessage('Failed to edit content');
-      setOpenSnackbar(true);
-    }
-  };
+  // const handleSubmitEdit = async (e) => {
+  //   e.preventDefault();
+  //   try {
+  //     await handleSubmitNewEdit_YourStuff(newContent);
+  //     setNewContent({ title: '', username: thisUser.username, cost: 1, description: '', content: '', type: 'url', reference_id: '' });
+  //     setEditing(false);
+  //     loadUserContent();
+  //   } catch (error) {
+  //     console.error('Failed to edit content:', error);
+  //     setSnackbarMessage('Failed to edit content');
+  //     setOpenSnackbar(true);
+  //   }
+  // };
 
-  const handleEdit = (item) => {
-    try {
-      setEditing(true);
-      setNewContent({
-        title: item.title,
-        username: thisUser.username,
-        cost: item.cost,
-        description: item.description,
-        content: item.content.content,
-        type: item.type,
-        reference_id: '',
-      });
-    } catch (error) {
-      console.error('Failed to edit content:', error);
-      setSnackbarMessage('Failed to edit content');
-      setOpenSnackbar(true);
-    }
-  };
+  // const handleEdit = (item) => {
+  //   try {
+  //     setEditing(true);
+  //     setNewContent({
+  //       title: item.title,
+  //       username: thisUser.username,
+  //       cost: item.cost,
+  //       description: item.description,
+  //       content: item.content.content,
+  //       type: item.type,
+  //       reference_id: '',
+  //     });
+  //   } catch (error) {
+  //     console.error('Failed to edit content:', error);
+  //     setSnackbarMessage('Failed to edit content');
+  //     setOpenSnackbar(true);
+  //   }
+  // };
 
-  const cancelEdit = () => {
-    try {
-      setEditing(false);
-      setNewContent({ title: '', username: thisUser.username, cost: 1, description: '', content: '', type: 'url', reference_id: '' });
-    } catch (error) {
-      console.error('Failed to cancel edit:', error);
-      setSnackbarMessage('Failed to cancel edit');
-      setOpenSnackbar(true);
-    }
-  };
+  // const cancelEdit = () => {
+  //   try {
+  //     setEditing(false);
+  //     setNewContent({ title: '', username: thisUser.username, cost: 1, description: '', content: '', type: 'url', reference_id: '' });
+  //   } catch (error) {
+  //     console.error('Failed to cancel edit:', error);
+  //     setSnackbarMessage('Failed to cancel edit');
+  //     setOpenSnackbar(true);
+  //   }
+  // };
 
   const [shareLink, setShareLink] = useState('');
   const [shareItem, setShareItem] = useState('');
@@ -231,8 +233,9 @@ const YourStuff = () => {
   const searchSubscriptions = () => {
     const filtered = subs.filter((s) => {
       return (
-        s.host_username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.cost.toString().includes(searchTerm)
+        s.host_username.toLowerCase().includes(searchTermSub.toLowerCase()) ||
+        s.cost.toString().includes(searchTermSub) ||
+        S.title.toLowerCase().includes(searchTermSub.toLowerCase()) 
       );
     });
     setFilteredSubs(filtered);
@@ -245,8 +248,9 @@ const YourStuff = () => {
   const searchContent = () => {
     const filtered = contentList.filter((c) => {
       return (
-        c.host_username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.cost.toString().includes(searchTerm)
+        c.host_username.toLowerCase().includes(searchTermContent.toLowerCase()) ||
+        c.cost.toString().includes(searchTermContent) ||
+        c.title.toLowerCase().includes(searchTermContent.toLowerCase()) 
       );
     });
     setFilteredContent(filtered);
@@ -350,8 +354,8 @@ const YourStuff = () => {
               <TextField
                 label="Search"
                 variant="outlined"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={searchTermContent}
+                onChange={(e) => setSearchTermContent(e.target.value)}
               />
               <Button variant="contained" color="primary" onClick={handleSearchContent}>
                 Search
@@ -394,9 +398,9 @@ const YourStuff = () => {
                       <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(item.id)}>
                         <DeleteIcon />
                       </IconButton>
-                      <IconButton edge="end" aria-label="edit" onClick={() => handleEdit(item)}>
+                      {/* <IconButton edge="end" aria-label="edit" onClick={() => handleEdit(item)}>
                         <EditNoteIcon />
-                      </IconButton>
+                      </IconButton> */}
                       <IconButton edge="end" aria-label="share" onClick={() => handleShare(item, "content")}>
                         <ShareIcon />
                       </IconButton>
@@ -423,8 +427,8 @@ const YourStuff = () => {
               <TextField
                 label="Search"
                 variant="outlined"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={searchTermSub}
+                onChange={(e) => setSearchTermSub(e.target.value)}
               />
               <Button variant="contained" color="primary" onClick={handleSearchSubs}>
                 Search
@@ -464,9 +468,9 @@ const YourStuff = () => {
                       <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(sub.id)}>
                         <DeleteIcon />
                       </IconButton>
-                      <IconButton edge="end" aria-label="edit" onClick={() => handleEdit(sub)}>
+                      {/* <IconButton edge="end" aria-label="edit" onClick={() => handleEdit(sub)}>
                         <EditNoteIcon />
-                      </IconButton>
+                      </IconButton> */}
                       <IconButton edge="end" aria-label="share" onClick={() => handleShare(sub, "subscription")}>
                         <ShareIcon />
                       </IconButton>

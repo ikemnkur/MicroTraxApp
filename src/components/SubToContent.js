@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Typography, TextField, Button, Box, CircularProgress, Snackbar, Paper, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Input } from '@mui/material';
-import { fetchLockedContent, confirmSubToContent, } from './api';
+import { fetchLockedContent, confirmUserSubToContent, } from './api';
 import axios from 'axios';
 import { Margin } from '@mui/icons-material';
+require('dotenv').config();
 
 const SubToContent = () => {
   const { itemid } = useParams();
@@ -65,7 +66,7 @@ const SubToContent = () => {
 
   const confirmUnlock = async () => {
     try {
-      await confirmSubToContent(contentData, message);
+      await confirmUserSubToContent(contentData, message);
       setUnlocked(true);
       setUserBalance(prevBalance => prevBalance - contentData.cost);
       setSnackbarMessage('Content unlocked successfully!');

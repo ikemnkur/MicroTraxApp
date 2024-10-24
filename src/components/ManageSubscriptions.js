@@ -7,11 +7,11 @@ import {
 import { Delete as DeleteIcon, EditAttributesRounded } from '@mui/icons-material';
 import EditNoteIcon from '@mui/icons-material/EditNote';
 import ShareIcon from '@mui/icons-material/Share';
-import { fetchUserContent, handleDeleteContent, handleSubmitNewContent, handleSubmitNewEdit } from './api.js';
+import { fetchUserContent, handleDeletePublicSub, handleSubmitNewPublicContent } from './api.js';
 import QRCode from 'qrcode.react';
 import Clipboard from "./Clipboard.js";
 
-import { fetchSubscriptions } from './api.js';
+import { fetchUserSubscriptions } from './api.js';
 
 const Subscriptions = () => {
 
@@ -98,7 +98,7 @@ const Subscriptions = () => {
 
   const loadSubscriptions = async () => {
     try {
-      const data = await fetchSubscriptions();
+      const data = await fetchUserSubscriptions();
       console.log("Subsc. History Data: ", data)
       setSubs(data);
       setFilteredSubs(data);
@@ -124,7 +124,7 @@ const Subscriptions = () => {
     let text = "A you sure you want to delete this item?";
     if (confirm(text) == true) {
       try {
-        await handleDeleteContent(contentId);
+        await handleDeleteUserContent(contentId);
         loadUserContent(); // Reload the content list after deletion
       } catch (error) {
         console.error('Failed to delete content:', error);
@@ -141,7 +141,7 @@ const Subscriptions = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await handleSubmitNewContent(newContent);
+      await handleSubmitNewPublicContent(newContent);
       setNewContent({ title: '', username: thisUser.username, cost: 1, description: '', content: '', type: 'url', reference_id: '' });
       loadSubscriptions(); // Reload the content list after adding new content
     } catch (error) {

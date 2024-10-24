@@ -10,7 +10,7 @@ import {
 import { Delete as DeleteIcon, EditAttributesRounded } from '@mui/icons-material';
 import EditNoteIcon from '@mui/icons-material/EditNote';
 import ShareIcon from '@mui/icons-material/Share';
-import { fetchUserContent, handleDeleteContent, handleSubmitNewContent, handleSubmitNewEdit } from './api';
+import { fetchUserContent,  handleDeletePublicContent,  handleSubmitNewPublicContent,  handleSubmitPublicContentEdit } from './api';
 import QRCode from 'qrcode.react';
 import Clipboard from "../components/Clipboard.js";
 import axios from 'axios';
@@ -80,7 +80,7 @@ const ManageContent = () => {
 
     const handleDelete = async (contentId) => {
         try {
-            await handleDeleteContent(contentId);
+            await  handleDeletePublicContent(contentId);
             loadUserContent(); // Reload the content list after deletion
         } catch (error) {
             console.error('Failed to delete content:', error);
@@ -93,7 +93,7 @@ const ManageContent = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await handleSubmitNewContent(newContent);
+            await  handleSubmitNewPublicContent(newContent);
             setNewContent({ title: '', username: thisUser.username, cost: 1, description: '', content: '', type: 'url', reference_id: '' });
             loadUserContent(); // Reload the content list after adding new content
         } catch (error) {
@@ -107,7 +107,7 @@ const ManageContent = () => {
     const handleSubmitEdit = async (e) => {
         e.preventDefault();
         try {
-            await handleSubmitNewEdit(newContent);
+            await  handleSubmitPublicContentEdit(newContent);
             setNewContent({ title: '', username: thisUser.username, cost: 1, description: '', content: '', type: 'url', reference_id: '' });
             setEditing(false);
             loadUserContent(); // Reload the content list after adding new content
@@ -122,7 +122,7 @@ const ManageContent = () => {
     const handleEdit = (item) => {
         // e.preventDefault();
         try {
-            // await handleSubmitNewContent(newContent);
+            // await  handleSubmitNewPublicContent(newContent);
             setEditing(true)
             setNewContent({ title: item.title, username: thisUser.username, cost: item.cost, description: item.description, content: (item.content.content), type: item.type, reference_id: '' });
             // loadUserContent(); // Reload the content list after adding new content
@@ -137,7 +137,7 @@ const ManageContent = () => {
     const cancelEdit = (item) => {
         // e.preventDefault();
         try {
-            // await handleSubmitNewContent(newContent);
+            // await  handleSubmitNewPublicContent(newContent);
             setEditing(false)
             setNewContent({ title: '', username: thisUser.username, cost: 1, description: '', content: '', type: 'url', reference_id: '' });
             // loadUserContent(); // Reload the content list after adding new content
