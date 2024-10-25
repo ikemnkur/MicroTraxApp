@@ -129,6 +129,7 @@ const AccountPage = () => {
   const handleProfilePictureChange = async (event) => {
     const file = event.target.files[0];
     if (file) {
+      console.log("image vaild")
       // Preview the image
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -141,11 +142,19 @@ const AccountPage = () => {
       reader.readAsDataURL(file);
 
       // Prepare form data
-      const formData = new FormData();
-      formData.append('profilePicture', file);
-      formData.append('username', userData.username);
-      formData.append('id', userData.id);
-      formData.append('date', new Date().toISOString());
+      // const formData = new FormData();
+      // formData.append('profilePicture', file);
+      // formData.append('username', userData.username);
+      // formData.append('id', userData.id);
+      // formData.append('date', ;
+      console.log(file)
+      let formData = {
+        profilePicture: JSON.stringify(file),
+        file: event.target.files[0],
+        username: userData.username,
+        id: userData.id,
+        date: new Date().toISOString(),
+      }
 
       try {
         const response = await fetchUploadProfilePicture(formData);
