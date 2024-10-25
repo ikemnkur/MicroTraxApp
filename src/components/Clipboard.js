@@ -1,3 +1,4 @@
+require('dotenv').config();
 import React, { useState } from "react";
 
 const Clipboard = ({ Item }) => {

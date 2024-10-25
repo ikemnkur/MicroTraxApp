@@ -1,12 +1,12 @@
 // Move these components to the top level of your file or into separate files
-
+require('dotenv').config();
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
 // import { stripePromise } from './path-to-stripe-promise'; // Ensure you import your stripePromise correctly
 import { fetchUserProfile, walletReloadAction } from "./api";
 import { loadStripe } from '@stripe/stripe-js';
-require('dotenv').config();
+
 
 const stripePromise = loadStripe('pk_test_51OPgiOEViYxfJNd2ZA0pYlZ3MKdsIHDEhE9vzihdcj6CUW99q7ULSgR44nWfNVwhKvEHJ1JQCaf1NcXGhTROu8Dh008XrwD0Hv');
 

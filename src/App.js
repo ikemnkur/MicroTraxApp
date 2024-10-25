@@ -40,16 +40,14 @@ import { fetchUserProfile, walletReloadAction, walletWithdrawAction } from "./co
 
 import { useParams } from 'react-router-dom';
 
+require('dotenv').config();
+const { v4: uuidv4 } = require('uuid');
 
-
-const stripePromise = loadStripe('pk_test_51OPgiOEViYxfJNd2ZA0pYlZ3MKdsIHDEhE9vzihdcj6CUW99q7ULSgR44nWfNVwhKvEHJ1JQCaf1NcXGhTROu8Dh008XrwD0Hv');
 // Make sure to call `loadStripe` outside of a component’s render to avoid
 // recreating the `Stripe` object on every render.
 // This is your test secret API key.
 // const stripePromise = loadStripe("sk_test_51OPgiOEViYxfJNd2Mp4NrKUMHAqfoRBAtj5dKCxD1VWbHNSYZEIERtq6ZaRCUttKEyY9kvDWxVM4I4QcoK2Nikv600rOQZmvTh");
-
-const { v4: uuidv4 } = require('uuid');
-require('dotenv').config();
+const stripePromise = loadStripe('pk_test_51OPgiOEViYxfJNd2ZA0pYlZ3MKdsIHDEhE9vzihdcj6CUW99q7ULSgR44nWfNVwhKvEHJ1JQCaf1NcXGhTROu8Dh008XrwD0Hv');
 
 function App() {
 

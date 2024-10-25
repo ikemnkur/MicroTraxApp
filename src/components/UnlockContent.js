@@ -1,10 +1,11 @@
+require('dotenv').config();
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Typography, TextField, Button, Box, CircularProgress, Snackbar, Paper, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Input } from '@mui/material';
 import { fetchLockedContent, confirmUnlockContent, } from './api';
 import axios from 'axios';
 import { Margin } from '@mui/icons-material';
-require('dotenv').config();
+
 
 const UnlockContent = () => {
   const { itemid } = useParams();

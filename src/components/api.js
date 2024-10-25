@@ -154,11 +154,21 @@ export const updateFavoriteStatus = async (userId, isFavorite) => {
 };
 
 export const submitUserReport = async (userId, reportMessage) => {
-  try {
+ try {
     const response = await api.post(`/user/${userId}/report`, { reportMessage });
     return response.data;
   } catch (error) {
     console.error('API - Error submitting user report:', error);
+    throw error;
+  }
+};
+
+export const fetchUploadProfilePicture = async (formData) => {
+   try {
+    const response = await api.post(`/upload-profile-picture`, { formData });
+    return response.data;
+  } catch (error) {
+    console.error('API - Error submitting user profile image:', error);
     throw error;
   }
 };
@@ -316,6 +326,8 @@ export const handleDeleteUserSubscription = async (contentId) => {
     throw error;
   }
 };
+
+
 
 export default api;
 

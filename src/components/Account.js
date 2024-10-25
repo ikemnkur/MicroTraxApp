@@ -1,3 +1,4 @@
+require('dotenv').config();
 import React, { useState, useEffect } from 'react';
 import {
   Typography,
@@ -21,14 +22,13 @@ import {
 } from '@mui/material';
 import { PhotoCamera } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { fetchUserProfile, updateUserProfile } from './api';
-// // In Dashboard.js, AccountPage.js, and other protected components
+import { fetchUserProfile, updateUserProfile, fetchWalletData, fetchUploadProfilePicture} from './api';
 import { useAuthCheck } from './useAuthCheck';
-
 
 const AccountPage = () => {
   useAuthCheck(); // This will check the token and redirect if necessary
   const [userData, setUserData] = useState({
+    id: '', // Added to store user ID
     username: '',
     email: '',
     firstName: '',
@@ -37,9 +37,12 @@ const AccountPage = () => {
     birthDate: '',
     encryptionKey: '',
     accountTier: 1,
-    profilePicture: ""
+    profilePicture: "",
+    bio: '', // Added to store biography
+    profilePictureUrl: '' // Added to store the URL
   });
   const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [profilePictureUrl, setProfilePictureUrl] = useState(null); // To store the URL returned from the server
   const [profilePicturePreview, setProfilePicturePreview] = useState(null);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -48,10 +51,12 @@ const AccountPage = () => {
   const [tier, setTier] = useState(1);
   const navigate = useNavigate();
 
+  // Save userData to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem("userdata", JSON.stringify(userData));
   }, [userData]);
 
+  // Fetch user profile on component mount
   useEffect(() => {
     const loadUserProfile = async () => {
       try {
@@ -61,11 +66,13 @@ const AccountPage = () => {
           ...profile,
           birthDate: profile.birthDate ? profile.birthDate.split('T')[0] : '',
           accountTier: profile.accountTier || 1, // Ensure accountTier is set
-          encryptionKey: profile.encryptionKey || '' // Ensure encryptionKey is set
+          encryptionKey: profile.encryptionKey || '', // Ensure encryptionKey is set
+          bio: profile.bio || '', // Ensure bio is set
+          profilePictureUrl: profile.profilePictureUrl || '' // Ensure profilePictureUrl is set
         };
 
         setUserData(updatedUserData);
-        localStorage.setItem("userdata", JSON.stringify(updatedUserData));
+        // Removed redundant localStorage.setItem here
 
         console.log("Account Tier: ", updatedUserData.accountTier);
         setTier(parseInt(updatedUserData.accountTier));
@@ -76,12 +83,40 @@ const AccountPage = () => {
         if (error.response?.status === 401) {
           setTimeout(() => navigate('/login'), 1500);
         }
+      } finally {
+        setIsLoading(false);
       }
     };
 
     loadUserProfile();
   }, [navigate]);
 
+  // Fetch wallet data on component mount (if applicable)
+  // Assuming fetchWalletData is still relevant for this component
+  // If not, you can remove this useEffect
+  useEffect(() => {
+    const loadWalletData = async () => {
+      try {
+        setIsLoading(true);
+        const data = await fetchWalletData();
+        // Process wallet data as needed
+        // Example: setWalletData(data);
+      } catch (err) {
+        console.error('Error fetching wallet data:', err);
+        setSnackbarMessage('Failed to load wallet data.');
+        setOpenSnackbar(true);
+        setTimeout(() => navigate('/'), 1000);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadWalletData();
+  }, [navigate]);
+
+  
+
+  // Handle input changes for form fields
   const handleInputChange = (event) => {
     const { name, value } = event.target;
     setUserData(prevData => ({
@@ -90,9 +125,11 @@ const AccountPage = () => {
     }));
   };
 
-  const handleProfilePictureChange = (event) => {
+  // Handle profile picture upload
+  const handleProfilePictureChange = async (event) => {
     const file = event.target.files[0];
     if (file) {
+      // Preview the image
       const reader = new FileReader();
       reader.onloadend = () => {
         setProfilePicturePreview(reader.result);
@@ -102,14 +139,67 @@ const AccountPage = () => {
         }));
       };
       reader.readAsDataURL(file);
+
+      // Prepare form data
+      const formData = new FormData();
+      formData.append('profilePicture', file);
+      formData.append('username', userData.username);
+      formData.append('id', userData.id);
+      formData.append('date', new Date().toISOString());
+
+      try {
+        const response = await fetchUploadProfilePicture(formData);
+        // await fetch('/upload-profile-picture', { // Adjust the endpoint as needed
+        //   method: 'POST',
+        //   body: formData,
+        //   // Note: Do not set the 'Content-Type' header when sending FormData
+        // });
+
+        if (response.ok) {
+          const data = await response.json();
+          setProfilePictureUrl(data.url); // Assuming the server returns the URL
+          setUserData(prevData => ({
+            ...prevData,
+            profilePictureUrl: data.url,
+          }));
+          setSnackbarMessage('Profile picture uploaded successfully!');
+        } else {
+          const errorData = await response.json();
+          setSnackbarMessage(errorData.message || 'Failed to upload profile picture.');
+        }
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        setSnackbarMessage('An error occurred while uploading the image.');
+      } finally {
+        setOpenSnackbar(true);
+      }
     }
   };
 
+  // Implement the deleteUserAccount function
+  const deleteUserAccount = async () => {
+    try {
+      const response = await fetch('/api/delete-account', { // Ensure this endpoint exists
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}` // Include auth token if required
+        },
+        body: JSON.stringify({ userId: userData.id }) // Adjust according to your backend requirements
+      });
 
-  async function deleteUserAccount() {
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to delete account.');
+      }
 
-  }
+      return response.json();
+    } catch (error) {
+      throw error;
+    }
+  };
 
+  // Account tiers data
   const tiers = [
     { id: 1, name: 'Basic', limit: 2000, fee: 30 },
     { id: 2, name: 'Standard', limit: 5000, fee: 65 },
@@ -120,10 +210,12 @@ const AccountPage = () => {
     { id: 7, name: 'Ultimate', limit: 100000, fee: 500 },
   ];
 
+  // Handle account deletion
   const handleDeleteAccount = async () => {
     try {
-      await deleteUserAccount(); // You'll need to implement this function in your API
+      await deleteUserAccount(); // Ensure this function is correctly implemented
       localStorage.removeItem('token');
+      localStorage.removeItem('userdata'); // Clear user data
       setSnackbarMessage('Account deleted successfully.');
       setOpenSnackbar(true);
       setTimeout(() => navigate('/login'), 1500);
@@ -139,19 +231,39 @@ const AccountPage = () => {
     setOpenDeleteDialog(false);
   };
 
+  // Handle logout
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('userdata'); // Clear user data
+    setUserData({
+      id: '',
+      username: '',
+      email: '',
+      firstName: '',
+      lastName: '',
+      phoneNumber: '',
+      birthDate: '',
+      encryptionKey: '',
+      accountTier: 1,
+      profilePicture: "",
+      bio: '',
+      profilePictureUrl: ''
+    });
     setSnackbarMessage('Logged out successfully.');
     setOpenSnackbar(true);
     // In a real app, you'd want to clear user session/tokens here
     setTimeout(() => navigate('/login'), 1500);
   };
 
+  // Handle account updates
   const handleUpdateAccount = async (event) => {
     event.preventDefault(); // Prevent default form submission
     setIsUpdating(true);
     try {
-      await updateUserProfile(userData);
+      // Optionally, exclude certain fields before sending
+      const { encryptionKey, ...profileData } = userData;
+
+      await updateUserProfile(profileData); // Ensure the backend expects the correct data
       setSnackbarMessage('Account updated successfully!');
       setOpenSnackbar(true);
     } catch (error) {
@@ -164,217 +276,220 @@ const AccountPage = () => {
   };
 
   return (
-    <Box>
+    <Box sx={{ maxWidth: 800, margin: 'auto', padding: 2 }}>
       <Typography variant="h4" gutterBottom>Account Settings</Typography>
-      <Paper sx={{ p: 2 }}>
-        <form onSubmit={handleUpdateAccount}>
-          <Grid container spacing={2}>
-            {/* <Grid item xs={12} sm={6} md={4} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <Avatar
-                src={userData.profilePicture}
-                sx={{ width: 100, height: 100, mb: 2 }}
-              />
-              <input
-                accept="image/*"
-                style={{ display: 'none' }}
-                id="icon-button-file"
-                type="file"
-                // value={""}
-                onChange={handleProfilePictureChange}
-              />
-              <label htmlFor="icon-button-file">
-                <IconButton color="primary" aria-label="upload picture" component="span">
-                  <PhotoCamera />
-                </IconButton>
-              </label>
-            </Grid> */}
-            <Grid item xs={12} sm={6} md={4} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <Avatar
-                src={profilePicturePreview || userData.profilePicture}
-                sx={{ width: 100, height: 100, mb: 2 }}
-              />
-              <input
-                accept="image/*"
-                style={{ display: 'none' }}
-                id="icon-button-file"
-                type="file"
-                onChange={handleProfilePictureChange}
-              />
-              <label htmlFor="icon-button-file">
-                <IconButton color="primary" aria-label="upload picture" component="span">
-                  <PhotoCamera />
-                </IconButton>
-              </label>
-            </Grid>
-            <Grid item xs={12} sm={6} md={8}>
-              <TextField
-                fullWidth
-                margin="normal"
-                name="username"
-                label="Username"
-                disabled={isUpdating}
-                value={userData.username}
-                onChange={handleInputChange}
-              />
-              <TextField
-                fullWidth
-                margin="normal"
-                name="email"
-                label="Email"
-                type="email"
-                disabled={isUpdating}
-                value={userData.email}
-                onChange={handleInputChange}
-              />
-            </Grid>
-            
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                margin="normal"
-                name="firstName"
-                label="First Name"
-                disabled={isUpdating}
-                value={userData.firstName}
-                onChange={handleInputChange}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                margin="normal"
-                name="lastName"
-                label="Last Name"
-                disabled={isUpdating}
-                value={userData.lastName}
-                onChange={handleInputChange}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                margin="normal"
-                name="phoneNumber"
-                label="Phone Number"
-                disabled={isUpdating}
-                value={userData.phoneNumber}
-                onChange={handleInputChange}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                margin="normal"
-                name="birthDate"
-                label="Birth Date"
-                type="date"
-                disabled={isUpdating}
-                value={userData.birthDate}
-                onChange={handleInputChange}
-                InputLabelProps={{
-                  shrink: true,
-                }}
-              />
-            </Grid>
-            
-            <Grid item xs={24}>
-              <TextField
-                fullWidth
-                margin="normal"
-                name="biography"
-                label="Biograhpy"
-                disabled={isUpdating}
-                value={userData.bio+"!"}
-                onChange={handleInputChange}
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                margin="normal"
-                name="encryptionKey"
-                label="Encryption Key"
-                disabled={isUpdating}
-                value={userData.encryptionKey}
-                onChange={handleInputChange}
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <FormControl fullWidth margin="normal">
-                <InputLabel>Account Tier</InputLabel>
-                <Select
-                  name="accountTier"
-                  value={userData.accountTier}
-                  onChange={handleInputChange}
-                  label="Account Tier"
-                >
-                  {tiers.map((tier) => (
-                    <MenuItem key={tier.id} value={tier.id}>
-                      {`${tier.name} - Wallet Limit: ₡${tier.limit.toLocaleString()}, Monthly Fee: ₡${tier.fee}`}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
-
-          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              disabled={isUpdating}
-            >
-              Save Changes
-            </Button>
-            <Box>
-              <Button
-                variant="outlined"
-                color="error"
-                onClick={() => setOpenDeleteDialog(true)}
-                sx={{ mr: 1 }}
-              >
-                Delete Account
+      {isLoading ? (
+        <Typography variant="body1">Loading...</Typography>
+      ) : (
+        <Paper sx={{ p: 3 }}>
+          {/* Profile Picture Upload Section */}
+          <Box sx={{ mb: 4, textAlign: 'center' }}>
+            <Avatar
+              src={profilePictureUrl || profilePicturePreview || '/default-avatar.png'} // Ensure a default avatar exists at this path
+              alt="Profile Preview"
+              sx={{ width: 130, height: 130, mb: 2, margin: 'auto', padding: "5px" }}
+            />
+            <input
+              accept="image/*"
+              style={{ display: 'none' }}
+              id="profile-picture-upload"
+              type="file"
+              onChange={handleProfilePictureChange}
+            />
+            <label htmlFor="profile-picture-upload">
+              <Button style={{margin: "5px"}} variant="contained" component="span" startIcon={<PhotoCamera />}>
+                Upload Profile Picture
               </Button>
-              <Button
-                variant="outlined"
-                onClick={handleLogout}
-              >
-                Logout
-              </Button>
-            </Box>
+            </label>
           </Box>
-        </form>
 
-      </Paper>
-      <Snackbar
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        open={openSnackbar}
-        autoHideDuration={3000}
-        onClose={() => setOpenSnackbar(false)}
-        message={snackbarMessage}
-      />
-      <Dialog
-        open={openDeleteDialog}
-        onClose={() => setOpenDeleteDialog(false)}
-      >
-        <DialogTitle>Delete Account</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to delete your account? This action cannot be undone.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDeleteDialog(false)}>Cancel</Button>
-          <Button onClick={handleDeleteAccount} color="error">Delete</Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+          {/* Update Profile Form */}
+          <form onSubmit={handleUpdateAccount}>
+            <Grid container spacing={2}>
+              {/* Username and Email */}
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  name="username"
+                  label="Username"
+                  disabled={isUpdating}
+                  value={userData.username}
+                  onChange={handleInputChange}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  name="email"
+                  label="Email"
+                  type="email"
+                  disabled={isUpdating}
+                  value={userData.email}
+                  onChange={handleInputChange}
+                />
+              </Grid>
+
+              {/* First Name and Last Name */}
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  name="firstName"
+                  label="First Name"
+                  disabled={isUpdating}
+                  value={userData.firstName}
+                  onChange={handleInputChange}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  name="lastName"
+                  label="Last Name"
+                  disabled={isUpdating}
+                  value={userData.lastName}
+                  onChange={handleInputChange}
+                />
+              </Grid>
+
+              {/* Phone Number and Birth Date */}
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  name="phoneNumber"
+                  label="Phone Number"
+                  disabled={isUpdating}
+                  value={userData.phoneNumber}
+                  onChange={handleInputChange}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  name="birthDate"
+                  label="Birth Date"
+                  type="date"
+                  disabled={isUpdating}
+                  value={userData.birthDate}
+                  onChange={handleInputChange}
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                />
+              </Grid>
+
+              {/* Biography */}
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  name="bio"
+                  label="Biography"
+                  disabled={isUpdating}
+                  value={userData.bio || ''}
+                  onChange={handleInputChange}
+                  multiline
+                  rows={4}
+                />
+              </Grid>
+
+              {/* Encryption Key */}
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  margin="normal"
+                  name="encryptionKey"
+                  label="Encryption Key"
+                  disabled={isUpdating}
+                  value={userData.encryptionKey}
+                  onChange={handleInputChange}
+                />
+              </Grid>
+
+              {/* Account Tier Selection */}
+              <Grid item xs={12}>
+                <FormControl fullWidth margin="normal" disabled={isUpdating}>
+                  <InputLabel>Account Tier</InputLabel>
+                  <Select
+                    name="accountTier"
+                    value={userData.accountTier}
+                    onChange={handleInputChange}
+                    label="Account Tier"
+                  >
+                    {tiers.map((tierItem) => (
+                      <MenuItem key={tierItem.id} value={tierItem.id}>
+                        {`${tierItem.name} - Wallet Limit: ₡${tierItem.limit.toLocaleString()}, Monthly Fee: ₡${tierItem.fee}`}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
+
+            {/* Action Buttons */}
+            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'space-between' }}>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                disabled={isUpdating}
+              >
+                {isUpdating ? 'Saving...' : 'Save Changes'}
+              </Button>
+              <Box>
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={() => setOpenDeleteDialog(true)}
+                  sx={{ mr: 1 }}
+                  disabled={isUpdating}
+                >
+                  Delete Account
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={handleLogout}
+                  disabled={isUpdating}
+                >
+                  Logout
+                </Button>
+              </Box>
+            </Box>
+          </form>
+        </Paper>
+        )}
+        {/* Snackbar for user feedback */}
+        <Snackbar
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          open={openSnackbar}
+          autoHideDuration={3000}
+          onClose={() => setOpenSnackbar(false)}
+          message={snackbarMessage}
+        />
+
+        {/* Delete Account Confirmation Dialog */}
+        <Dialog
+          open={openDeleteDialog}
+          onClose={() => setOpenDeleteDialog(false)}
+        >
+          <DialogTitle>Delete Account</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Are you sure you want to delete your account? This action cannot be undone.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpenDeleteDialog(false)}>Cancel</Button>
+            <Button onClick={handleDeleteAccount} color="error">Delete</Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
+      
   );
 };
 
