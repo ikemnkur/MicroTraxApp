@@ -111,13 +111,13 @@ const AccountPage = () => {
   }
 
   const tiers = [
-    { id: 1, name: 'Basic', limit: 100, fee: 0 },
-    { id: 2, name: 'Standard', limit: 500, fee: 5 },
-    { id: 3, name: 'Premium', limit: 1000, fee: 10 },
-    { id: 4, name: 'Gold', limit: 5000, fee: 20 },
-    { id: 5, name: 'Platinum', limit: 10000, fee: 35 },
-    { id: 6, name: 'Diamond', limit: 50000, fee: 50 },
-    { id: 7, name: 'Ultimate', limit: 100000, fee: 75 },
+    { id: 1, name: 'Basic', limit: 2000, fee: 30 },
+    { id: 2, name: 'Standard', limit: 5000, fee: 65 },
+    { id: 3, name: 'Premium', limit: 10000, fee: 125 },
+    { id: 4, name: 'Gold', limit: 20000, fee: 250 },
+    { id: 5, name: 'Platinum', limit: 40000, fee: 350 },
+    { id: 6, name: 'Diamond', limit: 50000, fee: 400 },
+    { id: 7, name: 'Ultimate', limit: 100000, fee: 500 },
   ];
 
   const handleDeleteAccount = async () => {
@@ -284,10 +284,10 @@ const AccountPage = () => {
               <TextField
                 fullWidth
                 margin="normal"
-                name="bio"
+                name="biography"
                 label="Biograhpy"
                 disabled={isUpdating}
-                value={userData.bio}
+                value={userData.bio+"!"}
                 onChange={handleInputChange}
               />
             </Grid>
@@ -315,7 +315,7 @@ const AccountPage = () => {
                 >
                   {tiers.map((tier) => (
                     <MenuItem key={tier.id} value={tier.id}>
-                      {`${tier.name} - Daily Limit: ₡${tier.limit.toLocaleString()}, Monthly Fee: ₡${tier.fee}`}
+                      {`${tier.name} - Wallet Limit: ₡${tier.limit.toLocaleString()}, Monthly Fee: ₡${tier.fee}`}
                     </MenuItem>
                   ))}
                 </Select>

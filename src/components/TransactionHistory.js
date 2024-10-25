@@ -4,6 +4,7 @@ import {
   TableHead, TableRow, Paper, TextField, Select, MenuItem, Box
 } from '@mui/material';
 import { fetchTransactionHistory } from './api';
+require('dotenv').config();
 
 const TransactionHistory = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -114,7 +115,7 @@ const TransactionHistory = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Date</TableCell>
+              <TableCell>Date (Year-Month-Day)</TableCell>
               <TableCell>Time</TableCell>
               <TableCell>Type</TableCell>
               <TableCell>Username</TableCell>

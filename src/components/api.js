@@ -1,6 +1,7 @@
+require('dotenv').config();
 import axios from 'axios';
 // import { useNavigate } from 'react-router-dom';
-require('dotenv').config();
+
 
 const API_URL = process.env.REACT_APP_API_SERVER_URL+'/api'; // Adjust this if your API URL is different
 

@@ -1,3 +1,4 @@
+require('dotenv').config();
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -14,7 +15,7 @@ import {
 } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { Link as RouterLink } from 'react-router-dom';
-require('dotenv').config();
+
 
 const Auth = ({ isLogin }) => {
   const [email, setEmail] = useState('');

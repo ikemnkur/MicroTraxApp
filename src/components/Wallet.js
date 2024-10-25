@@ -38,6 +38,7 @@ const Wallet = () => {
         setIsLoading(true);
         const data = await fetchWalletData();
         setWalletData(data);
+        console.log("WD: " , walletData)
       } catch (err) {
         console.error('Error fetching wallet data:', err);
         setError('Failed to load wallet data. Please try again.');
@@ -85,7 +86,9 @@ const Wallet = () => {
       <Paper sx={{ p: 2, mb: 2 }}>
         <Typography variant="h6" gutterBottom>Current Balance: ₡{walletData?.balance}</Typography>
         <Typography variant="body1" gutterBottom>Account Tier: {walletData?.accountTier}</Typography>
-        <Typography variant="body1" gutterBottom>Daily Transaction Limit: ₡{walletData?.dailyTransactionLimit}</Typography>
+        <Typography variant="body1" gutterBottom>Daily Transaction Limit: ₡{walletData?.daily_transaction_limit}</Typography>
+        <Typography variant="body1" gutterBottom>Coins You can Redeem: ₡{walletData?.redeemable}</Typography>
+        <Typography variant="body1" gutterBottom>Coins You Can Spend: ₡{walletData?.spendable}</Typography>
         <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 2 }}>
           <Button variant="contained" color="primary" onClick={() => handleOpenDialog('reload')}>
             Reload Wallet

@@ -57,11 +57,11 @@ const ReloadWallet = () => {
               <Typography variant="h6" gutterBottom>
                 Current Balance: ₡{walletData?.balance}
               </Typography>
-              <Typography variant="body1" gutterBottom>
+              {/* <Typography variant="body1" gutterBottom>
                 Account Tier: {walletData?.accountTier}
-              </Typography>
+              </Typography> */}
               <Typography variant="body1" gutterBottom>
-                Max Wallet Size Limit: ₡{walletData?.dailyTransactionLimit}
+                Coins that you can spend: ₡{walletData?.spendable}
               </Typography>
             </Box>
           )}
@@ -77,15 +77,15 @@ const ReloadWallet = () => {
             inputProps={{ min: "0.01", step: "0.01" }}
           /> */}
           <FormControl component="fieldset" margin="normal">
-            <FormLabel component="legend">Select A Amount</FormLabel>
+            <FormLabel component="legend">Select an amount to buy: </FormLabel>
             <Select
               value={purchaseAmount}
               onChange={(e) => setPurchaseAmount(e.target.value)}
               variant="outlined"
             >
               <MenuItem value="1">1000 coins</MenuItem>
-              <MenuItem value="2">2000 coins</MenuItem>
-              <MenuItem value="5">5000 coins</MenuItem>
+              <MenuItem value="2">2125 coins</MenuItem>
+              <MenuItem value="5">5250 coins</MenuItem>
               <MenuItem value="10">10500 coins</MenuItem>
             </Select>
           </FormControl>

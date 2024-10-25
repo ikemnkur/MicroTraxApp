@@ -75,10 +75,10 @@ const UserProfile = () => {
 
   return (
     <Box>
-      <Paper sx={{ p: 2, display: "block", alignItems: 'center', mb: 2 }}>
+      <Paper sx={{ p: 2, display: "block", background: "#EEEEFF", alignItems: 'center', mb: 2 }}>
         <div style={{display: "flex"}}>
           <Avatar src={user.avatar} alt={user.username} sx={{ width: 100, height: 100, mr: 2 }} />
-          <Typography variant="h4">{user.username}</Typography>
+          <Typography variant="h4" style={{marginTop: "30px"}}>{user.username}</Typography>
         </div>
         <div style={{display: "flex", padding: 5, margin: "10px"}}>
           <Typography variant="h4">Bio: {user.bio}</Typography>
@@ -99,9 +99,9 @@ const UserProfile = () => {
           Report
         </Button>
       </Box>
-      <Button variant="text" startIcon={<MessageIcon />} onClick={() => navigate(`/messages/${userId}`)}>
+      {/* <Button variant="text" startIcon={<MessageIcon />} onClick={() => navigate(`/messages/${userId}`)}>
         Send Message
-      </Button>
+      </Button> */}
       <Snackbar
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         open={openSnackbar}

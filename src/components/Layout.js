@@ -1,3 +1,4 @@
+require('dotenv').config();
 import React, { useState, useEffect } from 'react';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -34,6 +35,7 @@ import CategoryIcon from '@mui/icons-material/Category';
 import { fetchUserProfile } from './api';
 
 
+
 const drawerWidth = 260;
 const collapsedDrawerWidth = 60;
 
@@ -67,41 +69,41 @@ const Layout = ({ children }) => {
   if (hideLayout) {
     return children;
   } else {
-    useEffect(() => {
-      const loadDashboardData = async () => {
-        try {
+    // useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
 
-          const profile = await fetchUserProfile();
+        const profile = await fetchUserProfile();
 
-          const updatedUserData = {
-            ...profile,
-            birthDate: profile.birthDate ? profile.birthDate.split('T')[0] : '',
-            accountTier: profile.accountTier || 1, // Ensure accountTier is set
-            encryptionKey: profile.encryptionKey || '' // Ensure encryptionKey is set
-          };
+        const updatedUserData = {
+          ...profile,
+          birthDate: profile.birthDate ? profile.birthDate.split('T')[0] : '',
+          accountTier: profile.accountTier || 1, // Ensure accountTier is set
+          encryptionKey: profile.encryptionKey || '' // Ensure encryptionKey is set
+        };
 
-          // setUserData(updatedUserData);
-          localStorage.setItem("userdata", JSON.stringify(updatedUserData));
+        // setUserData(updatedUserData);
+        localStorage.setItem("userdata", JSON.stringify(updatedUserData));
 
-        } catch (err) {
-          console.log("Error: ", err)
-          alert('Failed to load dashboard data, Please Re-Login');
-          setTimeout(() => {
-            navigate("/login");
-            // setOpenSnackbar(true);
-          }, 500)
-        } finally {
-          // setIsLoading(false);
-        }
-      };
+      } catch (err) {
+        console.log("Error: ", err)
+        // alert('Failed to load dashboard data, Please Re-Login');
+        setTimeout(() => {
+          navigate("/login");
+          // setOpenSnackbar(true);
+        }, 500)
+      } finally {
+        // setIsLoading(false);
+      }
+    };
 
-      setTimeout(() => {
-        loadDashboardData();
-        // navigate("/login");
-        // setOpenSnackbar(true);
-      }, 250)
-      // loadDashboardData();
-    }, []);
+    setTimeout(() => {
+      loadDashboardData();
+      // navigate("/login");
+      // setOpenSnackbar(true);
+    }, 250)
+    // loadDashboardData();
+    // }, []);
   }
 
 
