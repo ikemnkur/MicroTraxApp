@@ -119,7 +119,7 @@ const ManageContent = () => {
         }
     };
 
-    const handleEdit = (item) => {
+    const handleEdit = async (item) => {
         // e.preventDefault();
         try {
             // fasdhandleSubmitNewPublicContent(newContent);
@@ -134,7 +134,7 @@ const ManageContent = () => {
         }
     };
 
-    const cancelEdit = (item) => {
+    const cancelEdit = async (item) => {
         // e.preventDefault();
         try {
             // await  handleSubmitNewPublicContent(newContent);

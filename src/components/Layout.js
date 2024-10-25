@@ -91,7 +91,7 @@ const Layout = ({ children }) => {
         setTimeout(() => {
           navigate("/login");
           // setOpenSnackbar(true);
-        }, 500)
+        }, 250)
       } finally {
         // setIsLoading(false);
       }
