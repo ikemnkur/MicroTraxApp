@@ -46,7 +46,7 @@ const Auth = ({ isLogin }) => {
       
       localStorage.setItem('token', response.data.token);
       // Store user info or update global state here
-      navigate('/'); // Redirect to dashboard
+      navigate('/dashboard'); // Redirect to dashboard
     } catch (error) {
       console.error('Auth error:', error.response?.data?.message || 'An error occurred');
       // Handle error (show message to user)

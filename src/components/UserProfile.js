@@ -28,7 +28,7 @@ const UserProfile = () => {
         setOpenSnackbar(true);
         if (error.response?.status === 403) {
           // Unauthorized, token might be expired
-          setTimeout(() => navigate('/'), 1000);
+          setTimeout(() => navigate('/dashboard'), 1000);
         }
       }
     };

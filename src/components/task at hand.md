@@ -1,0 +1,5 @@
+I am trying implement a way users can pay for coin with crypto, however the user and I will be manually preforming the crypto transactions. But I need to have the a form that the user can fill out so that when they send the coin to me via third party app ill be able to check and confirm that they sent the right amount before giving them coins manually.
+
+Also can you create a notifications system for the dashboard page, make below the cards and use mock data for now, add feature like regular one would have: Dimiss, (remind me later), and  view (Clicking to go to the relevant with that item) . The notifications should be for when: a user recieves money, reloads thier balance, has another user pay to unlock thier items, has paid another users, has a fee, has been reported for misconduct, withdraws money successful, or has a pending reload/withdrawl 
+
+Can you create a webpage for the server, I need to be able to edit records in the sql database via my phone.  

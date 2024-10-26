@@ -63,10 +63,10 @@ const ManageContent = () => {
             console.log("Content: ", content)
         } catch (error) {
             console.error('Failed to fetch user content:', error);
-            if (error.response?.status === 403) {
+            // if (error.response?.status === 403) {
                 // Unauthorized, token might be expired
-                setTimeout(() => navigate('/'), 1250);
-            }
+                setTimeout(() => navigate('/dashbroad'), 1250);
+            // }
             // Handle error (e.g., show error message to user)
             setSnackbarMessage('Failed to fetch user content');
             setOpenSnackbar(true);

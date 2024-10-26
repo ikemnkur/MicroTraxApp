@@ -45,7 +45,7 @@ const Layout = ({ children }) => {
   const location = useLocation();
 
   const menuItems = [
-    { text: 'Dashboard', icon: <Dashboard />, path: '/' },
+    { text: 'Dashboard', icon: <Dashboard />, path: '/Dashboard' },
     { text: 'Your Wallet', icon: <AccountBalance />, path: '/wallet' },
     { text: 'Send Money', icon: <Send />, path: '/send' },
     { text: 'Look for Users', icon: <Search />, path: '/search' },

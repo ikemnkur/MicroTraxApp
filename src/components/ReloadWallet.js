@@ -1,6 +1,6 @@
 require('dotenv').config();
 import React, { useState, useEffect } from 'react';
-import { Typography, TextField, MenuItem,  Select, Button, Paper, Radio, RadioGroup, FormControlLabel, FormControl, FormLabel, Box, Snackbar } from '@mui/material';
+import { Typography, TextField, MenuItem, Select, Button, Paper, Radio, RadioGroup, FormControlLabel, FormControl, FormLabel, Box, Snackbar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import {
   fetchWalletData,
@@ -38,8 +38,50 @@ const ReloadWallet = () => {
     }
   };
 
+  // Handle form submission
+  const handleSubmit2 = async (e) => {
+    e.preventDefault();
+
+    // Validation: Check if amount meets the minimum withdrawal requirement
+    if (amountNum < min) {
+      setSnackbarMessage(`Minimum withdrawal amount for ${methodNames[withdrawMethod]} is ${min} coins.`);
+      setOpenSnackbar(true);
+      return;
+    }
+
+    // Prepare withdrawal data
+    const withdrawData = {
+      username: userData.username,
+      amount: amountNum,
+      email: userData.email,
+      firstname: userData.firstName,
+      lastname: userData.lastName,
+      date: new Date().toISOString(),
+      currency: withdrawMethod === 'USD' ? 'USD' : withdrawMethod,
+      rate: rate,
+      minWithdraw: min,
+      fees: fee,
+      serverCost: serverCost,
+      balance: walletData?.balance,
+      waitTime: time,
+      method: withdrawMethod,
+      extraData: extraFormData,
+    };
+
+    // Call the withdrawal function
+    await makeWithdraw(withdrawData);
+    setAmount('');
+    setExtraFormData({});
+  };
+
   const goToCheckOut = () => {
-    navigate(`/checkout?amount=${purchaseAmount}`);
+    if (paymentMethod === "stripe")
+      navigate(`/stripe-checkout?amount=${purchaseAmount}`);
+    if (paymentMethod === "crypto")
+      navigate(`/crypto-checkout?amount=${amount}`);
+    if (paymentMethod === "sendwave")
+      navigate(`/sendwave-checkout?amount=${purchaseAmount}`);
+
   };
 
   useEffect(() => {
@@ -67,19 +109,47 @@ const ReloadWallet = () => {
             </Box>
           )}
 
-          {/* <TextField
-            label="Amount"
-            fullWidth
-            margin="normal"
-            type="number"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            required
-            inputProps={{ min: "0.01", step: "0.01" }}
-          /> */}
           <FormControl component="fieldset" margin="normal">
-            <FormLabel component="legend">Select an amount to buy: </FormLabel>
+            <FormLabel component="legend">Select an payment method: </FormLabel>
             <Select
+              value={purchaseAmount}
+              onChange={(e) => setPaymentMethod(e.target.value)}
+              variant="outlined"
+            >
+              <MenuItem value="stripe">Stripe</MenuItem>
+              <MenuItem value="crypto">Crypto</MenuItem>
+              <MenuItem value="sendwave">Sendwave</MenuItem>
+              <MenuItem value="shopify">Shopify</MenuItem>
+            </Select>
+            <br></br>
+            <FormLabel component="legend">Select an amount to buy: </FormLabel>
+            {paymentMethod === "crypto" && <TextField
+              label="Amount"
+              fullWidth
+              margin="normal"
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              required
+              inputProps={{ min: "0.01", step: "0.01" }}
+            />}
+            {paymentMethod === "sendwave" &&
+              <div style={{display: "flex"}}>
+                <button onClick={(e) => setAmount(amount-1)} style={{width: 32, height: 32, margin: "auto 10px", padding: 5}}>-</button>
+                <TextField
+                  label="Amount"
+                  fullWidth
+                  margin="normal"
+                  type="number"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  required
+                  inputProps={{ min: "5", step: "0.5" }}
+                />
+                <button onClick={(e) => setAmount(amount+1)} style={{width: 32, height: 32, margin: "auto 10px", padding: 5}}>+</button>
+              </div>
+            }
+            {paymentMethod === "stripe" && <Select
               value={purchaseAmount}
               onChange={(e) => setPurchaseAmount(e.target.value)}
               variant="outlined"
@@ -88,7 +158,10 @@ const ReloadWallet = () => {
               <MenuItem value="2">2125 coins</MenuItem>
               <MenuItem value="5">5250 coins</MenuItem>
               <MenuItem value="10">10500 coins</MenuItem>
-            </Select>
+            </Select>}
+            {paymentMethod === "shopify" &&
+              <Typography variant="h6" gutterBottom>This method is not supported yet. Coming soon.  </Typography>
+            }
           </FormControl>
           <br></br>
           <Button type="submit" variant="contained" color="primary" sx={{ mt: 2 }}>

@@ -72,7 +72,7 @@ const SubToContent = () => {
       setSnackbarMessage('Content unlocked successfully!');
     } catch (err) {
       setTimeout(() => {
-        navigate("/")
+        navigate("/dashboard")
       }, 1000)
       setSnackbarMessage('Failed to unlock content. Please try again.');
     } finally {

@@ -8,7 +8,7 @@ import Dashboard from './components/Dashboard';
 import TransactionHistory from './components/TransactionHistory';
 import SendMoney from './components/SendMoney';
 import ReceivedPayments from './components/ReceivedPayments';
-import { CheckoutForm, Return } from "./components/Stripe";
+import { CheckoutForm, CryptoCheckoutForm, Return } from "./components/Stripe";
 import ReloadWallet from './components/ReloadWallet';
 import WithdrawWallet from './components/WithdrawWallet';
 import SearchUser from './components/Search4User';
@@ -115,7 +115,7 @@ function App() {
       <Router>
         <Layout>
           <Routes>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/transactions" element={<TransactionHistory />} />
             <Route path="/send" element={<SendMoney />} />
 
@@ -136,11 +136,13 @@ function App() {
             <Route path="/reload-wallet" element={<AddToWallet />} />
             <Route path="/your-stuff" element={<YourStuff />} />
             <Route path="/login" element={<Auth isLogin={true} />} />
+            <Route path="/" element={<Auth isLogin={true} />} />
             <Route path="/register" element={<Auth isLogin={false} />} />
             <Route path="*" element={<Navigate to="/" replace />} />
             <Route path="/Admin" element={<AdminDashboard />} />
 
-            <Route path="/checkout" element={<CheckoutForm setCoins={setCoins} />} />
+            <Route path="/stripe-checkout" element={<CheckoutForm setCoins={setCoins} />} />
+            <Route path="/crypto-checkout" element={<CryptoCheckoutForm setCoins={setCoins} />} />
             <Route path="/return" element={<Return increaseCoins={increaseCoins} />} />
           </Routes>
         </Layout>

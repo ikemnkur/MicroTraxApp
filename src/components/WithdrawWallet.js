@@ -151,13 +151,13 @@ const WithdrawWallet = () => {
 
   // Derived values based on selected withdrawal method and amount
   const rate = rates[withdrawMethod] || 0;
-  const min = minWithdraw[withdrawMethod] || 0;
+  const min = minWithdraw[withdrawMethod]*1000 || 0;
   const fee = fees[withdrawMethod] || 0;
   const serverCostPercentage = server_cost[withdrawMethod] || 0;
   const time = waitTimes[withdrawMethod] || '';
   const amountNum = parseFloat(amount) || 0;
   const serverCost = serverCostPercentage * amountNum;
-  const totalCost = parseFloat(fee) + parseFloat(serverCost) + parseFloat(amount);
+  const totalCost = parseFloat(fee) + parseFloat(serverCost) + parseFloat(amount) || 0;
 
   // Fetch user profile on component mount
   useEffect(() => {
@@ -187,23 +187,26 @@ const WithdrawWallet = () => {
     loadUserProfile();
   }, [navigate]);
 
+  // Load wallet data
+  const loadWalletData = async () => {
+    try {
+      setIsLoading(true);
+      const data = await fetchWalletData();
+      setWalletData(data);
+    } catch (err) {
+      console.error('Error fetching wallet data:', err);
+      setError('Failed to load wallet data. Please try again.');
+      setSnackbarMessage('Failed to load wallet data.');
+      setOpenSnackbar(true);
+      setTimeout(() => navigate('/'), 1000);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Fetch wallet data on component mount
   useEffect(() => {
-    const loadWalletData = async () => {
-      try {
-        setIsLoading(true);
-        const data = await fetchWalletData();
-        setWalletData(data);
-      } catch (err) {
-        console.error('Error fetching wallet data:', err);
-        setError('Failed to load wallet data. Please try again.');
-        setSnackbarMessage('Failed to load wallet data.');
-        setOpenSnackbar(true);
-        setTimeout(() => navigate('/'), 1000);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+
 
     loadWalletData();
   }, [navigate]);
@@ -414,7 +417,7 @@ const WithdrawWallet = () => {
       )}
       <Paper sx={{ p: 2 }} style={{ backgroundColor: 'lightBlue' }}>
         <Typography variant="h6" gutterBottom>
-          Withdrawal: {amount}C ~ {amount * 0.001} $USD{' '}
+          Withdrawal: {amount}C ~ {(amount * 0.001).toFixed(2)} $USD{' '}
         </Typography>
         <form onSubmit={handleSubmit}>
           <TextField
@@ -457,7 +460,7 @@ const WithdrawWallet = () => {
           {/* Display Derived Values */}
           <Box sx={{ mt: 2 }}>
             <Typography variant="h5" gutterBottom>
-              Minimum Withdraw: {min * 1000} Coins
+              Minimum Withdraw: {min} Coins
             </Typography>
             <Typography variant="h5" gutterBottom>
               Rate: {rate} Coins = 1 {methodNames[withdrawMethod]}
@@ -489,7 +492,7 @@ const WithdrawWallet = () => {
             variant="contained"
             color="primary"
             sx={{ mt: 2 }}
-            disabled={isLoading || amountNum < min || isNaN(amountNum)}
+            disabled={isLoading || amountNum < min || isNaN(amountNum) || amount > parseInt(userData.balance)}
           >
             {isLoading ? 'Processing...' : 'Request Withdrawal'}
           </Button>
