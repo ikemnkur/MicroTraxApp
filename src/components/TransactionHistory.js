@@ -118,6 +118,7 @@ const TransactionHistory = () => {
               <TableCell>Date (Year-Month-Day)</TableCell>
               <TableCell>Time</TableCell>
               <TableCell>Type</TableCell>
+              <TableCell>Status</TableCell>
               <TableCell>Username</TableCell>
               <TableCell>Amount</TableCell>
             </TableRow>
@@ -128,8 +129,9 @@ const TransactionHistory = () => {
                 <TableCell>{transaction.created_at.slice(0, 10)}</TableCell>
                 <TableCell>{transaction.created_at.slice(11, 19)}</TableCell>
                 <TableCell>{transaction.transaction_type}</TableCell>
+                <TableCell>{transaction.status}</TableCell>
                 <TableCell>{transaction.recieving_user}</TableCell>
-                <TableCell>${transaction.amount}</TableCell>
+                <TableCell>{transaction.amount}₡</TableCell>
               </TableRow>
             ))}
             {!loading && transactionsToDisplay.length === 0 && (

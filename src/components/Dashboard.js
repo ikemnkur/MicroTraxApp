@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Typography, Grid, Paper, Box, CircularProgress, Snackbar } from '@mui/material';
 import { fetchDashboardData } from './api';
 import { fetchUserProfile } from './api';
+import Notifications from './Notifications'; // Import the Notifications component
 
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
@@ -98,7 +99,7 @@ const Dashboard = () => {
             </Typography>
             <Typography variant="h4">
               {/* ${dashboardData?.balance?.toFixed(2) ?? 'N/A'} */}
-              ₡{dashboardData?.balance ?? 'N/A'}
+              {dashboardData?.balance ?? 'N/A'}₡
             </Typography>
           </Paper>
         </Grid>
@@ -169,16 +170,18 @@ const Dashboard = () => {
               Recent Transactions
             </Typography>
             <Typography>
-              Sent: ₡{dashboardData?.sentTransactions ?? 0}
+              Sent: {dashboardData?.sentTransactions ?? 0}₡
             </Typography>
             <Typography>
-              Received: ₡{dashboardData?.sentTransactions ?? 0} 
+              Received: {dashboardData?.sentTransactions ?? 0}₡
             </Typography>
 
           </Paper>
         </Grid>
 
       </Grid>
+       {/* Insert Notifications component below the cards */}
+       <Notifications />
       <Snackbar
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         open={openSnackbar}

@@ -8,7 +8,9 @@ import Dashboard from './components/Dashboard';
 import TransactionHistory from './components/TransactionHistory';
 import SendMoney from './components/SendMoney';
 import ReceivedPayments from './components/ReceivedPayments';
-import { CheckoutForm, CryptoCheckoutForm, Return } from "./components/Stripe";
+import { CheckoutForm, Return } from "./components/Stripe";
+
+import { CryptoCheckoutForm } from "./components/CryptoCheckoutForm";
 import ReloadWallet from './components/ReloadWallet';
 import WithdrawWallet from './components/WithdrawWallet';
 import SearchUser from './components/Search4User';
@@ -144,6 +146,7 @@ function App() {
             <Route path="/stripe-checkout" element={<CheckoutForm setCoins={setCoins} />} />
             <Route path="/crypto-checkout" element={<CryptoCheckoutForm setCoins={setCoins} />} />
             <Route path="/return" element={<Return increaseCoins={increaseCoins} />} />
+            
           </Routes>
         </Layout>
       </Router>

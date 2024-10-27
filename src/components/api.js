@@ -111,7 +111,17 @@ export const sendMoneyToOtherUser = async (sendmoneyData) => {
 export const walletReloadAction = async (walletActionData) => {
   try {
     console.log("walletReloadAction")
-    const response = await api.post('/wallet/reload', walletActionData);
+    const response = await api.post('/wallet/stripe-reload', walletActionData);
+    return response.data;
+  } catch (error) {
+    throw error.response.data;
+  }
+};
+
+ export const walletCryptoReloadAction = async (walletActionData) => {
+  try {
+    console.log("walletReloadAction")
+    const response = await api.post('/wallet/crypto-reload', walletActionData);
     return response.data;
   } catch (error) {
     throw error.response.data;
