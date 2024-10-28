@@ -1,4 +1,5 @@
 // src/components/DotCaptcha.jsx
+require('dotenv').config();
 import React, { useRef, useEffect, useState } from 'react';
 import { Box, TextField, Button, Typography } from '@mui/material';
 import { grey } from '@mui/material/colors';

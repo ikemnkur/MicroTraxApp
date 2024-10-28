@@ -153,6 +153,22 @@ export const fetchDashboardData = async () => {
   }
 };
 
+// In api.js
+export const fetchNotifications = async () => {
+  try {
+    const response = await api.get('/notifications');
+    return response.data;
+  } catch (error) {
+    console.error('API - Error fetching notifications data:', error);
+    // setTimeout(() => {
+    //   navigate("/login");
+    //   setOpenSnackbar(true);
+    // }, 1000)
+    throw error;
+  }
+};
+
+
 export const updateFavoriteStatus = async (userId, isFavorite) => {
   try {
     const response = await api.put(`/user/${userId}/favorite`, { isFavorite });

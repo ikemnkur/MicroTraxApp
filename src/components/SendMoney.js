@@ -1,9 +1,9 @@
+require('dotenv').config();
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { Typography, TextField, Button, Paper, Box, Snackbar, Avatar } from '@mui/material';
 import { fetchUserProfile, fetchOtherUserProfile, sendMoneyToOtherUser } from './api'; // Make sure this import is correct
-
-
+import axios from 'axios';
 
 const SendMoney = () => {
   const { userId } = useParams();
@@ -19,6 +19,8 @@ const SendMoney = () => {
   const [thisUser, setThisUser] = useState(JSON.parse(localStorage.getItem("userdata")))
   const usernameInputRef = useRef(null);
 
+  const API_URL = process.env.REACT_APP_API_SERVER_URL + '/api'; // Adjust this if your API URL is different
+
   useEffect(() => {
     let ud = JSON.parse(localStorage.getItem("userdata"))
     console.log("this user data: ", ud)
@@ -31,43 +33,56 @@ const SendMoney = () => {
     if (recipientFromUrl) setRecipient(recipientFromUrl);
     if (amountFromUrl) setAmount(amountFromUrl);
 
-
+    console.log("recipient from url: ", recipientFromUrl)
     loadUserProfile();
+
+    if(recipientFromUrl !== null)
+      setTimeout(() => {
+        search4user(null, recipientFromUrl)
+      }, 50);
+      
   }, [userId, location.search]);
 
   const loadUserProfile = async () => {
     if (userId) {
-    try {
-      const userData = await fetchUserProfile(userId);
-      // setToUser(userData);
-    } catch (error) {
-      console.error('Error fetching toUser profile:', error);
-      setSnackbarMessage('Failed to load toUser profile');
-      setOpenSnackbar(true);
-      if (error.response?.status === 403) {
-        // Unauthorized, token might be expired
-        setTimeout(() => navigate('/'), 1000);
+      try {
+        const userData = await fetchUserProfile(userId);
+        // setToUser(userData);
+      } catch (error) {
+        console.error('Error fetching toUser profile:', error);
+        setSnackbarMessage('Failed to load toUser profile');
+        setOpenSnackbar(true);
+        if (error.response?.status === 403) {
+          // Unauthorized, token might be expired
+          setTimeout(() => navigate('/'), 1000);
+        }
       }
-    }
-    console.log("User ID: ", userId);
-    console.log("toUser Data: ", toUser);
+      console.log("User ID: ", userId);
+      console.log("toUser Data: ", toUser);
     }
   };
 
-  const search4user = async (e) => {
-    let term = recipient;
+  const search4user = async (e, user2search) => {
+    let term = user2search;
+    if (term == null) 
+      term = recipient;
+
+    console.log("Search Term: ", term)
     try {
+      //fix this function so that it does leak other user data
       const s4uData = await fetchOtherUserProfile(term);
-      setTimeout(() =>{
-        console.log("S4U: ", s4uData)
-        setToUser(s4uData);}
-        , 100
-      )
+      setTimeout(() => {
+        console.log("Searing 4 User: ", s4uData)
+        setToUser(s4uData);
+      }, 100)
       setUserNotFound(false)
     } catch (error) {
       setUserNotFound(true)
+      setTimeout(() => {
+        setUserNotFound(false)
+      }, 3000);
       console.error(`Error fetching ${term} profile:`, error);
-      setSnackbarMessage(`Failed to find User: ₡{term}`);
+      setSnackbarMessage(`Failed to find User: ${term}`);
       setOpenSnackbar(true);
     }
   };
@@ -90,6 +105,18 @@ const SendMoney = () => {
       setRecipient('');
       setAmount('');
       setMessage('');
+
+      const notif = {
+        type: 'money_received',
+        recipient_user_id: toUser.id,
+        message: `You received ₡${amount} from ${thisUser.username}.`,
+        from_user: thisUser.id,
+        date: new Date(),
+        recipient_username: toUser.username
+      }
+
+      createNotification(notif)
+
     } catch (error) {
       setSnackbarMessage(error.message || "Failed to send money. Please try again later.");
       setOpenSnackbar(true);
@@ -99,6 +126,21 @@ const SendMoney = () => {
       }
     }
   };
+
+  const createNotification = async (notificationData) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(API_URL + '/notifications/create', notificationData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log("New notification: ", notificationData.message)
+      // Optionally, update the notifications state or refetch notifications
+    } catch (error) {
+      console.error('Error creating notification:', error);
+    }
+  };
+
+
 
   const goToUserProfile = (e) => {
     // e.preventDefault();
@@ -110,23 +152,23 @@ const SendMoney = () => {
       <Typography variant="h4" gutterBottom>Send Money</Typography>
       {UserNotFound && (
         <Paper sx={{ p: 2, display: 'flex', color: "lightgrey", alignItems: 'center', mb: 2 }}>
-          
+
           <Typography variant="h4">{`Username: "${recipient}" was not found in the database.`}</Typography>
-         
+
         </Paper>
       )}
       {toUser && (
         <Paper sx={{ p: 2, display: 'flex', alignItems: 'center', mb: 2 }}>
           <Avatar src={toUser.avatar} alt={toUser.username} sx={{ width: 100, height: 100, mr: 2 }} />
           <Typography variant="h4">{toUser.username}</Typography>
-          <Button style={{float: 'right', marginLeft: "50px"}} onClick={goToUserProfile} variant="contained" color="primary" sx={{ mt: 2 }}>
-              View Profile
+          <Button style={{ float: 'right', marginLeft: "50px" }} onClick={goToUserProfile} variant="contained" color="primary" sx={{ mt: 2 }}>
+            View Profile
           </Button>
         </Paper>
       )}
       <Paper sx={{ p: 2 }}>
         <form onSubmit={handleSubmit}>
-          <div style={{display: "flex", gap: 5}}>
+          <div style={{ display: "flex", gap: 5 }}>
             <TextField
               label="Recipient Username"
               fullWidth
@@ -136,7 +178,7 @@ const SendMoney = () => {
               onChange={(e) => { setRecipient(e.target.value) }}
               required
             />
-            <Button onClick={ search4user } variant="contained" color="primary" sx={{ mt: 2 }}>
+            <Button onClick={search4user} variant="contained" color="primary" sx={{ mt: 2 }}>
               Search
             </Button>
           </div>
@@ -155,7 +197,7 @@ const SendMoney = () => {
             label="Leave a Message"
             fullWidth
             margin="normal"
-            placeholder={`${recipient} Enjoy: ₡{amount} !!!, from ${thisUser.username}`}
+            // placeholder={`${recipient} Enjoy: ₡{amount} !!!, from ${thisUser.username}`}
             onChange={(e) => setMessage(e.target.value)}
             required
           />

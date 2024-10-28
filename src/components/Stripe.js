@@ -6,6 +6,7 @@ import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe
 // import { stripePromise } from './path-to-stripe-promise'; // Ensure you import your stripePromise correctly
 import { fetchUserProfile, walletReloadAction, purchaseCrypto } from "./api";
 import { loadStripe } from '@stripe/stripe-js';
+import { Axios } from 'axios';
 
 
 const stripePromise = loadStripe('pk_test_51OPgiOEViYxfJNd2ZA0pYlZ3MKdsIHDEhE9vzihdcj6CUW99q7ULSgR44nWfNVwhKvEHJ1JQCaf1NcXGhTROu8Dh008XrwD0Hv');
@@ -18,8 +19,9 @@ export const CheckoutForm = ({ setCoins }) => {
 
     useEffect(() => {
         const fetchClientSecret = async () => {
-            const YOUR_DOMAIN = 'http://localhost:5000';
-            const response = await fetch(`${YOUR_DOMAIN}/create-checkout-session?amount=${amount}`, {
+            // const YOUR_DOMAIN = 'http://localhost:5000';
+            const API_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:5000'; // Adjust this if your API URL is different
+            const response = await fetch(`${API_URL}/create-checkout-session?amount=${amount}`, {
                 method: "POST",
             });
             const data = await response.json();
@@ -63,9 +65,9 @@ export const Return = ({ increaseCoins }) => {
         const queryString = window.location.search;
         const urlParams = new URLSearchParams(queryString);
         const sessionId = urlParams.get('session_id');
-
-        const YOUR_DOMAIN = 'http://localhost:5000';
-        fetch(`${YOUR_DOMAIN}/session-status?session_id=${sessionId}`)
+        const API_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:5000'; // Adjust this if your API URL is different
+        // const YOUR_DOMAIN = 'http://localhost:5000';
+        fetch(`${API_URL}/session-status?session_id=${sessionId}`)
             .then((res) => res.json())
             .then((data) => {
                 setStatus(data.status);
@@ -100,6 +102,13 @@ export const Return = ({ increaseCoins }) => {
 
 
     if (status === 'complete') {
+        // Example usage
+      createNotification({
+        type: 'money_received',
+        recipient_user: recipientUserId,
+        message: `You bought ₡${amount} via Stripe: [from: Bot].`,
+        from_user: "Admin",
+      });
         return (
             <section id="success">
                 <p>

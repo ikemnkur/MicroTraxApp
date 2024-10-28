@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import { Close, Snooze, Visibility } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
@@ -21,44 +22,42 @@ const Notifications = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const navigate = useNavigate();
 
-  // Mock notifications data
-  useEffect(() => {
-    const mockNotifications = [
-      {
-        id: 1,
-        type: 'money_received',
-        message: 'You received ₡500 from JohnDoe.',
-        timestamp: new Date(),
-        isNew: true,
-        link: '/transactions',
-      },
-      {
-        id: 2,
-        type: 'balance_reloaded',
-        message: 'Your balance was reloaded with ₡1000.',
-        timestamp: new Date(),
-        isNew: true,
-        link: '/account',
-      },
-      {
-        id: 3,
-        type: 'item_unlocked',
-        message: 'JaneDoe paid to unlock your item.',
-        timestamp: new Date(),
-        isNew: true,
-        link: '/items/unlocked',
-      },
-      // Add more mock notifications as needed
-    ];
+  const API_URL = process.env.REACT_APP_API_SERVER_URL+'/api'; // Adjust this if your API URL is different
 
-    setNotifications(mockNotifications);
+  // Fetch notifications from the backend API
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get(API_URL+'/notifications', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setNotifications(response.data);
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+        setSnackbarMessage('Failed to load notifications.');
+        setOpenSnackbar(true);
+      }
+    };
+
+    fetchNotifications();
   }, []);
 
   // Handle Dismiss Notification
-  const handleDismiss = (id) => {
-    setNotifications((prev) => prev.filter((notif) => notif.id !== id));
-    setSnackbarMessage('Notification dismissed');
-    setOpenSnackbar(true);
+  const handleDismiss = async (id) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(API_URL+`/notifications/delete/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setNotifications((prev) => prev.filter((notif) => notif.id !== id));
+      setSnackbarMessage('Notification dismissed');
+      setOpenSnackbar(true);
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+      setSnackbarMessage('Failed to dismiss notification.');
+      setOpenSnackbar(true);
+    }
   };
 
   // Handle Snooze Notification
@@ -80,8 +79,22 @@ const Notifications = () => {
   };
 
   // Handle View Notification
-  const handleView = (link) => {
-    navigate(link);
+  const handleView = (notification) => {
+    // Navigate to the relevant page based on notification type
+    switch (notification.type) {
+      case 'money_received':
+        navigate('/transactions');
+        break;
+      case 'balance_reloaded':
+        navigate('/account');
+        break;
+      case 'item_unlocked':
+        navigate('/items/unlocked');
+        break;
+      // Add cases for other notification types
+      default:
+        navigate('/');
+    }
   };
 
   return (
@@ -96,13 +109,13 @@ const Notifications = () => {
               <ListItem key={notif.id} alignItems="flex-start">
                 <ListItemText
                   primary={notif.message}
-                  secondary={notif.timestamp.toLocaleString()}
+                  secondary={new Date(notif.created_at).toLocaleString()}
                 />
                 <ListItemSecondaryAction>
                   <IconButton
                     edge="end"
                     aria-label="view"
-                    onClick={() => handleView(notif.link)}
+                    onClick={() => handleView(notif)}
                   >
                     <Visibility />
                   </IconButton>
