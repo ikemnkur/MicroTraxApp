@@ -26,6 +26,7 @@ const Auth = ({ isLogin }) => {
   const [captchaPassed, setCaptchaPassed] = useState(false);
   const [captchaFailed, setCaptchaFailed] = useState(false);
   const [blockTime, setBlockTime] = useState(null);
+  const [remainingTime, setRemainingTime] = useState(null); // Add this line
 
   const navigate = useNavigate();
 
@@ -37,8 +38,8 @@ const Auth = ({ isLogin }) => {
     if (blockData) {
       const { timestamp } = JSON.parse(blockData);
       const currentTime = Date.now();
-      if (currentTime - timestamp < 60 * 60 * 1000) { // 1 hour
-        setBlockTime(timestamp + 60 * 60 * 1000);
+      if (currentTime - timestamp < 30 * 60 * 1000) { // 0.5 hour
+        setBlockTime(timestamp + 30 * 60 * 1000);
       } else {
         localStorage.removeItem('captchaBlock');
       }
@@ -48,6 +49,7 @@ const Auth = ({ isLogin }) => {
   // Function to handle unblocking
   const handleUnblock = useCallback(() => {
     setBlockTime(null);
+    setRemainingTime(null); // Reset remaining time
     localStorage.removeItem('captchaBlock');
     localStorage.removeItem('failedCaptcha'); // Reset failed attempts
   }, []);
@@ -57,16 +59,24 @@ const Auth = ({ isLogin }) => {
     checkBlockStatus();
   }, [checkBlockStatus]);
 
-  // Set up a timer to unblock the user after blockTime
+  // Set up a timer to unblock the user after blockTime and update remaining time
   useEffect(() => {
     if (blockTime) {
+      const updateRemainingTime = () => {
+        const remaining = Math.max(0, Math.ceil((blockTime - Date.now()) / 1000));
+        setRemainingTime(remaining);
+      };
+
+      updateRemainingTime(); // Initial call to set the remaining time
       const timer = setInterval(() => {
+        updateRemainingTime();
         const currentTime = Date.now();
         if (currentTime >= blockTime) {
           handleUnblock();
           clearInterval(timer);
         }
       }, 1000);
+
       return () => clearInterval(timer);
     }
   }, [blockTime, handleUnblock]);
@@ -115,7 +125,9 @@ const Auth = ({ isLogin }) => {
   };
 
   if (blockTime) {
-    const remaining = Math.ceil((blockTime - Date.now()) / 1000);
+    const remaining = remainingTime !== null
+      ? remainingTime
+      : Math.max(0, Math.ceil((blockTime - Date.now()) / 1000));
     const minutes = Math.floor(remaining / 60);
     const seconds = remaining % 60;
     return (

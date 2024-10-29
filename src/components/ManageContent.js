@@ -10,13 +10,14 @@ import {
 import { Delete as DeleteIcon, EditAttributesRounded } from '@mui/icons-material';
 import EditNoteIcon from '@mui/icons-material/EditNote';
 import ShareIcon from '@mui/icons-material/Share';
-import { fetchUserContent,  handleDeletePublicContent,  handleSubmitNewPublicContent,  handleSubmitPublicContentEdit } from './api';
+import { fetchUserContent, handleDeletePublicContent, handleCreatePublicContent, handleEditPublicContent } from './api';
 import QRCode from 'qrcode.react';
 import Clipboard from "../components/Clipboard.js";
 import axios from 'axios';
 import { lightGreen } from '@mui/material/colors';
 
 const ManageContent = () => {
+    const API_URL = process.env.REACT_APP_API_SERVER_URL + '/api';
     const navigate = useNavigate();
     // const [openDialog, setOpenDialog] = useState(false);
     const [action, setAction] = useState('');
@@ -31,6 +32,7 @@ const ManageContent = () => {
 
     const [editing, setEditing] = useState(false);
     const [openCreateDialog, setOpenCreateDialog] = useState(false);
+    const [openEditDialog, setOpenEditDialog] = useState(false);
     const [openShareDialog, setOpenShareDialog] = useState(false);
     const [shareLink, setShareLink] = useState('');
     const [shareItem, setShareItem] = useState('');
@@ -57,15 +59,21 @@ const ManageContent = () => {
 
     const loadUserContent = async () => {
         try {
-            const content = await fetchUserContent();
+            // const content = await fetchUserContent();
+            const token = localStorage.getItem('token');
+            const response = await axios.get(API_URL + '/public-content/get', {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            // setSubs(response.data);
+            let content = response.data
             setContentList(content);
             setFilteredContentList(content)
             console.log("Content: ", content)
         } catch (error) {
             console.error('Failed to fetch user content:', error);
             // if (error.response?.status === 403) {
-                // Unauthorized, token might be expired
-                setTimeout(() => navigate('/dashbroad'), 1250);
+            // Unauthorized, token might be expired
+            setTimeout(() => navigate('/dashbroad'), 1250);
             // }
             // Handle error (e.g., show error message to user)
             setSnackbarMessage('Failed to fetch user content');
@@ -80,7 +88,7 @@ const ManageContent = () => {
 
     const handleDelete = async (contentId) => {
         try {
-            await  handleDeletePublicContent(contentId);
+            await handleDeletePublicContent(contentId);
             loadUserContent(); // Reload the content list after deletion
         } catch (error) {
             console.error('Failed to delete content:', error);
@@ -93,7 +101,7 @@ const ManageContent = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await handleSubmitNewPublicContent(newContent);
+            await handleCreatePublicContent(newContent);
             setNewContent({ title: '', username: thisUser.username, cost: 1, description: '', content: '', type: 'url', reference_id: '' });
             loadUserContent(); // Reload the content list after adding new content
         } catch (error) {
@@ -107,7 +115,7 @@ const ManageContent = () => {
     const handleSubmitEdit = async (e) => {
         e.preventDefault();
         try {
-            await handleSubmitPublicContentEdit(newContent);
+            await handleEditPublicContent(newContent);
             setNewContent({ title: '', username: thisUser.username, cost: 1, description: '', content: '', type: 'url', reference_id: '' });
             setEditing(false);
             loadUserContent(); // Reload the content list after adding new content
@@ -122,7 +130,8 @@ const ManageContent = () => {
     const handleEdit = async (item) => {
         // e.preventDefault();
         try {
-            // fasdhandleSubmitNewPublicContent(newContent);
+            // fasdhandleCreatePublicContent(newContent);
+            setOpenEditDialog(true)
             setEditing(true)
             setNewContent({ title: item.title, username: thisUser.username, cost: item.cost, description: item.description, content: (item.content.content), type: item.type, reference_id: '' });
             // loadUserContent(); // Reload the content list after adding new content
@@ -137,7 +146,8 @@ const ManageContent = () => {
     const cancelEdit = async (item) => {
         // e.preventDefault();
         try {
-            // await  handleSubmitNewPublicContent(newContent);
+            // await  handleCreatePublicContent(newContent);
+            setOpenEditDialog(false)
             setEditing(false)
             setNewContent({ title: '', username: thisUser.username, cost: 1, description: '', content: '', type: 'url', reference_id: '' });
             // loadUserContent(); // Reload the content list after adding new content
@@ -302,7 +312,7 @@ const ManageContent = () => {
                     },
                 }}
             >
-                <DialogTitle>Share Locked Item</DialogTitle>
+                <DialogTitle>Create Locked Item</DialogTitle>
                 <DialogContent style={{
                     display: 'flex',
                     flexDirection: 'column',
@@ -317,7 +327,115 @@ const ManageContent = () => {
                     </Box> */}
 
                     <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', mb: 2 }}>
-                        <Typography variant="h5" sx={{ mt: 4, mb: 2 }}>Create Unlockable Content</Typography>
+                        {/* <Typography variant="h5" sx={{ mt: 4, mb: 2 }}>Create Unlockable Content</Typography> */}
+                        <form onSubmit={handleSubmit}>
+                            <TextField
+                                label="Title"
+                                name="title"
+                                value={newContent.title}
+                                onChange={handleInputChange}
+                                fullWidth
+                                margin="normal"
+                                required
+                            />
+                            <TextField
+                                label="Cost"
+                                name="cost"
+                                type="number"
+                                value={newContent.cost}
+                                onChange={handleInputChange}
+                                fullWidth
+                                margin="normal"
+                                required
+                            />
+                            <TextField
+                                label="Description"
+                                name="description"
+                                value={newContent.description}
+                                onChange={handleInputChange}
+                                fullWidth
+                                margin="normal"
+                                multiline
+                                rows={2}
+                            />
+                            <TextField
+                                label="Content"
+                                name="content"
+                                value={newContent.content}
+                                onChange={handleInputChange}
+                                fullWidth
+                                margin="normal"
+                                rows={3}
+                                multiline
+                                required
+                                helperText="Enter URL, text, or file path based on content type"
+                            />
+                            <Select
+                                label="Content Type"
+                                name="type"
+                                value={newContent.type}
+                                onChange={handleInputChange}
+                                fullWidth
+                                margin="normal"
+                            >
+                                <MenuItem value="url">URL</MenuItem>
+                                <MenuItem value="image">Image</MenuItem>
+                                <MenuItem value="code">Code</MenuItem>
+                                <MenuItem value="video">Video</MenuItem>
+                                <MenuItem value="file">File</MenuItem>
+                            </Select>
+                            {!editing && (
+                                <Button type="submit" variant="contained" color="primary" sx={{ mt: 2 }}>
+                                    Add Content
+                                </Button>
+                            )}
+                            {editing && (
+                                <>
+                                    <Button onChange={handleSubmitEdit} variant="contained" color="primary" style={{ background: "green", marginRight: 10 }} sx={{ mt: 2 }}>
+                                        Edit
+                                    </Button>
+                                    <Button onClick={cancelEdit} ariant="contained" color="primary" style={{ color: "white", background: "red", marginRight: 0 }} sx={{ mt: 2 }}>
+                                        Cancel Edit
+                                    </Button>
+                                </>
+                            )}
+
+                        </form>
+                    </Box>
+                </DialogContent>
+                <DialogActions style={{ width: '100%', justifyContent: 'flex-end' }}>
+                    <Button onClick={() => setOpenCreateDialog(false)}>Close</Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog
+                open={openEditDialog}
+                onClose={() => setOpenCreateDialog(false)}
+                PaperProps={{
+                    style: {
+                        width: '512px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                    },
+                }}
+            >
+                <DialogTitle>Edit Locked Item</DialogTitle>
+                <DialogContent style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    width: '100%'
+                }}>
+                    <DialogContentText style={{ textAlign: 'center' }}>
+                        Create some content:
+                    </DialogContentText>
+                    {/* <Box sx={{ my: 2 }}>
+                        <QRCode value={shareLink} size={256} />
+                    </Box> */}
+
+                    <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', mb: 2 }}>
+                        {/* <Typography variant="h5" sx={{ mt: 4, mb: 2 }}>Create Unlockable Content</Typography> */}
                         <form onSubmit={handleSubmit}>
                             <TextField
                                 label="Title"

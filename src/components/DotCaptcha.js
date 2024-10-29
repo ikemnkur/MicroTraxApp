@@ -9,7 +9,7 @@ const DotCaptcha = ({ onSuccess, onFailure }) => {
   const [targetColor, setTargetColor] = useState('');
   const [targetCount, setTargetCount] = useState(0);
   const [userInput, setUserInput] = useState('');
-  const [timeLeft, setTimeLeft] = useState(10);
+  const [timeLeft, setTimeLeft] = useState(15);
   const [attempts, setAttempts] = useState(0);
   const [blocked, setBlocked] = useState(false);
 
@@ -95,7 +95,7 @@ const DotCaptcha = ({ onSuccess, onFailure }) => {
   function startTimer() {
     timerId.current = setInterval(() => {
       setTimeLeft((prev) => {
-        if (prev === 1) {
+        if (prev < 1) {
           clearInterval(timerId.current);
           handleTimeout();
           return 0;
@@ -118,7 +118,7 @@ const DotCaptcha = ({ onSuccess, onFailure }) => {
     // Reset user input
     setUserInput('');
     // Reset timeLeft
-    setTimeLeft(10);
+    setTimeLeft(15);
     // Start timer again
     startTimer();
   }
@@ -159,7 +159,7 @@ const DotCaptcha = ({ onSuccess, onFailure }) => {
     } else {
       setAttempts((prevAttempts) => {
         const newAttempts = prevAttempts + 1;
-        if (newAttempts >= 3) {
+        if (newAttempts >= 4) {
           handleFailure();
         } else {
           alert('Incorrect count. Please try again.');
@@ -181,13 +181,13 @@ const DotCaptcha = ({ onSuccess, onFailure }) => {
   }
 
   return (
-    <Box sx={{ mt: 4 }} style={{backgroundColor: "#F0F0FF", padding: 7}}  >
-      <div style={{backgroundColor: grey}}>
- <Typography style={{backgroundColor: grey}} variant="h6" align="center">
-        Count the number of <span style={{ color: targetColor }}>{targetColor}</span> dots:
-      </Typography>
+    <Box sx={{ mt: 4 }} style={{ backgroundColor: "#F0F0FF", padding: 7 }}  >
+      <div style={{ background: grey, padding: 5 }}>
+        <Typography style={{ backgroundColor: grey }} variant="h6" align="center">
+          Count the number of <span style={{ color: targetColor, background: "lightgrey", padding: 5 , borderRadius: 5 }}>{targetColor}</span> dots:
+        </Typography>
       </div>
-     
+
       <canvas
         ref={canvasRef}
         style={{ border: '1px solid #ccc', display: 'block', margin: '20px auto' }}
@@ -205,7 +205,7 @@ const DotCaptcha = ({ onSuccess, onFailure }) => {
           type="number"
           sx={{ width: '150px', marginRight: '10px' }}
         />
-        <Button style={{marginTop: "10px "}} type="submit" variant="contained" color="primary">
+        <Button style={{ marginTop: "10px " }} type="submit" variant="contained" color="primary">
           Enter
         </Button>
       </form>

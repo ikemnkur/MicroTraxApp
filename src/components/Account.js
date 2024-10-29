@@ -38,6 +38,7 @@ const AccountPage = () => {
     encryptionKey: '',
     accountTier: 1,
     profilePicture: "",
+    account_id: "",
     bio: '', // Added to store biography
     profilePictureUrl: '' // Added to store the URL
   });

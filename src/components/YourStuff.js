@@ -36,6 +36,9 @@ import {
 } from './api';
 import Clipboard from './Clipboard.js'; // If you have a Clipboard component
 import QRCode from 'qrcode.react'; // If you use QR codes
+import axios from 'axios';
+
+const API_URL = process.env.REACT_APP_API_SERVER_URL + '/api';
 
 const YourStuff = () => {
   
@@ -54,6 +57,7 @@ const YourStuff = () => {
   const [error, setError] = useState(null);
   const [sortBy, setSortBy] = useState('date');
   const [sortOrder, setSortOrder] = useState('asc');
+
   const [newContent, setNewContent] = useState({
     title: '',
     username: '',
@@ -63,6 +67,21 @@ const YourStuff = () => {
     type: 'url',
     reference_id: '',
   });
+
+  const [userSubscription, setUserSubscription] = useState({
+    username: "",
+    hostuser_id: "",
+    title: '',
+    cost: 1,
+    frequency: '',
+    description: '',
+    content: '',
+    type: 'url',
+    sub_id: "",
+    id: 0,
+    account_id: ""
+  });
+
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const navigate = useNavigate();
@@ -139,9 +158,16 @@ const YourStuff = () => {
     }
   };
 
-  const handleDelete = async (contentId) => {
+  const handleDeleteSubscription = async (contentId) => {
     try {
-      await handleDeleteUserContent(contentId);
+      // let response = await handleDeleteUserContent(contentId);
+      
+        const token = localStorage.getItem('token');
+        const response = await axios.delete(`${API_URL}/user-subscriptions/delete/${subId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        console.log("Delete User Subscription Response: ", response);
+      // console.log("Delete User Sub: ", response)
       loadUserContent();
     } catch (error) {
       console.error('Failed to delete content:', error);
@@ -150,62 +176,6 @@ const YourStuff = () => {
     }
   };
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   try {
-  //     await handleSubmitNewContent_YourStuff(newContent);
-  //     setNewContent({ title: '', username: thisUser.username, cost: 1, description: '', content: '', type: 'url', reference_id: '' });
-  //     loadUserContent();
-  //   } catch (error) {
-  //     console.error('Failed to add content:', error);
-  //     setSnackbarMessage('Failed to add content');
-  //     setOpenSnackbar(true);
-  //   }
-  // };
-
-  // const handleSubmitEdit = async (e) => {
-  //   e.preventDefault();
-  //   try {
-  //     await handleSubmitNewEdit_YourStuff(newContent);
-  //     setNewContent({ title: '', username: thisUser.username, cost: 1, description: '', content: '', type: 'url', reference_id: '' });
-  //     setEditing(false);
-  //     loadUserContent();
-  //   } catch (error) {
-  //     console.error('Failed to edit content:', error);
-  //     setSnackbarMessage('Failed to edit content');
-  //     setOpenSnackbar(true);
-  //   }
-  // };
-
-  // const handleEdit = (item) => {
-  //   try {
-  //     setEditing(true);
-  //     setNewContent({
-  //       title: item.title,
-  //       username: thisUser.username,
-  //       cost: item.cost,
-  //       description: item.description,
-  //       content: item.content.content,
-  //       type: item.type,
-  //       reference_id: '',
-  //     });
-  //   } catch (error) {
-  //     console.error('Failed to edit content:', error);
-  //     setSnackbarMessage('Failed to edit content');
-  //     setOpenSnackbar(true);
-  //   }
-  // };
-
-  // const cancelEdit = () => {
-  //   try {
-  //     setEditing(false);
-  //     setNewContent({ title: '', username: thisUser.username, cost: 1, description: '', content: '', type: 'url', reference_id: '' });
-  //   } catch (error) {
-  //     console.error('Failed to cancel edit:', error);
-  //     setSnackbarMessage('Failed to cancel edit');
-  //     setOpenSnackbar(true);
-  //   }
-  // };
 
   const [shareLink, setShareLink] = useState('');
   const [shareItem, setShareItem] = useState('');
@@ -237,7 +207,7 @@ const YourStuff = () => {
       return (
         s.host_username.toLowerCase().includes(searchTermSub.toLowerCase()) ||
         s.cost.toString().includes(searchTermSub) ||
-        S.title.toLowerCase().includes(searchTermSub.toLowerCase()) 
+        s.title.toLowerCase().includes(searchTermSub.toLowerCase()) 
       );
     });
     setFilteredSubs(filtered);
@@ -383,7 +353,7 @@ const YourStuff = () => {
                   <TableCell>Title</TableCell>
                   <TableCell>Date</TableCell>
                   <TableCell>Type</TableCell>
-                  <TableCell>User</TableCell>
+                  <TableCell>Host User</TableCell>
                   <TableCell>Cost</TableCell>
                   <TableCell>Actions</TableCell>
                 </TableRow>
@@ -397,7 +367,7 @@ const YourStuff = () => {
                     <TableCell>{item.host_username}</TableCell>
                     <TableCell>${parseFloat(item.cost).toFixed(2)}</TableCell>
                     <TableCell>
-                      <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(item.id)}>
+                      <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteUserContent(item.id)}>
                         <DeleteIcon />
                       </IconButton>
                       {/* <IconButton edge="end" aria-label="edit" onClick={() => handleEdit(item)}>
@@ -453,7 +423,7 @@ const YourStuff = () => {
                   <TableCell>Title</TableCell>
                   <TableCell>Date</TableCell>
                   <TableCell>Type</TableCell>
-                  <TableCell>User</TableCell>
+                  <TableCell>Host User</TableCell>
                   <TableCell>Amount</TableCell>
                   <TableCell>Action</TableCell>
                 </TableRow>
@@ -467,7 +437,7 @@ const YourStuff = () => {
                     <TableCell>{sub.host_username}</TableCell>
                     <TableCell>${parseFloat(sub.cost).toFixed(2)}</TableCell>
                     <TableCell>
-                      <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(sub.id)}>
+                      <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteSubscription(sub.id)}>
                         <DeleteIcon />
                       </IconButton>
                       {/* <IconButton edge="end" aria-label="edit" onClick={() => handleEdit(sub)}>

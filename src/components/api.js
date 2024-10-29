@@ -223,10 +223,13 @@ export const searchUsers = async (searchTerm) => {
 
 // ... (previous code remains the same)
 
+
+// User Content
+
 // Fetch a users content
 export const fetchUserContent = async () => {
   try {
-    const response = await api.get('/content/user-content');
+    const response = await api.get('/user-content/get');
     return response.data;
   } catch (error) {
     console.error('API - Error fetching user content:', error);
@@ -234,12 +237,25 @@ export const fetchUserContent = async () => {
   }
 };
 
-// Public Stuff
+// Your Content List (user deletes his content that they have unlocked)
+export const handleDeleteUserContent = async (contentId) => {
+  try {
+    const response = await api.delete(`/user-content/delete/${contentId}`);
+    return response.data;
+  } catch (error) {
+    console.error('API - Error deleting content:', error);
+    throw error;
+  }
+};
+
+
+
+// Public Content Stuff
 
 // Creator can create a new public content item
-export const handleSubmitNewPublicContent = async (newContent) => {
+export const handleCreatePublicContent = async (newContent) => {
   try {
-    const response = await api.post('/content/add-public-content', newContent);
+    const response = await api.post('/user-content/add-public-content', newContent);
     return response.data;
   } catch (error) {
     console.error('API - Error adding new content:', error);
@@ -248,9 +264,9 @@ export const handleSubmitNewPublicContent = async (newContent) => {
 };
 
 // Creator can edit a public content item
-export const handleSubmitPublicContentEdit = async (editedContent) => {
+export const handleEditPublicContent = async (editedContent) => {
   try {
-    const response = await api.post('/content/edit-public-content', editedContent);
+    const response = await api.post('/public-content/edit', editedContent);
     return response.data;
   } catch (error) {
     console.error('API - Error adding new content:', error);
@@ -261,18 +277,7 @@ export const handleSubmitPublicContentEdit = async (editedContent) => {
 // Creator can delete a old public content item
 export const handleDeletePublicContent = async (contentId) => {
   try {
-    const response = await api.delete(`/content/delete-public-content/${contentId}`);
-    return response.data;
-  } catch (error) {
-    console.error('API - Error deleting content:', error);
-    throw error;
-  }
-};
-
-// Your Content (user deletes his content that they have unlocked)
-export const handleDeleteUserContent = async (contentId) => {
-  try {
-    const response = await api.delete(`/content/delete-your-content/${contentId}`);
+    const response = await api.delete(`/public-content/delete/${contentId}`);
     return response.data;
   } catch (error) {
     console.error('API - Error deleting content:', error);
@@ -293,7 +298,7 @@ export const confirmUnlockContent = async (contentData, message) => {
   }
 };
 
-// Unlocking a new item, add to user content table
+// User Unlocking a new item, add to user content table
 export const fetchLockedContent = async (itemId) => {
   try {
     const [contentResponse, balanceResponse] = await Promise.all([
@@ -308,10 +313,13 @@ export const fetchLockedContent = async (itemId) => {
   }
 };
 
+
+// Users Subscriptions List
+
 // Fetch all of a (user's) Subscriptions
 export const fetchUserSubscriptions = async () => {
   try {
-    const response = await api.get('/subscriptions');
+    const response = await api.get('/user-subscriptions/get');
     return response.data;
   } catch (error) {
     console.error('API - Error fetching user content:', error);
@@ -319,19 +327,8 @@ export const fetchUserSubscriptions = async () => {
   }
 };
 
-// Delete a Creator's Public Subscriptions
-export const handleDeletePublicSubscription = async (contentId) => {
-  try {
-    const response = await api.delete(`/subs/delete-public-sub/${contentId}`);
-    return response.data;
-  } catch (error) {
-    console.error('API - Error deleting content:', error);
-    throw error;
-  }
-};
 
-
-// Adds a subcription to a user's Subscriptions
+// Adds a subcription to a user's Subscriptions list
 export const confirmUserSubToContent = async (contentData, message) => {
   try {
     const response = await api.post(`/sub/sub-to-content`, { contentId: contentData.id, msg : message });
@@ -345,7 +342,7 @@ export const confirmUserSubToContent = async (contentData, message) => {
 // delete a subcription from a user's Subscriptions
 export const handleDeleteUserSubscription = async (contentId) => {
   try {
-    const response = await api.delete(`/subs/delete-your-sub/${contentId}`);
+    const response = await api.delete(`/user-subscriptions/delete/${contentId}`);
     return response.data;
   } catch (error) {
     console.error('API - Error deleting content:', error);
