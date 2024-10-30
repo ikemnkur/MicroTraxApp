@@ -21,10 +21,10 @@ const ReceivedPayments = () => {
         console.error('Failed to fetch transaction history:', err);
         setError('Failed to load transaction history. Please try again later.');
         setLoading(false);
-        if (error.response?.status === 403) {
-          // Unauthorized, token might be expired
-          setTimeout(() => navigate('/'), 1000);
-        }
+        // if (error.response?.status === 403) {
+        //   // Unauthorized, token might be expired
+        //   setTimeout(() => navigate('/'), 1000);
+        // }
       }
     };
 

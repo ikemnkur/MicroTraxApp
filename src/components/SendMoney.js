@@ -120,10 +120,10 @@ const SendMoney = () => {
     } catch (error) {
       setSnackbarMessage(error.message || "Failed to send money. Please try again later.");
       setOpenSnackbar(true);
-      if (error.response?.status === 401) {
-        // Unauthorized, token might be expired
-        setTimeout(() => navigate('/login'), 1500);
-      }
+      // if (error.response?.status === 401) {
+      //   // Unauthorized, token might be expired
+      //   setTimeout(() => navigate('/login'), 1500);
+      // }
     }
   };
 

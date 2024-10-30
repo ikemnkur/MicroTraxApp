@@ -81,9 +81,9 @@ const AccountPage = () => {
         console.error('DashBrdPG - Error fetching user profile:', error);
         setSnackbarMessage(error.response?.data?.message || 'Failed to load user profile, refresh page or login again');
         setOpenSnackbar(true);
-        if (error.response?.status === 401) {
-          setTimeout(() => navigate('/login'), 1500);
-        }
+        // if (error.response?.status === 401) {
+        //   setTimeout(() => navigate('/login'), 1500);
+        // }
       } finally {
         setIsLoading(false);
       }
@@ -228,7 +228,7 @@ const AccountPage = () => {
       localStorage.removeItem('userdata'); // Clear user data
       setSnackbarMessage('Account deleted successfully.');
       setOpenSnackbar(true);
-      setTimeout(() => navigate('/login'), 1500);
+      // setTimeout(() => navigate('/login'), 1500);
     } catch (error) {
       console.error('AcntPG - Error deleting account:', error);
       setSnackbarMessage(error.response?.data?.message || 'Failed to delete account. Please try again.');

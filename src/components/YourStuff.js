@@ -112,6 +112,42 @@ const YourStuff = () => {
     }
   };
 
+  const setUserData = async () => {
+    try {
+        let data;
+        try {
+          const token = localStorage.getItem('token');
+          let ud = JSON.parse(localStorage.getItem("userdata"))
+          console.log("CL: ", contentList.length);
+          console.log("SL: ", subscriptionList.length);
+          
+          const response = await axios.put(API_URL+'/user-data', {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setSubs(response.data);
+          data = response.data
+        } catch (error) {
+          console.error('Error fetching subscriptions:', error);
+          setSnackbarMessage('Failed to load subscriptions.');
+          setOpenSnackbar(true);   
+          setSubs([]);
+        }
+      
+      // console.log("Subscriptions Data: ", data);
+   
+      // setFilteredSubs(data);
+      // setLoading(false);
+    } catch (err) {
+      console.error('Failed to send user-data:', err);
+      // setError('Failed to load subscriptions. Please try again later.');
+      // setLoading(false);
+    }
+  };
+
+  setTimeout(() => {
+    setUserData()
+  }, 200);
+
   const loadUserContent = async () => {
     try {
       const content = await fetchUserContent();

@@ -66,10 +66,10 @@ const Dashboard = () => {
         setDashboardData(data);
       } catch (err) {
         setError('Failed to load dashboard data, Please Re-Login');
-        setTimeout(() => {
-          navigate("/login");
-          setOpenSnackbar(true);
-        }, 500)
+        // setTimeout(() => {
+        //   navigate("/login");
+        //   setOpenSnackbar(true);
+        // }, 500)
       } finally {
         setIsLoading(false);
       }
