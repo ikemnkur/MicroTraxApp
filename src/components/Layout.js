@@ -66,6 +66,8 @@ const Layout = ({ children }) => {
 
   const hideLayout = ['/login', '/register'].includes(location.pathname);
 
+  function refreshPage() { window.location.reload(false); }
+
   if (hideLayout) {
     return children;
   } else {
@@ -90,6 +92,7 @@ const Layout = ({ children }) => {
         // alert('Failed to load dashboard data, Please Re-Login');
         setTimeout(() => {
           navigate("/login");
+          refreshPage()
           // setOpenSnackbar(true);
         }, 250)
       } finally {

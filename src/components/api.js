@@ -255,7 +255,7 @@ export const handleDeleteUserContent = async (contentId) => {
 // Creator can create a new public content item
 export const handleCreatePublicContent = async (newContent) => {
   try {
-    const response = await api.post('/user-content/add-public-content', newContent);
+    const response = await api.post('/public-content/add', newContent);
     return response.data;
   } catch (error) {
     console.error('API - Error adding new content:', error);
@@ -331,7 +331,7 @@ export const fetchUserSubscriptions = async () => {
 // Adds a subcription to a user's Subscriptions list
 export const confirmUserSubToContent = async (contentData, message) => {
   try {
-    const response = await api.post(`/sub/sub-to-content`, { contentId: contentData.id, msg : message });
+    const response = await api.post(`/user-subscriptions/sub-to-content`, { contentId: contentData.id, msg : message });
     return response.data;
   } catch (error) {
     console.error('API - Error adding new content:', error);

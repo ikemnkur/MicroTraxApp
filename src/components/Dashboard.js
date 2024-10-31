@@ -59,6 +59,8 @@ const Dashboard = () => {
     loadUserProfile();
   }, [navigate]);
 
+  
+
   useEffect(() => {
     const loadDashboardData = async () => {
       try {
