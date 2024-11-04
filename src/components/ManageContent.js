@@ -12,6 +12,7 @@ import QRCode from 'qrcode.react';
 import Clipboard from "./Clipboard.js";
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
+import useBaseUrl from '../hooks/useBaseUrl';
 
 const ManageContent = () => {
   const navigate = useNavigate();
@@ -45,6 +46,7 @@ const ManageContent = () => {
   });
 
   const API_URL = process.env.REACT_APP_API_SERVER_URL + '/api';
+  const siteURL = useBaseUrl();
 
   // Function to load content from the server
   const loadContent = async () => {
@@ -211,7 +213,7 @@ const ManageContent = () => {
 
   // Share content
   const handleShare = (item) => {
-    setShareLink(`https://http://localhost:3000/unlock/${item.reference_id}`);
+    setShareLink(`https://${siteURL}/unlock/${item.reference_id}`);
     setOpenShareDialog(true);
   };
 

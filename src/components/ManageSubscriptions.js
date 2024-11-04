@@ -13,6 +13,7 @@ import Clipboard from "./Clipboard.js";
 import axios from 'axios';
 import { fetchUserSubscriptions } from './api.js';
 import { v4 as uuidv4 } from 'uuid';
+import useBaseUrl from '../hooks/useBaseUrl.js';
 
 const Subscriptions = () => {
   const navigate = useNavigate();
@@ -47,6 +48,7 @@ const Subscriptions = () => {
   });
 
   const API_URL = process.env.REACT_APP_API_SERVER_URL + '/api';
+  const baseUrl = useBaseUrl();
 
   // Function to load user subscriptions from the server
   const loadSubscriptions = async () => {
@@ -227,7 +229,7 @@ const Subscriptions = () => {
 
   // Share a subscription
   const handleShare = (item) => {
-    const link = `http://localhost:3000/sub/${item.reference_id}`; // Corrected URL
+    const link = `${siteURL}/sub/${item.reference_id}`; // Corrected URL
     setShareLink(link);
     setOpenShareDialog(true);
   };

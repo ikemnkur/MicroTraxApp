@@ -15,8 +15,8 @@ const ShareWallet = () => {
   }, []);
 
   useEffect(() => {
-    // setShareLink(`https://http://localhost:3000/send?recipient=${username}`);
-    setShareLink(`http://localhost:3000/send?recipient=${username}`);
+    // setShareLink(`https://${siteURL}/send?recipient=${username}`);
+    setShareLink(`${siteURL}/send?recipient=${username}`);
   }, [username]);
 
   const handleCopyLink = () => {

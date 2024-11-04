@@ -38,8 +38,10 @@ import Clipboard from './Clipboard.js'; // If you have a Clipboard component
 import QRCode from 'qrcode.react'; // If you use QR codes
 import axios from 'axios';
 import { useAuthCheck } from './useAuthCheck';
+import useBaseUrl from '../hooks/useBaseUrl.js';
 
 const API_URL = process.env.REACT_APP_API_SERVER_URL + '/api';
+const siteURL = useBaseUrl();
 
 const YourStuff = () => {
 
@@ -233,10 +235,10 @@ const YourStuff = () => {
     // Implement sharing functionality here
     console.log(item)
     if (type === "content") {
-      setShareLink(`http://localhost:3000/unlock/${item.reference_id}`);
+      setShareLink(`${siteURL}/unlock/${item.reference_id}`);
     }
     if (type === "subscription") {
-      setShareLink(`http://localhost:3000/subscription/${item.reference_id}`);
+      setShareLink(`${siteURL}/subscription/${item.reference_id}`);
     }
 
     try {
