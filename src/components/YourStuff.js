@@ -37,6 +37,7 @@ import {
 import Clipboard from './Clipboard.js'; // If you have a Clipboard component
 import QRCode from 'qrcode.react'; // If you use QR codes
 import axios from 'axios';
+import { useAuthCheck } from './useAuthCheck';
 
 const API_URL = process.env.REACT_APP_API_SERVER_URL + '/api';
 
@@ -77,7 +78,7 @@ const YourStuff = () => {
     description: '',
     content: '',
     type: 'url',
-    sub_id: "",
+    reference_id: "",
     id: 0,
     account_id: ""
   });
@@ -85,6 +86,7 @@ const YourStuff = () => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const navigate = useNavigate();
+  useAuthCheck();
 
   const thisUser = { username: walletData?.username || 'CurrentUser' };
 
@@ -112,61 +114,71 @@ const YourStuff = () => {
     }
   };
 
-  const setUserData = async () => {
-    try {
-        let data;
-        try {
-          const token = localStorage.getItem('token');
-          let ud = JSON.parse(localStorage.getItem("userdata"))
-          console.log("CL: ", contentList.length);
-          console.log("SL: ", subscriptionList.length);
-          
-          const response = await axios.put(API_URL+'/user-data', {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          setSubs(response.data);
-          data = response.data
-        } catch (error) {
-          console.error('Error fetching subscriptions:', error);
-          setSnackbarMessage('Failed to load subscriptions.');
-          setOpenSnackbar(true);   
-          setSubs([]);
-        }
+  // const setUserData = async () => {
+  //   try {
+  //       let data;
+  //       try {
+  //         const token = localStorage.getItem('token');
+  //         let ud = JSON.parse(localStorage.getItem("userdata"))
+  //         console.log("CL: ", contentList.length);
+  //         console.log("SL: ", subscriptionList.length);
+
+  //         const response = await axios.put(API_URL+'/user-data', {CL: 2, SL: 3, UD: ud}, {
+  //           headers: { Authorization: `Bearer ${token}` },
+  //         });
+  //         setSubs(response.data);
+  //         data = response.data
+  //       } catch (error) {
+  //         console.error('Error sending content and subscriptions data back:', error);
+  //         setSnackbarMessage('Failed to send back data.');
+  //         setOpenSnackbar(true);   
+  //         setSubs([]);
+  //       }
       
-      // console.log("Subscriptions Data: ", data);
+  //     // console.log("Subscriptions Data: ", data);
    
-      // setFilteredSubs(data);
-      // setLoading(false);
-    } catch (err) {
-      console.error('Failed to send user-data:', err);
-      // setError('Failed to load subscriptions. Please try again later.');
-      // setLoading(false);
-    }
-  };
+  //     // setFilteredSubs(data);
+  //     // setLoading(false);
+  //   } catch (err) {
+  //     console.error('Failed to send user-data:', err);
+  //     // setError('Failed to load subscriptions. Please try again later.');
+  //     // setLoading(false);
+  //   }
+  // };
 
-  setTimeout(() => {
-    setUserData()
-  }, 200);
+  // useEffect(() => {
+  // setTimeout(() => {
+  //   setUserData()
+  // }, 250);
+  // }, []);
 
+  
+  // Function to load content from the server
   const loadUserContent = async () => {
     try {
-      const content = await fetchUserContent();
-      setContentList(content);
-      setFilteredContent(content);
-      console.log('Content: ' + JSON.stringify(content));
-    } catch (error) {
-      console.error('Failed to fetch user content:', error);
-      if (error.response?.status === 403) {
-        setTimeout(() => navigate('/'), 250);
-      }
-      setSnackbarMessage('Failed to fetch user content');
-      setOpenSnackbar(true);
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/user-content/get`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = response.data;
+      setContentList(data);
+      setFilteredContent(data);
+      // setLoading(false);
+    } catch (err) {
+      console.error('Failed to fetch content:', err);
+      setError('Failed to load content. Please try again later.');
+      // setLoading(false);
     }
   };
+
 
   const loadUserSubscriptions = async () => {
     try {
       const subscriptions = await fetchUserSubscriptions();
+      // const token = localStorage.getItem('token');
+      // const subscriptions = await axios.get(`${API_URL}/user-subscriptions/get`, {
+      //   headers: { Authorization: `Bearer ${token}` },
+      // });
       setSubs(subscriptions);
       setFilteredSubs(subscriptions);
       console.log('Subscriptions: ' + JSON.stringify(subscriptions));
@@ -219,11 +231,12 @@ const YourStuff = () => {
 
   const handleShare = (item, type) => {
     // Implement sharing functionality here
+    console.log(item)
     if(type === "content"){
-      setShareLink(`https://microtrax.com/unlock/${item.id}`);
+      setShareLink(`http://localhost:3000/unlock/${item.reference_id}`);
     }
     if(type === "subscription"){
-      setShareLink(`https://microtrax.com/subscription/${item.id}`);
+      setShareLink(`http://localhost:3000/subscription/${item.reference_id}`);
     }
    
     try {

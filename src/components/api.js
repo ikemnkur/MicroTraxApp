@@ -31,26 +31,56 @@ api.interceptors.request.use(
     return Promise.reject(error);
   }
 );
-
+// This redirected the user to the login in page if they are not logged in and are not on the
 // Add a response interceptor
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Check if the current path starts with '/unlock'
+    const unlockPage = window.location.pathname.startsWith('/unlock');
+    const subPage = window.location.pathname.startsWith('/sub');
+    
+    if (unlockPage || subPage) {
+      // User is on the unlock page; do not redirect to login
+      // Allow the error to be handled by the component
+      return Promise.reject(error);
+    }
+    
     if (error.response && error.response.status === 401) {
-      // Token has expired
+      // Token has expired or user is unauthorized
       localStorage.removeItem('token'); // Remove the expired token
       window.location.href = '/login'; // Redirect to login page
     }
+    
+    // For other errors, reject the promise to handle them elsewhere
     return Promise.reject(error);
   }
 );
 
-export const fetchUserProfile = async () => {
+// // Add a response interceptor
+// api.interceptors.response.use(
+//   (response) => response,
+//   (error) => {
+//     const unlockPage = ['/unlock'].includes(location.pathname);
+//     if (unlockPage){
+//       return;
+//     }
+//     if (error.response && error.response.status === 401) {
+//       // Token has expired
+//       localStorage.removeItem('token'); // Remove the expired token
+//       window.location.href = '/register'; // Redirect to login page
+//       // window.location.href = '/login'; // Redirect to login page
+//     }
+//     return Promise.reject(error);
+//   }
+// );
+
+export const fetchUserProfile = async (page) => {
   try {
     const response = await api.get('/user/profile');
     return response.data;
   } catch (error) {
-    console.error('API - Error fetching user profile:', error);
+    console.error(`Page: ${page}; API - Error fetching user profile:`, error);
     // setTimeout(() => {
     //   navigate("/login");
     //   setOpenSnackbar(true);
@@ -84,7 +114,7 @@ export const fetchOtherUserProfile = async (userId) => {
     const response = await api.get(`/user/${userId}/profile`);
     return response.data;
   } catch (error) {
-    console.error('API - Error fetching user profile:', error);
+    console.error('API - Error fetching other user profile:', error);
     throw error;
   }
 };

@@ -30,8 +30,8 @@ const DotCaptcha = ({ onSuccess, onFailure }) => {
       newBalls.push({
         x: Math.random() * (canvas.width - 2 * radius) + radius,
         y: Math.random() * (canvas.height - 2 * radius) + radius,
-        vx: (Math.random() - 0.5) * 4,
-        vy: (Math.random() - 0.5) * 4,
+        vx: (Math.random() - 0.5) * 2,
+        vy: (Math.random() - 0.5) * 2,
         color: colors[Math.floor(Math.random() * colors.length)],
         radius,
       });

@@ -1,12 +1,24 @@
-// In a new file, e.g., useAuthCheck.js
+// useAuthCheck.js
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {jwtDecode} from 'jwt-decode'; // You'll need to install this: npm install jwt-decode
+import { useNavigate, useLocation } from 'react-router-dom';
+import {jwtDecode} from 'jwt-decode'; // Ensure you've installed this: npm install jwt-decode
 
 export const useAuthCheck = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
+    // List of paths where we don't want to redirect even if the user is not authenticated
+    const exemptedPaths = ['/unlock'];
+
+    // Check if current path starts with '/unlock', to handle dynamic unlock paths like '/unlock/:itemid'
+    const isExempted = exemptedPaths.some(path => location.pathname.startsWith(path));
+
+    if (isExempted) {
+      // Do not redirect; user can stay on the unlock page
+      return;
+    }
+
     const token = localStorage.getItem('token');
     if (!token) {
       navigate('/login');
@@ -26,7 +38,7 @@ export const useAuthCheck = () => {
       localStorage.removeItem('token');
       navigate('/login');
     }
-  }, [navigate]);
+  }, [navigate, location.pathname]);
 };
 
 export default useAuthCheck;

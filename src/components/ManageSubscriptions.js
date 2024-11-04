@@ -41,7 +41,7 @@ const Subscriptions = () => {
     description: '',
     content: '',
     type: 'url',
-    sub_id: uuidv4(),
+    reference_id: uuidv4(),
     id: 0,
     account_id: thisUser.account_id
   });
@@ -144,7 +144,7 @@ const Subscriptions = () => {
         description: '',
         content: '',
         type: 'url',
-        sub_id: ''
+        reference_id: ''
       });
       setOpenDialog(false);
       loadSubscriptions();
@@ -167,7 +167,7 @@ const Subscriptions = () => {
       description: item.description,
       content: item.content,
       type: item.type,
-      sub_id: item.sub_id
+      reference_id: item.reference_id
     });
     setOpenDialog(true);
   };
@@ -177,7 +177,7 @@ const Subscriptions = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.put(`${API_URL}/public-subscriptions/edit/${newSubscription.sub_id}`, newSubscription, {
+      const response = await axios.put(`${API_URL}/public-subscriptions/edit/${newSubscription.reference_id}`, newSubscription, {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log("Edit Subscription Response: ", response);
@@ -192,7 +192,7 @@ const Subscriptions = () => {
         description: '',
         content: '',
         type: 'url',
-        sub_id: ''
+        reference_id: ''
       });
       setEditing(false);
       setOpenDialog(false);
@@ -216,7 +216,7 @@ const Subscriptions = () => {
       description: '',
       content: '',
       type: 'url',
-      sub_id: ''
+      reference_id: ''
     });
     setOpenDialog(false);
   };
@@ -226,9 +226,9 @@ const Subscriptions = () => {
   const [openShareDialog, setOpenShareDialog] = useState(false);
 
   // Share a subscription
-  // TODO
   const handleShare = (item) => {
-    setShareLink(`https://microtrax.com/subscription/${item.id}`);
+    const link = `http://localhost:3000/sub/${item.reference_id}`; // Corrected URL
+    setShareLink(link);
     setOpenShareDialog(true);
   };
 
@@ -423,8 +423,8 @@ const Subscriptions = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog for sharing subscription */}
-      <Dialog
+       {/* Dialog for sharing subscription */}
+       <Dialog
         open={openShareDialog}
         onClose={() => setOpenShareDialog(false)}
         PaperProps={{
@@ -437,21 +437,28 @@ const Subscriptions = () => {
         }}
       >
         <DialogTitle>Share Subscription</DialogTitle>
-        <DialogContent style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          width: '100%'
-        }}>
-          <DialogContentText style={{ textAlign: 'center' }}>
+        <DialogContent
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center', // Center vertically
+            textAlign: 'center',
+          }}
+        >
+          <DialogContentText>
             Share this subscription:
           </DialogContentText>
-          <Box sx={{ my: 2 }}>
-            <QRCode value={shareLink} size={256} />
-          </Box>
-          <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', mb: 2 }}>
-            <Clipboard Item={shareLink} />
-          </Box>
+          {shareLink && (
+            <>
+              <Box sx={{ my: 2 }}>
+                <QRCode value={shareLink} size={256} />
+              </Box>
+              <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', mb: 2 }}>
+                <Clipboard Item={shareLink} />
+              </Box>
+            </>
+          )}
         </DialogContent>
         <DialogActions style={{ width: '100%', justifyContent: 'flex-end' }}>
           <Button onClick={() => setOpenShareDialog(false)}>Close</Button>

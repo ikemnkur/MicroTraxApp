@@ -1,4 +1,4 @@
-require('dotenv').config();
+// src/components/NavBar.js
 import React, { useState, useEffect } from 'react';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -21,11 +21,9 @@ import {
   Dashboard,
   History,
   Send,
-  Inbox,
   AccountBalance,
   Search,
   Share,
-  Message,
   AccountCircle,
   Settings as SettingsIcon,
   LockOutlined,
@@ -34,12 +32,10 @@ import {
 import CategoryIcon from '@mui/icons-material/Category';
 import { fetchUserProfile } from './api';
 
-
-
 const drawerWidth = 260;
 const collapsedDrawerWidth = 60;
 
-const Layout = ({ children }) => {
+const NavBar = ({ children }) => {
   const [open, setOpen] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
@@ -50,67 +46,54 @@ const Layout = ({ children }) => {
     { text: 'Send Money', icon: <Send />, path: '/send' },
     { text: 'Look for Users', icon: <Search />, path: '/search' },
     { text: 'Share Your Wallet', icon: <Share />, path: '/share' },
-    // { text: 'Received Payments', icon: <Inbox />, path: '/received' },
     { text: 'Transaction History', icon: <History />, path: '/transactions' },
-
-
-
-
-    // { text: 'Messages', icon: <Message />, path: '/messages' },
-
     { text: 'Published Content', icon: <LockOutlined />, path: '/manage-content' },
     { text: 'Public Subscriptions', icon: <BookmarkAdd />, path: '/manage-subscriptions' },
     { text: 'Your Stuff', icon: <CategoryIcon />, path: '/your-stuff' },
     { text: 'Account', icon: <AccountCircle />, path: '/account' },
   ];
 
-  const hideLayout = ['/login', '/register'].includes(location.pathname);
+  const unlockPage = location.pathname.startsWith('/unlock');
+  const subPage = location.pathname.startsWith('/sub');
+  const hideNavBar = ['/login', '/register'].includes(location.pathname);
 
-  function refreshPage() { window.location.reload(false); }
+  function refreshPage() {
+    window.location.reload(false);
+  }
 
-  if (hideLayout) {
-    return children;
-  } else {
-    // useEffect(() => {
+  useEffect(() => {
+    if (hideNavBar || unlockPage || subPage) {
+      // Do nothing if NavBar is hidden
+      return;
+    }
+
     const loadDashboardData = async () => {
       try {
-
-        const profile = await fetchUserProfile();
+        const profile = await fetchUserProfile('NavBar');
 
         const updatedUserData = {
           ...profile,
           birthDate: profile.birthDate ? profile.birthDate.split('T')[0] : '',
           accountTier: profile.accountTier || 1, // Ensure accountTier is set
-          encryptionKey: profile.encryptionKey || '' // Ensure encryptionKey is set
+          encryptionKey: profile.encryptionKey || '', // Ensure encryptionKey is set
         };
 
-        // setUserData(updatedUserData);
-        localStorage.setItem("userdata", JSON.stringify(updatedUserData));
-
+        localStorage.setItem('userdata', JSON.stringify(updatedUserData));
       } catch (err) {
-        console.log("Error: ", err)
-        // alert('Failed to load dashboard data, Please Re-Login');
+        console.log('Error: ', err);
         setTimeout(() => {
-          navigate("/login");
-          refreshPage()
-          // setOpenSnackbar(true);
-        }, 250)
-      } finally {
-        // setIsLoading(false);
+          navigate('/login');
+          refreshPage();
+        }, 250);
       }
     };
 
-    setTimeout(() => {
-      loadDashboardData();
-      // navigate("/login");
-      // setOpenSnackbar(true);
-    }, 250)
-    // loadDashboardData();
-    // }, []);
+    loadDashboardData();
+  }, [navigate, location.pathname, hideNavBar, unlockPage, subPage]);
+
+  if (hideNavBar || unlockPage || subPage) {
+    return children;
   }
-
-
-
 
   return (
     <Box sx={{ display: 'flex' }}>
@@ -126,7 +109,12 @@ const Layout = ({ children }) => {
           >
             {open ? <ChevronLeftIcon /> : <MenuIcon />}
           </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, textAlign: 'center' }}>
+          <Typography
+            variant="h6"
+            noWrap
+            component="div"
+            sx={{ flexGrow: 1, textAlign: 'center' }}
+          >
             MicroPay
           </Typography>
           <IconButton color="inherit" onClick={() => navigate('/settings')}>
@@ -181,7 +169,16 @@ const Layout = ({ children }) => {
           </List>
         </Box>
       </Drawer>
-      <Box component="main" sx={{ flexGrow: 1, p: 3, width: { sm: `calc(100% - ${open ? drawerWidth : collapsedDrawerWidth}px)` } }}>
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: 3,
+          width: {
+            sm: `calc(100% - ${open ? drawerWidth : collapsedDrawerWidth}px)`,
+          },
+        }}
+      >
         <Toolbar />
         {children}
       </Box>
@@ -189,4 +186,4 @@ const Layout = ({ children }) => {
   );
 };
 
-export default Layout;
+export default NavBar;

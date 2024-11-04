@@ -1,24 +1,24 @@
 // src/components/Auth.jsx
+require('dotenv').config();
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import {
-  Typography,
-  TextField,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Box,
+import { 
+  Typography, 
+  TextField, 
+  Button, 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  Box, 
   Avatar,
   Link
 } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { Link as RouterLink } from 'react-router-dom';
-import DotCaptcha from './DotCaptcha';
+import DotCaptcha from './DotCaptcha'; // Import the DotCaptcha component
 
-const Auth = ({ isLogin, onLoginSuccess }) => {
-  // ... existing state variables and functions
+const Auth = ({ isLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -29,41 +29,9 @@ const Auth = ({ isLogin, onLoginSuccess }) => {
   const [remainingTime, setRemainingTime] = useState(null); // Add this line
 
   const navigate = useNavigate();
-  const API_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:5000';
 
-  // Function to handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!captchaPassed) {
-      alert('Please complete the CAPTCHA correctly before submitting.');
-      return;
-    }
-    try {
-      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
-      const payload = isLogin ? { email, password } : { username, email, password };
+  const API_URL = process.env.REACT_APP_API_SERVER_URL || "http://localhost:5000";
 
-      const link = `${API_URL}${endpoint}`;
-      console.log('link: ' + link);
-
-      const response = await axios.post(link, payload);
-
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('userdata', JSON.stringify(response.data.user));
-      // Optionally, clear failed CAPTCHA attempts on success
-      localStorage.removeItem('failedCaptcha');
-
-      if (onLoginSuccess) {
-        onLoginSuccess();
-      } else {
-        navigate('/dashboard');
-      }
-    } catch (error) {
-      console.error('Auth error:', error.response?.data?.message || 'An error occurred');
-      alert(error.response?.data?.message || 'An error occurred during authentication.');
-    }
-  };
-
-  // ... existing code for blocked users
   // Function to check block status
   const checkBlockStatus = useCallback(() => {
     const blockData = localStorage.getItem('captchaBlock');
@@ -130,31 +98,31 @@ const Auth = ({ isLogin, onLoginSuccess }) => {
     }
   }, []);
 
-  // // Function to handle form submission
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   if (!captchaPassed) {
-  //     alert('Please complete the CAPTCHA correctly before submitting.');
-  //     return;
-  //   }
-  //   try {
-  //     const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
-  //     const payload = isLogin ? { email, password } : { username, email, password };
+  // Function to handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!captchaPassed) {
+      alert('Please complete the CAPTCHA correctly before submitting.');
+      return;
+    }
+    try {
+      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
+      const payload = isLogin ? { email, password } : { username, email, password };
       
-  //     const link = `${API_URL}${endpoint}`;
-  //     console.log("link: "+ link);
+      const link = `${API_URL}${endpoint}`;
+      console.log("link: "+ link);
 
-  //     const response = await axios.post(link, payload);
+      const response = await axios.post(link, payload);
       
-  //     localStorage.setItem('token', response.data.token);
-  //     // Optionally, clear failed CAPTCHA attempts on success
-  //     localStorage.removeItem('failedCaptcha');
-  //     navigate('/dashboard'); // Redirect to dashboard
-  //   } catch (error) {
-  //     console.error('Auth error:', error.response?.data?.message || 'An error occurred');
-  //     alert(error.response?.data?.message || 'An error occurred during authentication.');
-  //   }
-  // };
+      localStorage.setItem('token', response.data.token);
+      // Optionally, clear failed CAPTCHA attempts on success
+      localStorage.removeItem('failedCaptcha');
+      navigate('/dashboard'); // Redirect to dashboard
+    } catch (error) {
+      console.error('Auth error:', error.response?.data?.message || 'An error occurred');
+      alert(error.response?.data?.message || 'An error occurred during authentication.');
+    }
+  };
 
   if (blockTime) {
     const remaining = remainingTime !== null
@@ -186,20 +154,20 @@ const Auth = ({ isLogin, onLoginSuccess }) => {
   }
 
   return (
-    <Box
+    <Box 
       sx={{
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        mt: 2
+        mt: 8
       }}
     >
       <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
         <LockOutlinedIcon />
       </Avatar>
-      <Card sx={{ maxWidth: 400, width: '100%' }} elevation={0}>
-        <CardHeader
-          title={isLogin ? 'Login' : 'Sign Up'}
+      <Card sx={{ maxWidth: 400, width: '100%' }}>
+        <CardHeader 
+          title={isLogin ? "Login" : "Sign Up"} 
           sx={{ textAlign: 'center' }}
         />
         <CardContent>
@@ -247,11 +215,11 @@ const Auth = ({ isLogin, onLoginSuccess }) => {
                 required
               />
             )}
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              fullWidth
+            <Button 
+              type="submit" 
+              variant="contained" 
+              color="primary" 
+              fullWidth 
               sx={{ mt: 2 }}
               disabled={!captchaPassed}
             >
@@ -259,20 +227,14 @@ const Auth = ({ isLogin, onLoginSuccess }) => {
             </Button>
           </form>
           <Box sx={{ mt: 2, textAlign: 'center' }}>
-            {isLogin ? (
-              <Link component={RouterLink} to="/register">
-                Don't have an account? Sign Up
-              </Link>
-            ) : (
-              <Link component={RouterLink} to="/login">
-                Already have an account? Login
-              </Link>
-            )}
+            <Link component={RouterLink} to={isLogin ? '/register' : '/login'}>
+              {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Login"}
+            </Link>
           </Box>
           {!captchaPassed && (
-            <DotCaptcha
-              onSuccess={handleCaptchaSuccess}
-              onFailure={handleCaptchaFailure}
+            <DotCaptcha 
+              onSuccess={handleCaptchaSuccess} 
+              onFailure={handleCaptchaFailure} 
             />
           )}
           {captchaFailed && (

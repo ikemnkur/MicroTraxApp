@@ -4,6 +4,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { Typography, TextField, Button, Paper, Box, Snackbar, Avatar } from '@mui/material';
 import { fetchUserProfile, fetchOtherUserProfile, sendMoneyToOtherUser } from './api'; // Make sure this import is correct
 import axios from 'axios';
+import { useAuthCheck } from './useAuthCheck';
 
 const SendMoney = () => {
   const { userId } = useParams();
@@ -18,6 +19,7 @@ const SendMoney = () => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [thisUser, setThisUser] = useState(JSON.parse(localStorage.getItem("userdata")))
   const usernameInputRef = useRef(null);
+  useAuthCheck();
 
   const API_URL = process.env.REACT_APP_API_SERVER_URL + '/api'; // Adjust this if your API URL is different
 

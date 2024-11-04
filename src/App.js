@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Route, Routes, Navigate, useLocation, useNavig
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import theme from './theme';
-import Layout from './components/Layout';
+import NavBar from './components/NavBar';
 import Dashboard from './components/Dashboard';
 import TransactionHistory from './components/TransactionHistory';
 import SendMoney from './components/SendMoney';
@@ -115,40 +115,40 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
-        <Layout>
-          <Routes>
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/transactions" element={<TransactionHistory />} />
-            <Route path="/send" element={<SendMoney />} />
+        <NavBar>
+        <Routes>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/transactions" element={<TransactionHistory />} />
+          <Route path="/send" element={<SendMoney />} />
 
-            <Route path="/reload" element={<ReloadWallet />} />
-            <Route path="/withdraw" element={<WithdrawWallet />} />
-            <Route path="/search" element={<SearchUser />} />
-            <Route path="/user/:userId" element={<UserProfile />} />
-            <Route path="/share" element={<ShareWallet />} />
-            <Route path="/messages" element={<Messages />} />
-            <Route path="/messages/:username" element={<Messages />} />
-            <Route path="/account" element={<Account />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/wallet" element={<Wallet />} />
-            <Route path="/manage-subscriptions" element={<Subscriptions />} />
-            <Route path="/sub/:itemid" element={<SubToContent />} />
-            <Route path="/unlock/:itemid" element={<UnlockContent />} />
-            <Route path="/manage-content" element={<ManageContent />} />
-            <Route path="/reload-wallet" element={<AddToWallet />} />
-            <Route path="/your-stuff" element={<YourStuff />} />
-            <Route path="/login" element={<Auth isLogin={true} />} />
-            <Route path="/" element={<Auth isLogin={true} />} />
-            <Route path="/register" element={<Auth isLogin={false} />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-            <Route path="/Admin" element={<AdminDashboard />} />
+          <Route path="/reload" element={<ReloadWallet />} />
+          <Route path="/withdraw" element={<WithdrawWallet />} />
+          <Route path="/search" element={<SearchUser />} />
+          <Route path="/user/:userId" element={<UserProfile />} />
+          <Route path="/share" element={<ShareWallet />} />
+          <Route path="/messages" element={<Messages />} />
+          <Route path="/messages/:username" element={<Messages />} />
+          <Route path="/account" element={<Account />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/wallet" element={<Wallet />} />
+          <Route path="/manage-subscriptions" element={<Subscriptions />} />
+          <Route path="/sub/:itemid" element={<SubToContent />} />
+          <Route path="/unlock/:itemid" element={<UnlockContent />} />
+          <Route path="/manage-content" element={<ManageContent />} />
+          <Route path="/reload-wallet" element={<AddToWallet />} />
+          <Route path="/your-stuff" element={<YourStuff />} />
+          <Route path="/login" element={<Auth isLogin={true} />} />
+          <Route path="/" element={<Auth isLogin={true} />} />
+          <Route path="/register" element={<Auth isLogin={false} />} />
+          {/* <Route path="*" element={<Navigate to="/" replace />} /> */}
+          <Route path="/Admin" element={<AdminDashboard />} />
 
-            <Route path="/stripe-checkout" element={<CheckoutForm setCoins={setCoins} />} />
-            <Route path="/crypto-checkout" element={<CryptoCheckoutForm setCoins={setCoins} />} />
-            <Route path="/return" element={<Return increaseCoins={increaseCoins} />} />
-            
-          </Routes>
-        </Layout>
+          <Route path="/stripe-checkout" element={<CheckoutForm setCoins={setCoins} />} />
+          <Route path="/crypto-checkout" element={<CryptoCheckoutForm setCoins={setCoins} />} />
+          <Route path="/return" element={<Return increaseCoins={increaseCoins} />} />
+
+        </Routes>
+        </NavBar>
       </Router>
     </ThemeProvider>
   );

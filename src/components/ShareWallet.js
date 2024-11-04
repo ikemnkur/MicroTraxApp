@@ -15,7 +15,7 @@ const ShareWallet = () => {
   }, []);
 
   useEffect(() => {
-    // setShareLink(`https://microtrax.com/send?recipient=${username}`);
+    // setShareLink(`https://http://localhost:3000/send?recipient=${username}`);
     setShareLink(`http://localhost:3000/send?recipient=${username}`);
   }, [username]);
 
