@@ -43,7 +43,7 @@ const NavBar = ({ children }) => {
   const menuItems = [
     { text: 'Dashboard', icon: <Dashboard />, path: '/Dashboard' },
     { text: 'Your Wallet', icon: <AccountBalance />, path: '/wallet' },
-    { text: 'Send Money', icon: <Send />, path: '/send' },
+    { text: 'Send Coins', icon: <Send />, path: '/send' },
     { text: 'Look for Users', icon: <Search />, path: '/search' },
     { text: 'Share Your Wallet', icon: <Share />, path: '/share' },
     { text: 'Transaction History', icon: <History />, path: '/transactions' },

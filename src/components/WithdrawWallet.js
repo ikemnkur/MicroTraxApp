@@ -121,7 +121,7 @@ const WithdrawWallet = () => {
     Check: 'US Check via Mail',
     Paypal: 'Via PayPal Account',
     SendWave: 'Get money via SendWave',
-    Bank: 'Send Money via Bank',
+    Bank: 'send coins via Bank',
   };
 
   // Fetch crypto rates

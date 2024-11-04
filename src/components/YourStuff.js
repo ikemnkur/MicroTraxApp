@@ -42,7 +42,7 @@ import { useAuthCheck } from './useAuthCheck';
 const API_URL = process.env.REACT_APP_API_SERVER_URL + '/api';
 
 const YourStuff = () => {
-  
+
   const [searchTermContent, setSearchTermContent] = useState('');
   const [searchTermSub, setSearchTermSub] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
@@ -134,9 +134,9 @@ const YourStuff = () => {
   //         setOpenSnackbar(true);   
   //         setSubs([]);
   //       }
-      
+
   //     // console.log("Subscriptions Data: ", data);
-   
+
   //     // setFilteredSubs(data);
   //     // setLoading(false);
   //   } catch (err) {
@@ -152,7 +152,7 @@ const YourStuff = () => {
   // }, 250);
   // }, []);
 
-  
+
   // Function to load content from the server
   const loadUserContent = async () => {
     try {
@@ -209,12 +209,12 @@ const YourStuff = () => {
   const handleDeleteSubscription = async (contentId) => {
     try {
       // let response = await handleDeleteUserContent(contentId);
-      
-        const token = localStorage.getItem('token');
-        const response = await axios.delete(`${API_URL}/user-subscriptions/delete/${subId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        console.log("Delete User Subscription Response: ", response);
+
+      const token = localStorage.getItem('token');
+      const response = await axios.delete(`${API_URL}/user-subscriptions/delete/${subId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log("Delete User Subscription Response: ", response);
       // console.log("Delete User Sub: ", response)
       loadUserContent();
     } catch (error) {
@@ -232,13 +232,13 @@ const YourStuff = () => {
   const handleShare = (item, type) => {
     // Implement sharing functionality here
     console.log(item)
-    if(type === "content"){
+    if (type === "content") {
       setShareLink(`http://localhost:3000/unlock/${item.reference_id}`);
     }
-    if(type === "subscription"){
+    if (type === "subscription") {
       setShareLink(`http://localhost:3000/subscription/${item.reference_id}`);
     }
-   
+
     try {
       setShareItem({ title: item.title, username: thisUser.username, cost: item.cost, description: item.description, content: (item.content.content), type: item.type, reference_id: '' });
     } catch (error) {
@@ -246,7 +246,7 @@ const YourStuff = () => {
       // Handle error (e.g., show error message to user)
       setSnackbarMessage('Failed to generate share content');
       setOpenSnackbar(true);
-    } 
+    }
     console.log('Share item:', item)
     setOpenShareDialog(true);
   };
@@ -256,7 +256,7 @@ const YourStuff = () => {
       return (
         s.host_username.toLowerCase().includes(searchTermSub.toLowerCase()) ||
         s.cost.toString().includes(searchTermSub) ||
-        s.title.toLowerCase().includes(searchTermSub.toLowerCase()) 
+        s.title.toLowerCase().includes(searchTermSub.toLowerCase())
       );
     });
     setFilteredSubs(filtered);
@@ -271,7 +271,7 @@ const YourStuff = () => {
       return (
         c.host_username.toLowerCase().includes(searchTermContent.toLowerCase()) ||
         c.cost.toString().includes(searchTermContent) ||
-        c.title.toLowerCase().includes(searchTermContent.toLowerCase()) 
+        c.title.toLowerCase().includes(searchTermContent.toLowerCase())
       );
     });
     setFilteredContent(filtered);
@@ -350,12 +350,12 @@ const YourStuff = () => {
 
   return (
     <Box>
-     
-      <Paper sx={{ p: 2, mb: 2 }}> 
+
+      <Paper sx={{ p: 2, mb: 2 }}>
         <Typography variant="h3" gutterBottom>
-        Your Stuff
-      </Typography>
-        <Box sx={{ display: 'block', justifyContent: 'space-around', mt: 2 , padding: "5px"}}>
+          Your Stuff
+        </Typography>
+        <Box sx={{ display: 'block', justifyContent: 'space-around', mt: 2, padding: "5px" }}>
           <Typography variant="h6" gutterBottom>
             Current Balance: ₡{walletData?.balance}
           </Typography>
@@ -511,6 +511,7 @@ const YourStuff = () => {
         </Box>
       </Paper>
 
+      {/* Dialog for sharing subscription */}
       <Dialog
         open={openShareDialog}
         onClose={() => setOpenShareDialog(false)}
@@ -523,28 +524,36 @@ const YourStuff = () => {
           },
         }}
       >
-        <DialogTitle>Share Item</DialogTitle>
-        <DialogContent style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          width: '100%'
-        }}>
-          <DialogContentText style={{ textAlign: 'center' }}>
-            Share this:
+        <DialogTitle>Share this item to others</DialogTitle>
+        <DialogContent
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center', // Center vertically
+            textAlign: 'center',
+          }}
+        >
+          <DialogContentText>
+            Share this item:
           </DialogContentText>
-          <Box sx={{ my: 2 }}>
-            <QRCode value={shareLink} size={256} />
-          </Box>
-
-          <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', mb: 2 }}>
-            <Clipboard Item={shareLink} />
-          </Box>
+          {shareLink && (
+            <>
+              <Box sx={{ my: 2 }}>
+                <QRCode value={shareLink} size={256} />
+              </Box>
+              <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', mb: 2 }}>
+                <Clipboard Item={shareLink} />
+              </Box>
+            </>
+          )}
         </DialogContent>
         <DialogActions style={{ width: '100%', justifyContent: 'flex-end' }}>
           <Button onClick={() => setOpenShareDialog(false)}>Close</Button>
         </DialogActions>
       </Dialog>
+
+     
 
       <Dialog open={openDialog} onClose={handleCloseDialog}>
         <DialogTitle>{action === 'reload' ? 'Reload Wallet' : 'Withdraw Funds'}</DialogTitle>
@@ -560,6 +569,7 @@ const YourStuff = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
       {/* Snackbar for messages */}
       <Snackbar
         open={openSnackbar}

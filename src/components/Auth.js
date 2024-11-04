@@ -18,7 +18,7 @@ import { Link as RouterLink } from 'react-router-dom';
 import DotCaptcha from './DotCaptcha';
 
 const Auth = ({ isLogin, onLoginSuccess }) => {
-  // ... existing state variables and functions
+  // State variables
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -26,44 +26,12 @@ const Auth = ({ isLogin, onLoginSuccess }) => {
   const [captchaPassed, setCaptchaPassed] = useState(false);
   const [captchaFailed, setCaptchaFailed] = useState(false);
   const [blockTime, setBlockTime] = useState(null);
-  const [remainingTime, setRemainingTime] = useState(null); // Add this line
+  const [remainingTime, setRemainingTime] = useState(null);
+  const [showCaptcha, setShowCaptcha] = useState(false); // New state variable
 
   const navigate = useNavigate();
   const API_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:5000';
 
-  // Function to handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!captchaPassed) {
-      alert('Please complete the CAPTCHA correctly before submitting.');
-      return;
-    }
-    try {
-      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
-      const payload = isLogin ? { email, password } : { username, email, password };
-
-      const link = `${API_URL}${endpoint}`;
-      console.log('link: ' + link);
-
-      const response = await axios.post(link, payload);
-
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('userdata', JSON.stringify(response.data.user));
-      // Optionally, clear failed CAPTCHA attempts on success
-      localStorage.removeItem('failedCaptcha');
-
-      if (onLoginSuccess) {
-        onLoginSuccess();
-      } else {
-        navigate('/dashboard');
-      }
-    } catch (error) {
-      console.error('Auth error:', error.response?.data?.message || 'An error occurred');
-      alert(error.response?.data?.message || 'An error occurred during authentication.');
-    }
-  };
-
-  // ... existing code for blocked users
   // Function to check block status
   const checkBlockStatus = useCallback(() => {
     const blockData = localStorage.getItem('captchaBlock');
@@ -81,7 +49,7 @@ const Auth = ({ isLogin, onLoginSuccess }) => {
   // Function to handle unblocking
   const handleUnblock = useCallback(() => {
     setBlockTime(null);
-    setRemainingTime(null); // Reset remaining time
+    setRemainingTime(null);
     localStorage.removeItem('captchaBlock');
     localStorage.removeItem('failedCaptcha'); // Reset failed attempts
   }, []);
@@ -114,10 +82,38 @@ const Auth = ({ isLogin, onLoginSuccess }) => {
   }, [blockTime, handleUnblock]);
 
   // Handler for successful CAPTCHA
-  const handleCaptchaSuccess = useCallback(() => {
+  const handleCaptchaSuccess = useCallback(async () => {
     setCaptchaPassed(true);
     setCaptchaFailed(false);
-  }, []);
+
+    // Proceed to submit the authentication request after CAPTCHA is passed
+    try {
+      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
+      const payload = isLogin ? { email, password } : { username, email, password };
+
+      const link = `${API_URL}${endpoint}`;
+      console.log('link: ' + link);
+
+      const response = await axios.post(link, payload);
+
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('userdata', JSON.stringify(response.data.user));
+      // Optionally, clear failed CAPTCHA attempts on success
+      localStorage.removeItem('failedCaptcha');
+
+      if (onLoginSuccess) {
+        onLoginSuccess();
+      } else {
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      console.error('Auth error:', error.response?.data?.message || 'An error occurred');
+      alert(error.response?.data?.message || 'An error occurred during authentication.');
+      // Reset CAPTCHA state to allow the user to try again
+      setCaptchaPassed(false);
+      setShowCaptcha(false);
+    }
+  }, [API_URL, email, password, username, isLogin, navigate, onLoginSuccess]);
 
   // Handler for failed CAPTCHA
   const handleCaptchaFailure = useCallback(() => {
@@ -130,31 +126,39 @@ const Auth = ({ isLogin, onLoginSuccess }) => {
     }
   }, []);
 
-  // // Function to handle form submission
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   if (!captchaPassed) {
-  //     alert('Please complete the CAPTCHA correctly before submitting.');
-  //     return;
-  //   }
-  //   try {
-  //     const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
-  //     const payload = isLogin ? { email, password } : { username, email, password };
-      
-  //     const link = `${API_URL}${endpoint}`;
-  //     console.log("link: "+ link);
+  // Function to handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  //     const response = await axios.post(link, payload);
-      
-  //     localStorage.setItem('token', response.data.token);
-  //     // Optionally, clear failed CAPTCHA attempts on success
-  //     localStorage.removeItem('failedCaptcha');
-  //     navigate('/dashboard'); // Redirect to dashboard
-  //   } catch (error) {
-  //     console.error('Auth error:', error.response?.data?.message || 'An error occurred');
-  //     alert(error.response?.data?.message || 'An error occurred during authentication.');
-  //   }
-  // };
+    // If CAPTCHA has not been shown yet
+    if (!showCaptcha) {
+      // Check if required fields are filled
+      if (isLogin) {
+        if (!email || !password) {
+          alert('Please enter your email and password.');
+          return;
+        }
+      } else {
+        if (!username || !email || !password || !confirmPassword) {
+          alert('Please fill in all required fields.');
+          return;
+        }
+        if (password !== confirmPassword) {
+          alert('Passwords do not match.');
+          return;
+        }
+      }
+      // Show CAPTCHA
+      setShowCaptcha(true);
+      return;
+    }
+
+    // If CAPTCHA is shown but not passed
+    if (showCaptcha && !captchaPassed) {
+      alert('Please complete the CAPTCHA correctly before submitting.');
+      return;
+    }
+  };
 
   if (blockTime) {
     const remaining = remainingTime !== null
@@ -253,7 +257,6 @@ const Auth = ({ isLogin, onLoginSuccess }) => {
               color="primary"
               fullWidth
               sx={{ mt: 2 }}
-              disabled={!captchaPassed}
             >
               {isLogin ? 'Login' : 'Sign Up'}
             </Button>
@@ -269,11 +272,14 @@ const Auth = ({ isLogin, onLoginSuccess }) => {
               </Link>
             )}
           </Box>
-          {!captchaPassed && (
-            <DotCaptcha
-              onSuccess={handleCaptchaSuccess}
-              onFailure={handleCaptchaFailure}
-            />
+          {/* Show CAPTCHA only after submit is clicked and showCaptcha is true */}
+          {showCaptcha && !captchaPassed && (
+            <Box sx={{ mt: 2 }}>
+              <DotCaptcha
+                onSuccess={handleCaptchaSuccess}
+                onFailure={handleCaptchaFailure}
+              />
+            </Box>
           )}
           {captchaFailed && (
             <Typography variant="body2" color="error" align="center" sx={{ mt: 2 }}>

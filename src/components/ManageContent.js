@@ -424,6 +424,48 @@ const ManageContent = () => {
         </DialogActions>
       </Dialog>
 
+       {/* Dialog for sharing subscription */}
+       <Dialog
+        open={openShareDialog}
+        onClose={() => setOpenShareDialog(false)}
+        PaperProps={{
+          style: {
+            width: '400px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          },
+        }}
+      >
+        <DialogTitle>Share Content</DialogTitle>
+        <DialogContent
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center', // Center vertically
+            textAlign: 'center',
+          }}
+        >
+          <DialogContentText>
+            Share this Content:
+          </DialogContentText>
+          {shareLink && (
+            <>
+              <Box sx={{ my: 2 }}>
+                <QRCode value={shareLink} size={256} />
+              </Box>
+              <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', mb: 2 }}>
+                <Clipboard Item={shareLink} />
+              </Box>
+            </>
+          )}
+        </DialogContent>
+        <DialogActions style={{ width: '100%', justifyContent: 'flex-end' }}>
+          <Button onClick={() => setOpenShareDialog(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Snackbar for notifications */}
       <Snackbar
         open={openSnackbar}

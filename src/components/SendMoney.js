@@ -120,7 +120,7 @@ const SendMoney = () => {
       createNotification(notif)
 
     } catch (error) {
-      setSnackbarMessage(error.message || "Failed to send money. Please try again later.");
+      setSnackbarMessage(error.message || "Failed to send coins. Please try again later.");
       setOpenSnackbar(true);
       // if (error.response?.status === 401) {
       //   // Unauthorized, token might be expired
@@ -151,7 +151,7 @@ const SendMoney = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>Send Money</Typography>
+      <Typography variant="h4" gutterBottom>send coins</Typography>
       {UserNotFound && (
         <Paper sx={{ p: 2, display: 'flex', color: "lightgrey", alignItems: 'center', mb: 2 }}>
 
@@ -204,7 +204,7 @@ const SendMoney = () => {
             required
           />
           <Button type="submit" variant="contained" color="primary" sx={{ mt: 2 }}>
-            Send Money
+            send coins
           </Button>
         </form>
       </Paper>

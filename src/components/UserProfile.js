@@ -87,7 +87,7 @@ const UserProfile = () => {
       </Paper>
       <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
         <Button variant="contained" startIcon={<SendIcon />} onClick={handleSendMoney}>
-          Send Money
+          send coins
         </Button>
         <Button
           variant={isFavorite ? "contained" : "outlined"}
