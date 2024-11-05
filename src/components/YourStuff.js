@@ -38,10 +38,36 @@ import Clipboard from './Clipboard.js'; // If you have a Clipboard component
 import QRCode from 'qrcode.react'; // If you use QR codes
 import axios from 'axios';
 import { useAuthCheck } from './useAuthCheck';
-import useBaseUrl from '../hooks/useBaseUrl.js';
+// import useBaseUrl from '../hooks/useBaseUrl.js';
+
+// const getBaseUrl = () => {
+//   if (typeof window !== 'undefined') {
+//     return window.location.origin;
+//   }
+//   // Fallback for SSR or other environments
+//   return process.env.REACT_APP_BASE_URL || 'http://localhost:3000';
+// };
+
+// const useBaseUrl = () => {
+//   const [baseUrl, setBaseUrl] = useState('');
+
+//   useEffect(() => {
+//     const url = getBaseUrl();
+//     setBaseUrl(url);
+//   }, []);
+
+//   return baseUrl;
+// };
 
 const API_URL = process.env.REACT_APP_API_SERVER_URL + '/api';
-const siteURL = useBaseUrl();
+
+let siteURL = ""; //useBaseUrl();
+if (typeof window !== 'undefined') {
+  siteURL = window.location.origin;
+} else {
+  siteURL = process.env.REACT_APP_BASE_URL || 'http://localhost:3000';
+}
+
 
 const YourStuff = () => {
 

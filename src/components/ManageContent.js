@@ -12,7 +12,7 @@ import QRCode from 'qrcode.react';
 import Clipboard from "./Clipboard.js";
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
-import useBaseUrl from '../hooks/useBaseUrl';
+// import useBaseUrl from '../hooks/useBaseUrl';
 
 const ManageContent = () => {
   const navigate = useNavigate();
@@ -46,7 +46,33 @@ const ManageContent = () => {
   });
 
   const API_URL = process.env.REACT_APP_API_SERVER_URL + '/api';
-  const siteURL = useBaseUrl();
+  // const siteURL = useBaseUrl();
+
+  let siteURL = ""; //useBaseUrl();
+  if (typeof window !== 'undefined') {
+    siteURL = window.location.origin;
+  } else {
+    siteURL = process.env.REACT_APP_BASE_URL || 'http://localhost:3000';
+  }
+
+  // const getBaseUrl = () => {
+  //   if (typeof window !== 'undefined') {
+  //     return window.location.origin;
+  //   }
+  //   // Fallback for SSR or other environments
+  //   return process.env.REACT_APP_BASE_URL || 'http://localhost:3000';
+  // };
+
+  // const useBaseUrl = () => {
+  //   const [baseUrl, setBaseUrl] = useState('');
+
+  //   useEffect(() => {
+  //     const url = getBaseUrl();
+  //     setBaseUrl(url);
+  //   }, []);
+
+  //   return baseUrl;
+  // };
 
   // Function to load content from the server
   const loadContent = async () => {
@@ -426,8 +452,8 @@ const ManageContent = () => {
         </DialogActions>
       </Dialog>
 
-       {/* Dialog for sharing subscription */}
-       <Dialog
+      {/* Dialog for sharing subscription */}
+      <Dialog
         open={openShareDialog}
         onClose={() => setOpenShareDialog(false)}
         PaperProps={{

@@ -1,15 +1,15 @@
-import { useState, useEffect } from 'react';
-import getBaseUrl from '../utils/getBaseUrl';
+// import { useState, useEffect } from 'react';
+// import getBaseUrl from '../utils/getBaseUrl';
 
-const useBaseUrl = () => {
-  const [baseUrl, setBaseUrl] = useState('');
+// const useBaseUrl = () => {
+//   const [baseUrl, setBaseUrl] = useState('');
 
-  useEffect(() => {
-    const url = getBaseUrl();
-    setBaseUrl(url);
-  }, []);
+//   useEffect(() => {
+//     const url = getBaseUrl();
+//     setBaseUrl(url);
+//   }, []);
 
-  return baseUrl;
-};
+//   return baseUrl;
+// };
 
-export default useBaseUrl;
+// export default useBaseUrl;

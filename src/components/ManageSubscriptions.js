@@ -13,7 +13,7 @@ import Clipboard from "./Clipboard.js";
 import axios from 'axios';
 import { fetchUserSubscriptions } from './api.js';
 import { v4 as uuidv4 } from 'uuid';
-import useBaseUrl from '../hooks/useBaseUrl.js';
+// import useBaseUrl from '../hooks/useBaseUrl.js';
 
 const Subscriptions = () => {
   const navigate = useNavigate();
@@ -48,28 +48,35 @@ const Subscriptions = () => {
   });
 
   const API_URL = process.env.REACT_APP_API_SERVER_URL + '/api';
-  const baseUrl = useBaseUrl();
+  // const baseUrl = useBaseUrl();
+
+  let siteURL = ""; //useBaseUrl();
+  if (typeof window !== 'undefined') {
+    siteURL = window.location.origin;
+  } else {
+    siteURL = process.env.REACT_APP_BASE_URL || 'http://localhost:3000';
+  }
 
   // Function to load user subscriptions from the server
   const loadSubscriptions = async () => {
     try {
-        let data;
-        try {
-          const token = localStorage.getItem('token');
-          const response = await axios.get(API_URL+'/public-subscriptions/get', {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          setSubs(response.data);
-          data = response.data
-        } catch (error) {
-          console.error('Error fetching subscriptions:', error);
-          setSnackbarMessage('Failed to load subscriptions.');
-          setOpenSnackbar(true);   
-          setSubs([]);
-        }
-      
+      let data;
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get(API_URL + '/public-subscriptions/get', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setSubs(response.data);
+        data = response.data
+      } catch (error) {
+        console.error('Error fetching subscriptions:', error);
+        setSnackbarMessage('Failed to load subscriptions.');
+        setOpenSnackbar(true);
+        setSubs([]);
+      }
+
       console.log("Subscriptions Data: ", data);
-   
+
       setFilteredSubs(data);
       setLoading(false);
     } catch (err) {
@@ -425,8 +432,8 @@ const Subscriptions = () => {
         </DialogContent>
       </Dialog>
 
-       {/* Dialog for sharing subscription */}
-       <Dialog
+      {/* Dialog for sharing subscription */}
+      <Dialog
         open={openShareDialog}
         onClose={() => setOpenShareDialog(false)}
         PaperProps={{
