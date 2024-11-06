@@ -390,9 +390,9 @@ const YourStuff = () => {
           <Typography variant="body1" gutterBottom>
             Account Tier: {walletData?.accountTier}
           </Typography>
-          <Typography variant="body1" gutterBottom>
+          {/* <Typography variant="body1" gutterBottom>
             Daily Transaction Limit: ₡{walletData?.dailyTransactionLimit}
-          </Typography>
+          </Typography> */}
         </Box>
         <Box sx={{ mt: 2 }}>
           <TableContainer component={Paper}>

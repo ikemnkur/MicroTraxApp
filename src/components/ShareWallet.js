@@ -9,6 +9,15 @@ const ShareWallet = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [thisUser, setThisUser] = useState(JSON.parse(localStorage.getItem("userdata")))
 
+
+  let siteURL = ""; //useBaseUrl();
+  if (typeof window !== 'undefined') {
+    siteURL = window.location.origin;
+  } else {
+    siteURL = process.env.REACT_APP_BASE_URL || 'http://localhost:3000';
+  }
+
+
   useEffect(() => {
     // Mock fetching current user's username
     setUsername(thisUser.username);

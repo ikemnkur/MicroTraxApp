@@ -8,6 +8,7 @@ import Notifications from './Notifications'; // Import the Notifications compone
 
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -26,14 +27,14 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
 
-
+  console.log("dashboard data: ", dashboardData)
   
 
   useEffect(() => {
     const loadUserProfile = async () => {
       try {
         const profile = await fetchUserProfile();
-        
+        setProfile(profile);
         const updatedUserData = {
           ...profile,
           birthDate: profile.birthDate ? profile.birthDate.split('T')[0] : '',
@@ -141,7 +142,7 @@ const Dashboard = () => {
               Subscriptions
             </Typography>
             <Typography variant="h4">
-              Count: {dashboardData?.accountTier ?? 'N/A'}
+              Count: {profile?.subscriptions ?? 'N/A'}
             </Typography>
           </Paper>
         </Grid>
@@ -151,7 +152,7 @@ const Dashboard = () => {
               Unlocked Content
             </Typography>
             <Typography variant="h4">
-              Count: {dashboardData?.accountTier ?? 'N/A'}
+              Count: {profile?.unlocks ?? 'N/A'}
             </Typography>
           </Paper>
         </Grid>

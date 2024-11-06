@@ -112,7 +112,7 @@ const UnlockContent = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.post(
-        `${API_URL}/api/unlock/confirm`,
+        `${API_URL}/api/unlock/unlock-content`,
         { contentId: contentData.id, message },
         { headers: { Authorization: `Bearer ${token}` } }
       );
