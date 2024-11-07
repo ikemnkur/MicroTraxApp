@@ -8,6 +8,7 @@ import {
   Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
   Input, Modal, IconButton
 } from '@mui/material';
+import { HeartBrokenRounded, LockOpenRounded, ThumbUp, Visibility } from '@mui/icons-material';
 import CloseIcon from '@mui/icons-material/Close';
 import axios from 'axios';
 import Auth from './Auth'; // Import the Auth component
@@ -31,10 +32,11 @@ const SubToContent = () => {
   const [thisUser, setThisUser] = useState(JSON.parse(localStorage.getItem("userdata")))
 
   const API_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:5000';
-
+  
+  // alert("Subbing to Content")
 
   useEffect(() => {
-    alert("Subbing to Content")
+    // alert("Subbing to Content")
     const fetchData = async () => {
       try {
         // Fetch content data
@@ -175,9 +177,14 @@ const SubToContent = () => {
         <Typography variant="body1" gutterBottom>Cost: ₡{contentData.cost}</Typography>
         {isLoggedIn && (
           <Typography variant="body1" gutterBottom>
-            Balance: ₡{userBalance}
+           Your Spending Balance: ₡{userBalance}
           </Typography>
         )}
+      </Paper>
+      <Paper style={{ backgroundColor: 'lightgray', padding: '10px', alignContent: 'center' }}>
+        <Typography variant="h5" gutterBottom>
+          <Visibility/>: 20  <ThumbUp/>: 3 <LockOpenRounded/>: 3
+        </Typography>
       </Paper>
 
       {!subscribed ? (

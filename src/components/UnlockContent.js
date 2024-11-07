@@ -9,6 +9,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import axios from 'axios';
 import Auth from './Auth'; // Import the Auth component
+import { HeartBrokenRounded, LockOpenRounded, ThumbUp, Visibility } from '@mui/icons-material';
 
 const UnlockContent = () => {
   const { itemid } = useParams();
@@ -194,7 +195,11 @@ const UnlockContent = () => {
           </Typography>
         )}
       </Paper>
-
+      <Paper style={{ backgroundColor: 'lightgray', padding: '10px', alignContent: 'center' }}>
+        <Typography variant="h5" gutterBottom>
+          <Visibility/>: 20  <ThumbUp/>: 3 <LockOpenRounded/>: 3
+        </Typography>
+      </Paper>
       {!unlocked ? (
         <>
           <div style={{ marginTop: '30px' }}>
