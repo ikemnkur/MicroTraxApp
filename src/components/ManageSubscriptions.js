@@ -186,10 +186,11 @@ const Subscriptions = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.put(`${API_URL}/public-subscriptions/edit/${newSubscription.reference_id}`, newSubscription, {
+      const response = await axios.put(`${API_URL}/public-subscriptions/edit`, newSubscription, {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log("Edit Subscription Response: ", response);
+      setSnackbarMessage("Successfully updated Subscription Service")
 
       // Reset form and close dialog
       setNewSubscription({
@@ -207,7 +208,7 @@ const Subscriptions = () => {
       setOpenDialog(false);
       loadSubscriptions();
     } catch (error) {
-      console.error('Failed to update subscription:', error);
+      console.error('Failed to update subscription');
       setSnackbarMessage('Failed to update subscription.');
       setOpenSnackbar(true);
     }

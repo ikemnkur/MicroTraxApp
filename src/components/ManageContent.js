@@ -116,7 +116,7 @@ const ManageContent = () => {
     });
     setFilteredContentList(filtered);
   };
-
+  
   const handleSearch = () => {
     searchContent();
   };
@@ -191,11 +191,11 @@ const ManageContent = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.put(`${API_URL}/public-content/edit/${newContent.id}`, newContent, {
+      const response = await axios.put(`${API_URL}/public-content/edit`, newContent, {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log("Edit Content Response: ", response);
-
+      setSnackbarMessage('Successfully updated content.');
       // Reset form and close dialog
       setNewContent({
         username: thisUser.username,
@@ -211,7 +211,7 @@ const ManageContent = () => {
       setOpenDialog(false);
       loadContent();
     } catch (error) {
-      console.error('Failed to update content:', error);
+      console.error('Failed to update content');
       setSnackbarMessage('Failed to update content.');
       setOpenSnackbar(true);
     }
@@ -239,15 +239,18 @@ const ManageContent = () => {
 
   // Share content
   const handleShare = (item) => {
-    setShareLink(`https://${siteURL}/unlock/${item.reference_id}`);
+    setShareLink(`${siteURL}/unlock/${item.reference_id}`);
     setOpenShareDialog(true);
   };
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>Manage Unlockable Content</Typography>
-      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-        <TextField
+      <Typography variant="h4" style={{alignContent: "center"}} gutterBottom>Manage Unlockable Content</Typography>
+      <Box sx={{gap: 2, mb: 2, alignContent: "center" }}>
+        
+        <div style={{display: 'flex', gap: 15, mb: 2, margin: "0" }}>
+         <strong style={{ padding: "15px" }}>Search:</strong> 
+         <TextField style={{width: "40%",}}
           label="Search"
           variant="outlined"
           value={searchTerm}
@@ -256,7 +259,10 @@ const ManageContent = () => {
         <Button variant="contained" color="primary" onClick={handleSearch}>
           Search
         </Button>
-        <strong style={{ padding: "15px" }}>Filter:</strong>
+        </div>
+        <br></br>
+        <div style={{display: 'flex', gap: 10, mb: 2 }}>
+          <strong style={{ padding: "15px" }}>Filter:</strong>
         <Select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
@@ -278,6 +284,8 @@ const ManageContent = () => {
         <Button variant="contained" color="primary" onClick={() => setOpenDialog(true)}>
           Create New Content
         </Button>
+        </div>
+        
       </Box>
       <TableContainer component={Paper}>
         <Table>
@@ -314,6 +322,13 @@ const ManageContent = () => {
                 </TableCell>
               </TableRow>
             ))}
+            {filteredContentList.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={16} align="center">
+                      No content available.
+                    </TableCell>
+                  </TableRow>
+                )}
           </TableBody>
         </Table>
       </TableContainer>

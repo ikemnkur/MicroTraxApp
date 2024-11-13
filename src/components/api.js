@@ -90,12 +90,12 @@ export const fetchUserProfile = async (page) => {
   }
 };
 
-export const fetchRecieveTransactionHistory = async (userId) => {
+export const fetchreceiveTransactionHistory = async (userId) => {
   try {
-    const response = await api.get(`/transactions/recieveHistory`);
+    const response = await api.get(`/transactions/receiveHistory`);
     return response.data;
   } catch (error) {
-    console.error('API - Error fetching recieve payment history:', error);
+    console.error('API - Error fetching receive payment history:', error);
     throw error;
   }
 };

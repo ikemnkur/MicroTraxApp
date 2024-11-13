@@ -1,15 +1,18 @@
 // src/components/UnlockContent.jsx
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Typography, TextField, Button, Box, CircularProgress, Snackbar, Paper,
   Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
-  Input, Modal, IconButton
+  Input, Modal, IconButton, Grid, Rating
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import axios from 'axios';
-import Auth from './Auth'; // Import the Auth component
-import { HeartBrokenRounded, LockOpenRounded, ThumbUp, Visibility } from '@mui/icons-material';
+import Auth from './Auth';
+import {
+  HeartBrokenRounded, LockOpenRounded, Star, ThumbDownAlt, ThumbUp, ThumbUpOutlined,ThumbDownAltOutlined, Visibility
+} from '@mui/icons-material';
 
 const UnlockContent = () => {
   const { itemid } = useParams();
@@ -22,8 +25,18 @@ const UnlockContent = () => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [message, setMessage] = useState('');
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // New state to track login status
-  const [openLoginModal, setOpenLoginModal] = useState(false); // State to control the login modal
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [openLoginModal, setOpenLoginModal] = useState(false);
+
+  // New states for likes, dislikes, views, and ratings
+  const [likes, setLikes] = useState(0);
+  const [dislikes, setDislikes] = useState(0);
+  const [views, setViews] = useState(0);
+  const [rating, setRating] = useState(0);
+  const [userRating, setUserRating] = useState(0);
+
+  // New state variables
+  const [userLikeStatus, setUserLikeStatus] = useState(0); // 1: liked, -1: disliked, 0: none
 
   const API_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:5000';
 
@@ -32,8 +45,16 @@ const UnlockContent = () => {
       try {
         // Fetch content data
         const contentResponse = await axios.get(`${API_URL}/api/unlock/unlock-content/${itemid}`);
-        setContentData(contentResponse.data);
-        
+        const content = contentResponse.data;
+        setContentData(content);
+        console.log("Content: ", content)
+
+        // Set initial values for likes, dislikes, views, and rating
+        setLikes(content.likes || 0);
+        setDislikes(content.dislikes || 0);
+        setViews(content.views || 0);
+        setRating(content.rating || 0);
+
         // Check login status via wallet balance
         try {
           const token = localStorage.getItem('token');
@@ -48,34 +69,64 @@ const UnlockContent = () => {
         } catch (error) {
           setIsLoggedIn(false);
         }
-        
-        // Check login status
-        // const token = localStorage.getItem('token');
-        // if (token) {
-        //   // User is logged in, fetch balance
-        //   const balanceResponse = await axios.get(`${API_URL}/api/wallet`, {
-        //     headers: { Authorization: `Bearer ${token}` },
-        //   });
-        //   setUserBalance(balanceResponse.data.balance);
-        //   setIsLoggedIn(true);
-        // } else {
-        //   // User is not logged in
-        //   setIsLoggedIn(false);
-        // }
+
+        try {
+          if (isLoggedIn) {
+            // Fetch user's like/dislike status
+            const token = localStorage.getItem('token');
+            const [ratingResponse] = await axios.get(
+              `${API_URL}/api/unlock/user-rating/${content.id}`,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            setUserLikeStatus(ratingResponse.data.like_status || 0);
+            setUserRating(ratingResponse.data.rating || 0);
+          }
+        } catch {
+          setIsLoggedIn(false);
+        }
+
+        // Increment view count
+        await axios.post(
+          `${API_URL}/api/unlock/add-view`,
+          { contentId: content.id },
+          { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+        );
+        setViews((prevViews) => prevViews + 1);
       } catch (err) {
         if (err.response && err.response.status === 401) {
-          // Handle 401 error if needed
           setIsLoggedIn(false);
-          // Optionally, show a message or prompt login
         } else {
           setError('Failed to load data');
         }
       } finally {
         setLoading(false);
       }
+
     };
 
     fetchData();
+
+    // // Fetch user's like status when loading content
+    // useEffect(() => {
+    //   const fetchUserLikeStatus = async () => {
+    //     if (isLoggedIn && contentData) {
+    //       try {
+    //         const response = await axios.get(
+    //           `${API_URL}/api/unlock/user-like-status`,
+    //           {
+    //             params: { contentId: contentData.id },
+    //             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+    //           }
+    //         );
+    //         setUserLikeStatus(response.data.like_status);
+    //       } catch (error) {
+    //         console.error('Failed to fetch user like status.');
+    //       }
+    //     }
+    //   };
+
+    //   fetchUserLikeStatus();
+    // }, [isLoggedIn, contentData]);
 
     // ... existing code ...
     // Add event listener for beforeunload when content is unlocked
@@ -171,6 +222,80 @@ const UnlockContent = () => {
     setUserBalance(balanceResponse.data.balance);
   };
 
+  // Adjusted handlers for like and dislike
+  const handleLike = async () => {
+    if (!isLoggedIn) {
+      setOpenLoginModal(true);
+      return;
+    }
+    try {
+      const response = await axios.post(
+        `${API_URL}/api/unlock/add-like`,
+        { contentId: contentData.id },
+        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+      );
+      // Update local state based on response
+      if (response.data.message === 'Content liked successfully') {
+        setLikes((prevLikes) => prevLikes + 1);
+        if (userLikeStatus === -1) {
+          setDislikes((prevDislikes) => prevDislikes - 1);
+        }
+        setUserLikeStatus(1);
+      } else if (response.data.message === 'Like removed') {
+        setLikes((prevLikes) => prevLikes - 1);
+        setUserLikeStatus(0);
+      }
+    } catch (error) {
+      setSnackbarMessage('Failed to like content.');
+    }
+  };
+
+  const handleDislike = async () => {
+    if (!isLoggedIn) {
+      setOpenLoginModal(true);
+      return;
+    }
+    try {
+      const response = await axios.post(
+        `${API_URL}/api/unlock/add-dislike`,
+        { contentId: contentData.id },
+        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+      );
+      // Update local state based on response
+      if (response.data.message === 'Content disliked successfully') {
+        setDislikes((prevDislikes) => prevDislikes + 1);
+        if (userLikeStatus === 1) {
+          setLikes((prevLikes) => prevLikes - 1);
+        }
+        setUserLikeStatus(-1);
+      } else if (response.data.message === 'Dislike removed') {
+        setDislikes((prevDislikes) => prevDislikes - 1);
+        setUserLikeStatus(0);
+      }
+    } catch (error) {
+      setSnackbarMessage('Failed to dislike content.');
+    }
+  };
+
+  // Handler for rating
+  const handleRatingChange = async (event, newValue) => {
+    if (!isLoggedIn) {
+      setOpenLoginModal(true);
+      return;
+    }
+    try {
+      await axios.post(
+        `${API_URL}/api/unlock/add-rating`,
+        { contentId: contentData.id, rating: newValue },
+        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+      );
+      setUserRating(newValue);
+      // Optionally, update the average rating from the server
+    } catch (error) {
+      setSnackbarMessage('Failed to submit rating.');
+    }
+  };
+
   if (loading) return <CircularProgress />;
   if (error) return <Typography color="error">{error}</Typography>;
 
@@ -195,11 +320,27 @@ const UnlockContent = () => {
           </Typography>
         )}
       </Paper>
-      <Paper style={{ backgroundColor: 'lightgray', padding: '10px', alignContent: 'center' }}>
-        <Typography variant="h5" gutterBottom>
-          <Visibility/>: 20  <ThumbUp/>: 3 <LockOpenRounded/>: 3
-        </Typography>
+
+      <Paper style={{ backgroundColor: '#DEEFFF', padding: '10px', marginTop: '20px' }}>
+        <Grid container spacing={2} alignItems="center" justifyContent="center">
+          <Grid item>
+            <Visibility /> {views}
+          </Grid>
+          <Grid item>
+            <LockOpenRounded /> {contentData.unlocks || 0}
+          </Grid>
+          <Grid item>
+            <ThumbUp /> {likes}
+          </Grid>
+          <Grid item>
+            <ThumbDownAlt /> {dislikes}
+          </Grid>
+          <Grid item>
+            <Star /> {rating.toFixed(1)}
+          </Grid>
+        </Grid>
       </Paper>
+
       {!unlocked ? (
         <>
           <div style={{ marginTop: '30px' }}>
@@ -214,19 +355,55 @@ const UnlockContent = () => {
               onChange={(e) => setMessage(e.target.value)}
             />
           </div>
-          <div style={{ marginTop: '10px' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
             <Button variant="contained" color="primary" onClick={handleUnlock}>
               Unlock Content
             </Button>
-          </div>
+          </Box>
         </>
       ) : (
-        <Paper elevation={3} sx={{ p: 2, mt: 2 }}>
-          <Typography variant="h6" gutterBottom>
-            Unlocked Content
-          </Typography>
-          {renderContent()}
-        </Paper>
+        <>
+          <Paper elevation={3} sx={{ p: 2, mt: 2 }}>
+            <Typography variant="h6" gutterBottom align="center">
+              Unlocked Content
+            </Typography>
+            {renderContent()}
+          </Paper>
+
+          <Paper style={{ backgroundColor: 'lightgray', padding: '10px', marginTop: '20px' }}>
+            <Typography variant="h6" gutterBottom align="center">
+              Like and Rate Content
+            </Typography>
+            <Grid container spacing={2} alignItems="center" justifyContent="center">
+              <Grid item>
+                <Button
+                  variant={userLikeStatus === 1 ? 'contained' : 'outlined'}
+                  startIcon={userLikeStatus === 1 ? <ThumbUp /> : <ThumbUpOutlined />}
+                  onClick={handleLike}
+                >
+                  {likes}
+                </Button>
+              </Grid>
+              <Grid item>
+                <Button
+                  variant={userLikeStatus === -1 ? 'contained' : 'outlined'}
+                  startIcon={userLikeStatus === -1 ? <ThumbDownAlt /> : <ThumbDownAltOutlined />}
+                  onClick={handleDislike}
+                >
+                  {dislikes}
+                </Button>
+              </Grid>
+              <Grid item>
+                <Typography component="legend">Rate:</Typography>
+                <Rating
+                  name="content-rating"
+                  value={userRating}
+                  onChange={handleRatingChange}
+                />
+              </Grid>
+            </Grid>
+          </Paper>
+        </>
       )}
 
       {/* Confirmation Dialog */}

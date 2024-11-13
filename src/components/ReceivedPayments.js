@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TextField, Select, MenuItem, Box, CircularProgress } from '@mui/material';
-import { fetchRecieveTransactionHistory } from './api';
+import { fetchreceiveTransactionHistory } from './api';
 
 const ReceivedPayments = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -13,7 +13,7 @@ const ReceivedPayments = () => {
   useEffect(() => {
     const loadTransactions = async () => {
       try {
-        const data = await fetchRecieveTransactionHistory();
+        const data = await fetchreceiveTransactionHistory();
         console.log("History Data: ", data)
         setTransactions(data);
         setLoading(false);

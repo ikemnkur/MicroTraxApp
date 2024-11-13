@@ -25,7 +25,7 @@ import {
   TableRow,
   IconButton,
 } from '@mui/material';
-import { Delete as DeleteIcon, EditNote as EditNoteIcon, Share as ShareIcon } from '@mui/icons-material';
+import { Delete as DeleteIcon, EditNote as EditNoteIcon, Share as ShareIcon, Visibility } from '@mui/icons-material';
 import {
   fetchUserContent,
   fetchUserSubscriptions,
@@ -365,6 +365,14 @@ const YourStuff = () => {
     });
   };
 
+  const handleViewContent = () => {
+
+  }
+
+  const handleViewSub = () => {
+
+  }
+
   const contentToDisplay = sortContent(filteredContent);
   const subscriptionsToDisplay = sortSubscriptions(filteredSubs);
 
@@ -443,15 +451,15 @@ const YourStuff = () => {
                     <TableCell>{item.type}</TableCell>
                     <TableCell>{item.host_username}</TableCell>
                     <TableCell>${parseFloat(item.cost).toFixed(2)}</TableCell>
-                    <TableCell>
-                      <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteUserContent(item.id)}>
-                        <DeleteIcon />
+                    <TableCell>                     
+                      <IconButton edge="end" aria-label="View" onClick={() => handleViewContent(item)}>
+                        <Visibility />
                       </IconButton>
-                      {/* <IconButton edge="end" aria-label="edit" onClick={() => handleEdit(item)}>
-                        <EditNoteIcon />
-                      </IconButton> */}
                       <IconButton edge="end" aria-label="share" onClick={() => handleShare(item, "content")}>
                         <ShareIcon />
+                      </IconButton> 
+                      <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteUserContent(item.id)}>
+                        <DeleteIcon />
                       </IconButton>
                     </TableCell>
                   </TableRow>
@@ -514,14 +522,14 @@ const YourStuff = () => {
                     <TableCell>{sub.host_username}</TableCell>
                     <TableCell>${parseFloat(sub.cost).toFixed(2)}</TableCell>
                     <TableCell>
-                      <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteSubscription(sub.id)}>
-                        <DeleteIcon />
+                      <IconButton edge="end" aria-label="edit" onClick={() => handleViewSub(sub)}>
+                        <Visibility />
                       </IconButton>
-                      {/* <IconButton edge="end" aria-label="edit" onClick={() => handleEdit(sub)}>
-                        <EditNoteIcon />
-                      </IconButton> */}
                       <IconButton edge="end" aria-label="share" onClick={() => handleShare(sub, "subscription")}>
                         <ShareIcon />
+                      </IconButton>
+                      <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteSubscription(sub.id)}>
+                        <DeleteIcon />
                       </IconButton>
                     </TableCell>
                   </TableRow>
@@ -581,7 +589,7 @@ const YourStuff = () => {
         </DialogActions>
       </Dialog>
 
-     
+
 
       <Dialog open={openDialog} onClose={handleCloseDialog}>
         <DialogTitle>{action === 'reload' ? 'Reload Wallet' : 'Withdraw Funds'}</DialogTitle>

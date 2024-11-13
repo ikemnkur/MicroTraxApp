@@ -1,8 +1,8 @@
 require('dotenv').config();
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Typography, Button, Avatar, Paper, Box, Snackbar, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material';
-import { Send as SendIcon, Favorite as FavoriteIcon, Report as ReportIcon, Message as MessageIcon } from '@mui/icons-material';
+import { Typography, Button, Avatar, Paper, Box, Snackbar, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Grid, Rating } from '@mui/material';
+import { Send as SendIcon, Favorite as FavoriteIcon, Report as ReportIcon, Message as MessageIcon, ThumbDownAlt, ThumbDownAltOutlined, ThumbUpOutlined, ThumbUp } from '@mui/icons-material';
 import { fetchOtherUserProfile, updateFavoriteStatus, submitUserReport } from './api'; // You'll need to implement these API functions
 
 const UserProfile = () => {
@@ -14,6 +14,13 @@ const UserProfile = () => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [openReportDialog, setOpenReportDialog] = useState(false);
   const [reportMessage, setReportMessage] = useState('');
+  const [rating, setRating] = useState(0);
+  const [userRating, setUserRating] = useState(0);
+
+  // New state variables
+  const [userLikeStatus, setUserLikeStatus] = useState(0); // 1: liked, -1: disliked, 0: none
+
+
 
   useEffect(() => {
     const loadUserProfile = async () => {
@@ -72,19 +79,57 @@ const UserProfile = () => {
     }
   };
 
+  // Handler for rating
+  const handleRatingChange = async (event, newValue) => {
+    if (!isLoggedIn) {
+      setOpenLoginModal(true);
+      return;
+    }
+    try {
+      await axios.post(
+        `${API_URL}/api/user/add-rating`,
+        { rateduserId: contentData.id, rating: newValue },
+        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+      );
+      setUserRating(newValue);
+      // Optionally, update the average rating from the server
+    } catch (error) {
+      setSnackbarMessage('Failed to submit rating.');
+    }
+  };
+
+
   if (!user) return <Typography>Loading...</Typography>;
 
   return (
     <Box>
       <Paper sx={{ p: 2, display: "block", background: "#EEEEFF", alignItems: 'center', mb: 2 }}>
-        <div style={{display: "flex"}}>
+        <div style={{ display: "flex" }}>
           <Avatar src={user.avatar} alt={user.username} sx={{ width: 100, height: 100, mr: 2 }} />
-          <Typography variant="h4" style={{marginTop: "30px"}}>{user.username}</Typography>
+          <Typography variant="h4" style={{ marginTop: "30px" }}>{user.username}</Typography>
+         
         </div>
-        <div style={{display: "flex", padding: 5, margin: "10px"}}>
+        <div style={{ display: "flex", padding: 5, margin: "10px" }}>
           <Typography variant="h4">Bio: {user.bio}</Typography>
         </div>
-      </Paper>
+      </Paper> 
+      <Paper style={{ backgroundColor: 'lightgray', padding: '10px', margin: '10px' }}>
+            <Typography variant="h6" gutterBottom align="center">
+              Rate this User
+            </Typography>
+            <Grid container spacing={2} alignItems="center" justifyContent="center">
+              <Grid item>
+                <Typography component="legend">Rate: 
+                  <Rating
+                  name="content-rating"
+                  value={userRating}
+                  onChange={handleRatingChange}
+                /></Typography>
+               
+              </Grid>
+            </Grid>
+          </Paper>
+
       <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
         <Button variant="contained" startIcon={<SendIcon />} onClick={handleSendMoney}>
           send coins
@@ -103,6 +148,10 @@ const UserProfile = () => {
       {/* <Button variant="text" startIcon={<MessageIcon />} onClick={() => navigate(`/messages/${userId}`)}>
         Send Message
       </Button> */}
+
+
+
+
       <Snackbar
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         open={openSnackbar}
@@ -125,12 +174,15 @@ const UserProfile = () => {
             onChange={(e) => setReportMessage(e.target.value)}
           />
         </DialogContent>
+
         <DialogActions>
           <Button onClick={() => setOpenReportDialog(false)}>Cancel</Button>
           <Button onClick={handleSubmitReport}>Submit Report</Button>
         </DialogActions>
       </Dialog>
+
     </Box>
+
   );
 };
 

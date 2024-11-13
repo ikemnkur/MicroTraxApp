@@ -29,14 +29,14 @@ const TransactionHistory = () => {
         setLoading(false);
       }
     };
-
+    console.log("transactions: ", transactions)
     loadTransactions();
   }, []);
 
   const searchTransactions = () => {
     const filtered = transactions.filter(t => {
       return (
-        t.recieving_user.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        t.receiving_user.toLowerCase().includes(searchTerm.toLowerCase()) ||
         t.amount.toString().includes(searchTerm)
       );
     });
@@ -61,8 +61,8 @@ const TransactionHistory = () => {
           bValue = parseFloat(b.amount);
           break;
         case 'username':
-          aValue = a.recieving_user.toLowerCase();
-          bValue = b.recieving_user.toLowerCase();
+          aValue = a.receiving_user.toLowerCase();
+          bValue = b.receiving_user.toLowerCase();
           break;
         default:
           aValue = a.id;
@@ -115,23 +115,30 @@ const TransactionHistory = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Date (Year-Month-Day)</TableCell>
-              <TableCell>Time</TableCell>
-              <TableCell>Type</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Username</TableCell>
               <TableCell>Amount</TableCell>
+              <TableCell>From</TableCell>
+              <TableCell>To</TableCell>
+              <TableCell>Message</TableCell>
+              <TableCell>Type</TableCell>
+              <TableCell>Date</TableCell>
+              <TableCell>Time</TableCell>
+              <TableCell>Status</TableCell>
+              
+              
             </TableRow>
           </TableHead>
           <TableBody>
             {!loading && transactionsToDisplay.map((transaction) => (
               <TableRow key={transaction.id}>
+                <TableCell>{transaction.amount}₡</TableCell>
+                <TableCell>{transaction.sending_user}</TableCell>
+                <TableCell>{transaction.receiving_user}</TableCell>
+                <TableCell>{transaction.message}</TableCell>
+                <TableCell>{transaction.transaction_type}</TableCell>
                 <TableCell>{transaction.created_at.slice(0, 10)}</TableCell>
                 <TableCell>{transaction.created_at.slice(11, 19)}</TableCell>
-                <TableCell>{transaction.transaction_type}</TableCell>
                 <TableCell>{transaction.status}</TableCell>
-                <TableCell>{transaction.recieving_user}</TableCell>
-                <TableCell>{transaction.amount}₡</TableCell>
+                
               </TableRow>
             ))}
             {!loading && transactionsToDisplay.length === 0 && (

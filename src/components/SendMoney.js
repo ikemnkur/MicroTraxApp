@@ -22,6 +22,7 @@ const SendMoney = () => {
   useAuthCheck();
 
   const API_URL = process.env.REACT_APP_API_SERVER_URL + '/api'; // Adjust this if your API URL is different
+  
 
   useEffect(() => {
     let ud = JSON.parse(localStorage.getItem("userdata"))
@@ -94,11 +95,12 @@ const SendMoney = () => {
     console.log('Sending', amount, 'to', recipient);
     try {
       const sendmoneyData = {
-        recipient,
+        recipient: recipient,
         recipientId: toUser.id,
         recipientUsername: toUser.username,
+        sendingUsername: thisUser.username,
         amount: parseFloat(amount),
-        message
+        message: message
       };
       await sendMoneyToOtherUser(sendmoneyData);
       setSnackbarMessage("Money sent successfully!");
@@ -151,7 +153,7 @@ const SendMoney = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>send coins</Typography>
+      <Typography variant="h4" gutterBottom>Send Coins</Typography>
       {UserNotFound && (
         <Paper sx={{ p: 2, display: 'flex', color: "lightgrey", alignItems: 'center', mb: 2 }}>
 

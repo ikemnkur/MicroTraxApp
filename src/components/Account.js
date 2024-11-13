@@ -245,24 +245,27 @@ const AccountPage = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('userdata'); // Clear user data
-    setUserData({
-      id: '',
-      username: '',
-      email: '',
-      firstName: '',
-      lastName: '',
-      phoneNumber: '',
-      birthDate: '',
-      encryptionKey: '',
-      accountTier: 1,
-      profilePicture: "",
-      bio: '',
-      profilePictureUrl: ''
-    });
+    
     setSnackbarMessage('Logged out successfully.');
     setOpenSnackbar(true);
     // In a real app, you'd want to clear user session/tokens here
-    setTimeout(() => navigate('/login'), 1500);
+    setTimeout(() => {
+      navigate('/login')
+      setUserData({
+            id: '',
+            username: '',
+            email: '',
+            firstName: '',
+            lastName: '',
+            phoneNumber: '',
+            birthDate: '',
+            encryptionKey: '',
+            accountTier: 1,
+            profilePicture: "",
+            bio: '',
+            profilePictureUrl: ''
+          });
+    }, 500);
   };
 
   // Handle account updates

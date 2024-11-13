@@ -167,7 +167,7 @@ const Auth = ({ isLogin, onLoginSuccess }) => {
     const minutes = Math.floor(remaining / 60);
     const seconds = remaining % 60;
     return (
-      <Box 
+      <Box
         sx={{
           display: 'flex',
           flexDirection: 'column',
@@ -207,71 +207,77 @@ const Auth = ({ isLogin, onLoginSuccess }) => {
           sx={{ textAlign: 'center' }}
         />
         <CardContent>
-          <form onSubmit={handleSubmit}>
-            {!isLogin && (
-              <TextField
-                label="Username"
-                variant="outlined"
-                fullWidth
-                margin="normal"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-              />
-            )}
-            <TextField
-              label="Email"
-              variant="outlined"
-              fullWidth
-              margin="normal"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-            <TextField
-              label="Password"
-              variant="outlined"
-              fullWidth
-              margin="normal"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            {!isLogin && (
-              <TextField
-                label="Confirm Password"
-                variant="outlined"
-                fullWidth
-                margin="normal"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-              />
-            )}
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              fullWidth
-              sx={{ mt: 2 }}
-            >
-              {isLogin ? 'Login' : 'Sign Up'}
-            </Button>
-          </form>
-          <Box sx={{ mt: 2, textAlign: 'center' }}>
-            {isLogin ? (
-              <Link component={RouterLink} to="/register">
-                Don't have an account? Sign Up
-              </Link>
-            ) : (
-              <Link component={RouterLink} to="/login">
-                Already have an account? Login
-              </Link>
-            )}
-          </Box>
+          {!showCaptcha && (
+            <>
+              <form onSubmit={handleSubmit}>
+                {!isLogin && (
+                  <TextField
+                    label="Username"
+                    variant="outlined"
+                    fullWidth
+                    margin="normal"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                  />
+                )}
+                <TextField
+                  label="Email"
+                  variant="outlined"
+                  fullWidth
+                  margin="normal"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+                <TextField
+                  label="Password"
+                  variant="outlined"
+                  fullWidth
+                  margin="normal"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                {!isLogin && (
+                  <TextField
+                    label="Confirm Password"
+                    variant="outlined"
+                    fullWidth
+                    margin="normal"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                  />
+                )}
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  fullWidth
+                  sx={{ mt: 2 }}
+                >
+                  {isLogin ? 'Login' : 'Sign Up'}
+                </Button>
+              </form>
+              <Box sx={{ mt: 2, textAlign: 'center' }}>
+                {isLogin ? (
+                  <Link component={RouterLink} to="/register">
+                    Don't have an account? Sign Up
+                  </Link>
+                ) : (
+                  <Link component={RouterLink} to="/login">
+                    Already have an account? Login
+                  </Link>
+                )}
+              </Box>
+            </>
+          )
+          }
+
           {/* Show CAPTCHA only after submit is clicked and showCaptcha is true */}
           {showCaptcha && !captchaPassed && (
             <Box sx={{ mt: 2 }}>
