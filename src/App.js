@@ -1,6 +1,7 @@
 import React, { useCallback, useState, useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
+// import reducedFontTheme from './theme'; // Import your custom theme
 import CssBaseline from '@mui/material/CssBaseline';
 import theme from './theme';
 import NavBar from './components/NavBar';
@@ -23,12 +24,13 @@ import Auth from './components/Auth';
 import Wallet from './components/Wallet';
 import UnlockContent from './components/UnlockContent';
 import Subscriptions from './components/ManageSubscriptions';
-import SubToContent from './components/SubToContent';
+// import SubToContent from './components/SubToContent';
 import ManageContent from './components/ManageContent';
 import AddToWallet from './components/AddToWallet';
 import YourStuff from './components/YourStuff';
 // import { Elements } from '@stripe/react-stripe-js';
 import AdminDashboard from './components/AdminDashboard';
+import ProtectedRoute from './components/ProtectedRoute';
 
 
 import { Elements } from '@stripe/react-stripe-js';
@@ -37,10 +39,14 @@ import {
   EmbeddedCheckoutProvider,
   EmbeddedCheckout
 } from '@stripe/react-stripe-js';
+// import { ThemeProvider } from '@mui/material/styles';
+
+
 
 import { fetchUserProfile, walletReloadAction, walletWithdrawAction } from "./components/api";
 
 import { useParams } from 'react-router-dom';
+import SubscribeToContent from "./components/SubscribeToContent";
 
 require('dotenv').config();
 const { v4: uuidv4 } = require('uuid');
@@ -116,38 +122,67 @@ function App() {
       <CssBaseline />
       <Router>
         <NavBar>
-        <Routes>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/transactions" element={<TransactionHistory />} />
-          <Route path="/send" element={<SendMoney />} />
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/login" element={<Auth isLogin={true} />} />
+            <Route path="/" element={<Auth isLogin={true} />} />
+            <Route path="/register" element={<Auth isLogin={false} />} />
+            {/* Protected Routes */}
+            <Route path="/adminx" element={
+              <ProtectedRoute> <AdminDashboard /> </ProtectedRoute>} />
+            <Route path="/dashboard" element={
+              <ProtectedRoute> <Dashboard /> </ProtectedRoute>} />
+            <Route path="/transactions" element={
+              <ProtectedRoute> <TransactionHistory /> </ProtectedRoute>} />
+            <Route path="/send" element={
+              <ProtectedRoute> <SendMoney /> </ProtectedRoute>} />
 
-          <Route path="/reload" element={<ReloadWallet />} />
-          <Route path="/withdraw" element={<WithdrawWallet />} />
-          <Route path="/search" element={<SearchUser />} />
-          <Route path="/user/:userId" element={<UserProfile />} />
-          <Route path="/share" element={<ShareWallet />} />
-          <Route path="/messages" element={<Messages />} />
-          <Route path="/messages/:username" element={<Messages />} />
-          <Route path="/account" element={<Account />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/wallet" element={<Wallet />} />
-          <Route path="/manage-subscriptions" element={<Subscriptions />} />
-          <Route path="/subscription/:itemid" element={<SubToContent />} />
-          <Route path="/unlock/:itemid" element={<UnlockContent />} />
-          <Route path="/manage-content" element={<ManageContent />} />
-          <Route path="/reload-wallet" element={<AddToWallet />} />
-          <Route path="/your-stuff" element={<YourStuff />} />
-          <Route path="/login" element={<Auth isLogin={true} />} />
-          <Route path="/" element={<Auth isLogin={true} />} />
-          <Route path="/register" element={<Auth isLogin={false} />} />
-          {/* <Route path="*" element={<Navigate to="/" replace />} /> */}
-          <Route path="/Admin" element={<AdminDashboard />} />
+            <Route path="/reload" element={
+              <ProtectedRoute> <ReloadWallet /> </ProtectedRoute>} />
+            <Route path="/withdraw" element={
+              <ProtectedRoute> <WithdrawWallet /> </ProtectedRoute>} />
+            <Route path="/search" element={
+              <ProtectedRoute> <SearchUser /> </ProtectedRoute>} />
+            <Route path="/user/:userId" element={
+              <ProtectedRoute> <UserProfile /> </ProtectedRoute>} />
+            <Route path="/share" element={
+              <ProtectedRoute> <ShareWallet /> </ProtectedRoute>} />
+            <Route path="/messages" element={
+              <ProtectedRoute> <Messages /> </ProtectedRoute>} />
+            <Route path="/messages/:username" element={
+              <ProtectedRoute> <Messages /> </ProtectedRoute>} />
+            <Route path="/account" element={
+              <ProtectedRoute> <Account /> </ProtectedRoute>} />
+            <Route path="/settings" element={
+              <ProtectedRoute> <Settings /> </ProtectedRoute>} />
+            <Route path="/wallet" element={
+              <ProtectedRoute> <Wallet /> </ProtectedRoute>} />
+            <Route path="/manage-subscriptions" element={
+              <ProtectedRoute> <Subscriptions /> </ProtectedRoute>} />
+            <Route path="/subscribe/:itemid" element={
+              <ProtectedRoute> <SubscribeToContent /> </ProtectedRoute>} />
+            <Route path="/unlock/:itemid" element={
+              <ProtectedRoute> <UnlockContent /> </ProtectedRoute>} />
+            <Route path="/manage-content" element={
+              <ProtectedRoute> <ManageContent /> </ProtectedRoute>} />
+            <Route path="/reload-wallet" element={
+              <ProtectedRoute> <AddToWallet /> </ProtectedRoute>} />
+            <Route path="/your-stuff" element={
+              <ProtectedRoute> <YourStuff /> </ProtectedRoute>} />
 
-          <Route path="/stripe-checkout" element={<CheckoutForm setCoins={setCoins} />} />
-          <Route path="/crypto-checkout" element={<CryptoCheckoutForm setCoins={setCoins} />} />
-          <Route path="/return" element={<Return increaseCoins={increaseCoins} />} />
+            {/* <Route path="*" element={
+                <ProtectedRoute> <Navigate to="/" replace />} /> */}
+            <Route path="/Admin" element={
+              <ProtectedRoute> <AdminDashboard /> </ProtectedRoute>} />
 
-        </Routes>
+            <Route path="/stripe-checkout" element={
+              <ProtectedRoute> <CheckoutForm setCoins={setCoins} /> </ProtectedRoute>} />
+            <Route path="/crypto-checkout" element={
+              <ProtectedRoute> <CryptoCheckoutForm setCoins={setCoins} /> </ProtectedRoute>} />
+            <Route path="/return" element={
+              <ProtectedRoute> <Return increaseCoins={increaseCoins} /> </ProtectedRoute>} />
+
+          </Routes>
         </NavBar>
       </Router>
     </ThemeProvider>

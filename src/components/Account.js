@@ -290,7 +290,7 @@ const AccountPage = () => {
 
   return (
     <Box sx={{ maxWidth: 800, margin: 'auto', padding: 2 }}>
-      <Typography variant="h4" gutterBottom>Account Settings</Typography>
+      <Typography variant="h4" gutterBottom>Account </Typography>
       {isLoading ? (
         <Typography variant="body1">Loading...</Typography>
       ) : (

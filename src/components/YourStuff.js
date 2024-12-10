@@ -120,7 +120,7 @@ const YourStuff = () => {
 
   useEffect(() => {
     loadUserContent();
-    loadUserSubscriptions();
+    // loadUserSubscriptions();
     loadWalletData();
   }, []);
 
@@ -475,7 +475,7 @@ const YourStuff = () => {
             </Table>
           </TableContainer>
         </Box>
-        <Box sx={{ mt: 4 }}>
+        {/* <Box sx={{ mt: 4 }}>
           <TableContainer component={Paper}>
             <Typography variant="h4" gutterBottom>
               My Subscriptions
@@ -544,7 +544,7 @@ const YourStuff = () => {
               </TableBody>
             </Table>
           </TableContainer>
-        </Box>
+        </Box> */}
       </Paper>
 
       {/* Dialog for sharing subscription */}

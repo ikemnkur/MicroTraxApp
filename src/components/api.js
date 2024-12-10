@@ -110,12 +110,24 @@ export const fetchTransactionHistory = async (userId) => {
   }
 };
 
-export const fetchOtherUserProfile = async (userId) => {
+export const fetchOtherUserProfile = async (username) => {
   try {
-    const response = await api.get(`/user/${userId}/profile`);
+    const response = await api.get(`/user/${username}/profile`);
+    console.log("Fetch Other UserP: ", response.data)
     return response.data;
   } catch (error) {
-    console.error('API - Error fetching other user profile:', error);
+    console.error('API - Error fetching other user profile, username =', username);
+    throw error;
+  }
+};
+
+export const fetchOtherUserProfileId = async (userId) => {
+  try {
+    const response = await api.get(`/user/id/${userId}/profile`);
+    console.log("Fetch Other UserP: ", response.data)
+    return response.data;
+  } catch (error) {
+    console.error('API - Error fetching other user profile, id =', userId);
     throw error;
   }
 };
@@ -125,7 +137,7 @@ export const updateUserProfile = async (userData) => {
     const response = await api.put('/user/profile', userData);
     return response.data;
   } catch (error) {
-    console.error('API - Error updating user profile:', error);
+    console.error('API - Error updating user profile:', userData);
     throw error;
   }
 };
@@ -230,9 +242,28 @@ export const fetchUploadProfilePicture = async (formData) => {
   }
 };
 
-export const fetchWalletData = async () => {
+// By the HTTP specification, GET requests typically don’t include a body. Instead, data is usually passed as query parameters. If your intention is to send the user_id associated with ud alongside the GET request, you can include it as params in the Axios configuration object. For example:
+
+// export const fetchWalletData = async (ud) => {
+//   try {
+//     console.log("UD: ", ud);
+//     const response = await api.get('/wallet', {
+//       params: {
+//         user_id: ud.user_id
+//       }
+//     });
+//     return response.data;
+//   } catch (error) {
+//     console.error('API - Error fetching wallet data:', error);
+//     throw error;
+//   }
+// };
+
+
+export const fetchWalletData = async (ud) => {
   try {
-    const response = await api.get('/wallet');
+    console.log("UD: ", ud);
+    const response = await api.post('/wallet', ud);
     return response.data;
   } catch (error) {
     console.error('API - Error fetching wallet data:', error);
@@ -244,7 +275,7 @@ export const fetchWalletData = async () => {
 
 export const searchUsers = async (searchTerm) => {
   try {
-    const response = await api.get(`/users/search?term=${encodeURIComponent(searchTerm)}`);
+    const response = await api.get(`/searchForUsers/search?term=${encodeURIComponent(searchTerm)}`);
     return response.data;
   } catch (error) {
     console.error('API - Error searching users:', error);

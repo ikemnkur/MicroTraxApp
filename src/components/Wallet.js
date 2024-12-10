@@ -21,6 +21,7 @@ const Wallet = () => {
   const [walletData, setWalletData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [thisUser] = useState(JSON.parse(localStorage.getItem("userdata")));
   const navigate = useNavigate();
 
   const tiers = [
@@ -37,7 +38,8 @@ const Wallet = () => {
     const loadWalletData = async () => {
       try {
         setIsLoading(true);
-        const data = await fetchWalletData();
+        let ud = JSON.parse(localStorage.getItem("userdata"))
+        const data = await fetchWalletData(ud)
         setWalletData(data);
         console.log("WD: " , walletData)
       } catch (err) {
@@ -86,7 +88,7 @@ const Wallet = () => {
       <Typography variant="h4" gutterBottom>Wallet</Typography>
       <Paper sx={{ p: 2, mb: 2 }}>
         <Typography variant="h6" gutterBottom>Current Balance: ₡{walletData?.balance}</Typography>
-        <Typography variant="body1" gutterBottom>Account Tier: {walletData?.accountTier}</Typography>
+        <Typography variant="body1" gutterBottom>Account Tier: {thisUser?.accountTier}</Typography>
         <Typography variant="body1" gutterBottom>Daily Transaction Limit: ₡{walletData?.daily_transaction_limit}</Typography>
         <Typography variant="body1" gutterBottom>Coins You can Redeem: ₡{walletData?.redeemable}</Typography>
         <Typography variant="body1" gutterBottom>Coins You Can Spend: ₡{walletData?.spendable}</Typography>

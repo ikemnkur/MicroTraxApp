@@ -3,7 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Typography, Button, Avatar, Paper, Box, Snackbar, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Grid, Rating } from '@mui/material';
 import { Send as SendIcon, Favorite as FavoriteIcon, Report as ReportIcon, Message as MessageIcon, ThumbDownAlt, ThumbDownAltOutlined, ThumbUpOutlined, ThumbUp } from '@mui/icons-material';
-import { fetchOtherUserProfile, updateFavoriteStatus, submitUserReport } from './api'; // You'll need to implement these API functions
+import { fetchOtherUserProfile, updateFavoriteStatus, submitUserReport, fetchOtherUserProfileId } from './api'; // You'll need to implement these API functions
+import StarIcon from '@mui/icons-material/Star';
+// import * as React from 'react';
+// import Rating from '@mui/material/Rating';
+// import Box from '@mui/material/Box';
+// import StarIcon from '@mui/icons-material/Star';
 
 const UserProfile = () => {
   const { userId } = useParams();
@@ -14,32 +19,79 @@ const UserProfile = () => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [openReportDialog, setOpenReportDialog] = useState(false);
   const [reportMessage, setReportMessage] = useState('');
-  const [rating, setRating] = useState(0);
+  // const [rating, setRating] = useState(0);
   const [userRating, setUserRating] = useState(0);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [value, setValue] = useState(2);
+  const [hover, setHover] = useState(-1);
 
   // New state variables
   const [userLikeStatus, setUserLikeStatus] = useState(0); // 1: liked, -1: disliked, 0: none
 
+  function getLabelText(value) {
+    return `${value} Star${value !== 1 ? 's' : ''}, ${labels[value]}`;
+  }
+
+
+  const labels = {
+    0.5: 'Useless',
+    1: 'Useless+',
+    1.5: 'Poor',
+    2: 'Poor+',
+    2.5: 'Ok',
+    3: 'Ok+',
+    3.5: 'Good',
+    4: 'Good+',
+    4.5: 'Excellent',
+    5: 'Excellent+',
+  };
+
 
 
   useEffect(() => {
+
     const loadUserProfile = async () => {
       try {
-        const userData = await fetchOtherUserProfile(userId);
+        const userData = await fetchOtherUserProfileId(userId);
         // alert(userId)
         setUser(userData);
         setIsFavorite(userData.isFavorite);
       } catch (error) {
-        console.error('Error fetching user profile:', error);
-        setSnackbarMessage('Failed to load user profile of: ' + user);
-        setOpenSnackbar(true);
-        if (error.response?.status === 403) {
-          // Unauthorized, token might be expired
-          setTimeout(() => navigate('/dashboard'), 1000);
+        try {
+          const userData = await fetchOtherUserProfile(userId);
+          // alert(userId)
+          setUser(userData);
+          setIsFavorite(userData.isFavorite);
+        } catch (error) {
+          console.error('Error fetching user profile:');
+          setSnackbarMessage('Failed to load user profile of: ' + user);
+          setOpenSnackbar(true);
+          if (error.response?.status === 403) {
+            // Unauthorized, token might be expired
+            setTimeout(() => navigate('/dashboard'), 1000);
+          }
         }
       }
     };
 
+    const getLoginStatus = async () => {
+      // Check login status via wallet balance
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          // User is logged in, fetch balance
+          const balanceResponse = await axios.get(`${API_URL}/api/wallet`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setUserBalance(balanceResponse.data.balance);
+          setIsLoggedIn(true);
+          console.log("logged in")
+        }
+      } catch (error) {
+        setIsLoggedIn(false);
+      }
+    }
+    getLoginStatus();
     loadUserProfile();
   }, [userId]);
 
@@ -81,16 +133,19 @@ const UserProfile = () => {
 
   // Handler for rating
   const handleRatingChange = async (event, newValue) => {
-    if (!isLoggedIn) {
-      setOpenLoginModal(true);
-      return;
-    }
+    // if (!isLoggedIn) {
+    //   // setOpenLoginModal(true);
+    //   return;
+    // }
+    alert("you rated this user a: ", userRating)
+    console.log("User Rating: ", userRating)
     try {
       await axios.post(
         `${API_URL}/api/user/add-rating`,
-        { rateduserId: contentData.id, rating: newValue },
+        { rateduserId: contentData.id, rating: userRating },
         { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );
+
       setUserRating(newValue);
       // Optionally, update the average rating from the server
     } catch (error) {
@@ -106,29 +161,68 @@ const UserProfile = () => {
       <Paper sx={{ p: 2, display: "block", background: "#EEEEFF", alignItems: 'center', mb: 2 }}>
         <div style={{ display: "flex" }}>
           <Avatar src={user.avatar} alt={user.username} sx={{ width: 100, height: 100, mr: 2 }} />
-          <Typography variant="h4" style={{ marginTop: "30px" }}>{user.username}</Typography>
-         
+          <Typography variant="h1" style={{ marginTop: "30px" }}>{user.username}</Typography>
+
         </div>
         <div style={{ display: "flex", padding: 5, margin: "10px" }}>
           <Typography variant="h4">Bio: {user.bio}</Typography>
         </div>
-      </Paper> 
+        <div style={{ display: "flex", padding: 5, margin: "10px" }}>
+          <Typography variant="h4">Rating: {user.rating}<StarIcon /></Typography>
+        </div>
+
+      </Paper>
       <Paper style={{ backgroundColor: 'lightgray', padding: '10px', margin: '10px' }}>
-            <Typography variant="h6" gutterBottom align="center">
-              Rate this User
+        <Typography variant="h6" gutterBottom align="center">
+          Rate this User
+        </Typography>
+        <Grid container spacing={2} alignItems="center" justifyContent="center">
+          <Grid item>
+            <Typography component="legend">
+              {/* <Rating
+                name="content-rating"
+                value={userRating}
+                onChange={handleRatingChange}
+              /> */}
+              {/* <Rating
+                name="hover-feedback"
+                value={value}
+                precision={0.5}
+                // getLabelText={getLabelText}
+                onChange={(event, newValue) => {
+                  setUserRating(newValue);
+                  console.log("rating",newValue);
+                  handleRatingChange(newValue);
+                }}
+                onChangeActive={(event, newHover) => {
+                  setHover(newHover);
+                }}
+                emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
+              /> */}
+              <Rating
+                name="hover-feedback"
+                value={value}
+                precision={0.5}
+                getLabelText={getLabelText}
+                onChange={(event, newValue) => {
+                  setValue(newValue);
+                  handleRatingChange("", newValue);
+                  setUserRating(newValue);
+                }}
+                onChangeActive={(event, newHover) => {
+                  setHover(newHover);
+                }}
+                emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
+              />
+              {value !== null && (
+                <Box sx={{ ml: 2 }}>{labels[hover !== -1 ? hover : value]}</Box>
+              )}
+
             </Typography>
-            <Grid container spacing={2} alignItems="center" justifyContent="center">
-              <Grid item>
-                <Typography component="legend">Rate: 
-                  <Rating
-                  name="content-rating"
-                  value={userRating}
-                  onChange={handleRatingChange}
-                /></Typography>
-               
-              </Grid>
-            </Grid>
-          </Paper>
+
+          </Grid>
+        </Grid>
+      </Paper>
 
       <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
         <Button variant="contained" startIcon={<SendIcon />} onClick={handleSendMoney}>

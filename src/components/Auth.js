@@ -27,7 +27,7 @@ const Auth = ({ isLogin, onLoginSuccess }) => {
   const [captchaFailed, setCaptchaFailed] = useState(false);
   const [blockTime, setBlockTime] = useState(null);
   const [remainingTime, setRemainingTime] = useState(null);
-  const [showCaptcha, setShowCaptcha] = useState(false); // New state variable
+  const [showCaptcha, setShowCaptcha] = useState(false);
 
   const navigate = useNavigate();
   const API_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:5000';
@@ -81,6 +81,28 @@ const Auth = ({ isLogin, onLoginSuccess }) => {
     }
   }, [blockTime, handleUnblock]);
 
+  // New useEffect to check if user is already logged in and validate the token
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      // Validate the token with the backend
+      axios
+        .get(`${API_URL}/api/auth/validate-token`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then(() => {
+          // Token is valid, redirect to dashboard
+          navigate('/dashboard');
+        })
+        .catch(() => {
+          // Token is invalid or expired, remove it
+          localStorage.removeItem('token');
+          localStorage.removeItem('userdata');
+          // Optionally, you can display a message or do nothing
+        });
+    }
+  }, [API_URL, navigate]);
+
   // Handler for successful CAPTCHA
   const handleCaptchaSuccess = useCallback(async () => {
     setCaptchaPassed(true);
@@ -119,7 +141,7 @@ const Auth = ({ isLogin, onLoginSuccess }) => {
   const handleCaptchaFailure = useCallback(() => {
     const failedAttempts = parseInt(localStorage.getItem('failedCaptcha') || '0', 10) + 1;
     localStorage.setItem('failedCaptcha', failedAttempts);
-    if (failedAttempts >= 3) { // Changed from 4 to 3
+    if (failedAttempts >= 3) {
       localStorage.setItem('captchaBlock', JSON.stringify({ timestamp: Date.now() }));
       setBlockTime(Date.now() + 60 * 60 * 1000); // Block for 1 hour
       setCaptchaFailed(true);
@@ -275,8 +297,7 @@ const Auth = ({ isLogin, onLoginSuccess }) => {
                 )}
               </Box>
             </>
-          )
-          }
+          )}
 
           {/* Show CAPTCHA only after submit is clicked and showCaptcha is true */}
           {showCaptcha && !captchaPassed && (

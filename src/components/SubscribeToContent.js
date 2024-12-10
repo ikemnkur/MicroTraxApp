@@ -1,4 +1,4 @@
-// src/components/UnlockContent.jsx
+// src/components/subscribeContent.jsx
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -11,34 +11,22 @@ import CloseIcon from '@mui/icons-material/Close';
 import axios from 'axios';
 import Auth from './Auth';
 import {
-  HeartBrokenRounded, LockOpenRounded, Star, ThumbDownAlt, ThumbUp, ThumbUpOutlined,ThumbDownAltOutlined, Visibility
+  HeartBrokenRounded, LockOpenRounded, Star, ThumbDownAlt, ThumbUp, ThumbUpOutlined, ThumbDownAltOutlined, Visibility
 } from '@mui/icons-material';
-import { fetchUserProfile } from './api';
 
-const UnlockContent = () => {
+const SubscribeToContent = () => {
   const { itemid } = useParams();
   const navigate = useNavigate();
   const [contentData, setContentData] = useState(null);
   const [userBalance, setUserBalance] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [unlocked, setUnlocked] = useState(false);
+  const [subscribe, setsubscribe] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [message, setMessage] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [openLoginModal, setOpenLoginModal] = useState(false);
-  const [userData, setUserData] = useState({
-    username: '',
-    email: '',
-    firstName: '',
-    lastName: '',
-    phoneNumber: '',
-    birthDate: '',
-    encryptionKey: '',
-    accountTier: 1,
-    profilePicture: null
-  });
 
   // New states for likes, dislikes, views, and ratings
   const [likes, setLikes] = useState(0);
@@ -52,11 +40,31 @@ const UnlockContent = () => {
 
   const API_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:5000';
 
+  const labels = {
+    0.5: 'Useless',
+    1: 'Useless+',
+    1.5: 'Poor',
+    2: 'Poor+',
+    2.5: 'Ok',
+    3: 'Ok+',
+    3.5: 'Good',
+    4: 'Good+',
+    4.5: 'Excellent',
+    5: 'Excellent+',
+  };
+
+  function getLabelText(value) {
+    return `${value} Star${value !== 1 ? 's' : ''}, ${labels[value]}`;
+  }
+
+  const [value, setValue] = React.useState(2);
+  const [hover, setHover] = React.useState(-1);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Fetch content data
-        const contentResponse = await axios.get(`${API_URL}/api/unlock/unlock-content/${itemid}`);
+        const contentResponse = await axios.get(`${API_URL}/api/subscribe/get/${itemid}`);
         const content = contentResponse.data;
         setContentData(content);
         console.log("Content: ", content)
@@ -66,6 +74,8 @@ const UnlockContent = () => {
         setDislikes(content.dislikes || 0);
         setViews(content.views || 0);
         setRating(content.rating || 0);
+
+
 
         // Check login status via wallet balance
         try {
@@ -84,11 +94,10 @@ const UnlockContent = () => {
 
         try {
           if (isLoggedIn) {
-            loadUserProfile()
             // Fetch user's like/dislike status
             const token = localStorage.getItem('token');
             const [ratingResponse] = await axios.get(
-              `${API_URL}/api/unlock/user-rating/${content.id}`,
+              `${API_URL}/api/subscribe/user-rating/${content.id}`,
               { headers: { Authorization: `Bearer ${token}` } }
             );
             setUserLikeStatus(ratingResponse.data.like_status || 0);
@@ -100,7 +109,7 @@ const UnlockContent = () => {
 
         // Increment view count
         await axios.post(
-          `${API_URL}/api/unlock/add-view`,
+          `${API_URL}/api/subscribe/add-view`,
           { contentId: content.id },
           { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
         );
@@ -118,7 +127,6 @@ const UnlockContent = () => {
     };
 
     fetchData();
-    
 
     // // Fetch user's like status when loading content
     // useEffect(() => {
@@ -126,7 +134,7 @@ const UnlockContent = () => {
     //     if (isLoggedIn && contentData) {
     //       try {
     //         const response = await axios.get(
-    //           `${API_URL}/api/unlock/user-like-status`,
+    //           `${API_URL}/api/subscribe/user-like-status`,
     //           {
     //             params: { contentId: contentData.id },
     //             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
@@ -143,11 +151,11 @@ const UnlockContent = () => {
     // }, [isLoggedIn, contentData]);
 
     // ... existing code ...
-    // Add event listener for beforeunload when content is unlocked
+    // Add event listener for before unload when content is subscribed
     const handleBeforeUnload = (e) => {
-      if (unlocked) {
+      if (subscribe) {
         e.preventDefault();
-        e.returnValue = 'Go to the unlocked content section in your Stuff Tab';
+        e.returnValue = 'Go to the subscribe content section in your Stuff Tab';
       }
     };
 
@@ -158,35 +166,9 @@ const UnlockContent = () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
 
-  }, [itemid, unlocked]);
+  }, [itemid, subscribe]);
 
-  const loadUserProfile = async () => {
-    try {
-      const profile = await fetchUserProfile();
-      // setProfile(profile);
-      // const updatedUserData = {
-      //   ...profile,
-      //   birthDate: profile.birthDate ? profile.birthDate.split('T')[0] : '',
-      // };
-
-      setUserData(updatedUserData);
-      localStorage.setItem("userdata", JSON.stringify(updatedUserData));
-      console.log(userData.user_id)
-      console.log("Account Tier: ", profile.accountTier);
-      setTier(parseInt(profile.accountTier));
-
-    } catch (error) {
-      console.error('DashBrdPG - Error fetching user profile:', error);
-      setSnackbarMessage(error.response?.data?.message || 'Failed to load user profile, refresh page or login again');
-      setOpenSnackbar(true);
-      if (error.response?.status === 401) {
-        // Unauthorized, token might be expired
-        setTimeout(() => navigate('/login'), 500);
-      }
-    }
-  };
-
-  const handleUnlock = async () => {
+  const handlesubscribe = async () => {
     if (!isLoggedIn) {
       // If user is not logged in, open login modal
       setOpenLoginModal(true);
@@ -200,19 +182,19 @@ const UnlockContent = () => {
     setOpenDialog(true);
   };
 
-  const confirmUnlock = async () => {
+  const confirmsubscribe = async () => {
     try {
       const token = localStorage.getItem('token');
       await axios.post(
-        `${API_URL}/api/unlock/unlock-content`,
-        { contentId: contentData.id, message: message, user_id: userData.user_id },
+        `${API_URL}/api/subscribe/subscribe-to-user`,
+        { contentId: contentData.id, message },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setUnlocked(true);
+      setsubscribe(true);
       setUserBalance((prevBalance) => prevBalance - contentData.cost);
-      setSnackbarMessage('Content unlocked successfully!');
+      setSnackbarMessage('Content subscribe successfully!');
     } catch (err) {
-      setSnackbarMessage('Failed to unlock content. Please try again.');
+      setSnackbarMessage('Failed to subscribe content. Please try again.');
     } finally {
       setOpenDialog(false);
     }
@@ -270,8 +252,8 @@ const UnlockContent = () => {
     }
     try {
       const response = await axios.post(
-        `${API_URL}/api/unlock/add-like`,
-        { contentId: contentData.id, user_id: contentData.user_id },
+        `${API_URL}/api/subscribe/add-like`,
+        { contentId: contentData.id },
         { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );
       // Update local state based on response
@@ -297,7 +279,7 @@ const UnlockContent = () => {
     }
     try {
       const response = await axios.post(
-        `${API_URL}/api/unlock/add-dislike`,
+        `${API_URL}/api/subscribe/add-dislike`,
         { contentId: contentData.id },
         { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );
@@ -325,7 +307,7 @@ const UnlockContent = () => {
     }
     try {
       await axios.post(
-        `${API_URL}/api/unlock/add-rating`,
+        `${API_URL}/api/subscribe/add-rating`,
         { contentId: contentData.id, rating: newValue },
         { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );
@@ -342,13 +324,13 @@ const UnlockContent = () => {
   return (
     <Box sx={{ maxWidth: 800, margin: 'auto', padding: 2 }}>
       <Typography variant="h4" gutterBottom>
-        Unlock Content
+        Subscribe Content
       </Typography>
       <Paper style={{ backgroundColor: 'lightblue', padding: '10px' }}>
         <Typography variant="h5" gutterBottom>
           Title: {contentData.title}
         </Typography>
-         <Typography variant="h5" gutterBottom>
+        <Typography variant="h5" gutterBottom>
           By: {contentData.host_username}
         </Typography>
         <Typography variant="subtitle1" gutterBottom>
@@ -370,7 +352,7 @@ const UnlockContent = () => {
             <Visibility /> {views}
           </Grid>
           <Grid item>
-            <LockOpenRounded /> {contentData.unlocks || 0}
+            <LockOpenRounded /> {contentData.subscribes || 0}
           </Grid>
           <Grid item>
             <ThumbUp /> {likes}
@@ -384,7 +366,7 @@ const UnlockContent = () => {
         </Grid>
       </Paper>
 
-      {!unlocked ? (
+      {!subscribe ? (
         <>
           <div style={{ marginTop: '30px' }}>
             <Typography variant="subtitle1" gutterBottom>
@@ -399,8 +381,8 @@ const UnlockContent = () => {
             />
           </div>
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-            <Button variant="contained" color="primary" onClick={handleUnlock}>
-              Unlock Content
+            <Button variant="contained" color="primary" onClick={handlesubscribe}>
+              Subscribe To Content
             </Button>
           </Box>
         </>
@@ -408,7 +390,7 @@ const UnlockContent = () => {
         <>
           <Paper elevation={3} sx={{ p: 2, mt: 2 }}>
             <Typography variant="h6" gutterBottom align="center">
-              Unlocked Content
+              Subscribe
             </Typography>
             {renderContent()}
           </Paper>
@@ -443,6 +425,24 @@ const UnlockContent = () => {
                   value={userRating}
                   onChange={handleRatingChange}
                 />
+                <Box sx={{ width: 200, display: 'flex', alignItems: 'center' }}>
+                  <Rating
+                    name="hover-feedback"
+                    value={value}
+                    precision={0.5}
+                    getLabelText={getLabelText}
+                    onChange={(event, newValue) => {
+                      setValue(newValue);
+                    }}
+                    onChangeActive={(event, newHover) => {
+                      setHover(newHover);
+                    }}
+                    emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
+                  />
+                  {value !== null && (
+                    <Box sx={{ ml: 2 }}>{labels[hover !== -1 ? hover : value]}</Box>
+                  )}
+                </Box>
               </Grid>
             </Grid>
           </Paper>
@@ -451,15 +451,15 @@ const UnlockContent = () => {
 
       {/* Confirmation Dialog */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-        <DialogTitle>Confirm Unlock</DialogTitle>
+        <DialogTitle>Confirm Subscription</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to unlock this content for: ₡{contentData.cost}?
+            Are you sure you want to subscribe this content for: ₡{contentData.cost}?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
-          <Button onClick={confirmUnlock} color="primary">
+          <Button onClick={confirmsubscribe} color="primary">
             Confirm
           </Button>
         </DialogActions>
@@ -507,4 +507,4 @@ const UnlockContent = () => {
   );
 };
 
-export default UnlockContent;
+export default SubscribeToContent;

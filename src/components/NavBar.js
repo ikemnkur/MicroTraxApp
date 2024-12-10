@@ -32,7 +32,7 @@ import {
 import CategoryIcon from '@mui/icons-material/Category';
 import { fetchUserProfile } from './api';
 
-const drawerWidth = 260;
+const drawerWidth = 240;
 const collapsedDrawerWidth = 60;
 
 const NavBar = ({ children }) => {
@@ -48,7 +48,7 @@ const NavBar = ({ children }) => {
     { text: 'Share Your Wallet', icon: <Share />, path: '/share' },
     { text: 'Transaction History', icon: <History />, path: '/transactions' },
     { text: 'Published Content', icon: <LockOutlined />, path: '/manage-content' },
-    { text: 'Public Subscriptions', icon: <BookmarkAdd />, path: '/manage-subscriptions' },
+    // { text: 'Public Subscriptions', icon: <BookmarkAdd />, path: '/manage-subscriptions' },
     { text: 'Your Stuff', icon: <CategoryIcon />, path: '/your-stuff' },
     { text: 'Account', icon: <AccountCircle />, path: '/account' },
   ];
@@ -105,7 +105,7 @@ const NavBar = ({ children }) => {
             aria-label="toggle drawer"
             onClick={() => setOpen(!open)}
             edge="start"
-            sx={{ mr: 2 }}
+            sx={{ mr: 1 }}
           >
             {open ? <ChevronLeftIcon /> : <MenuIcon />}
           </IconButton>
@@ -115,7 +115,7 @@ const NavBar = ({ children }) => {
             component="div"
             sx={{ flexGrow: 1, textAlign: 'center' }}
           >
-            MicroPay
+            Clout Coin
           </Typography>
           <IconButton color="inherit" onClick={() => navigate('/settings')}>
             <SettingsIcon />

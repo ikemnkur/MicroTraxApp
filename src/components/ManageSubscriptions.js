@@ -67,21 +67,27 @@ const Subscriptions = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setSubs(response.data);
+        setFilteredSubs(response.data);
         data = response.data
       } catch (error) {
         console.error('Error fetching subscriptions:', error);
-        setSnackbarMessage('Failed to load subscriptions.');
+        setSnackbarMessage('Failed to load any subscriptions.');
         setOpenSnackbar(true);
         setSubs([]);
+        setFilteredSubs([]);
       }
 
       console.log("Subscriptions Data: ", data);
-
-      setFilteredSubs(data);
+      // if (data == undefined) {
+      //   setFilteredSubs([]);
+      // } else {
+      //   setFilteredSubs(data);
+      // }
+      
       setLoading(false);
     } catch (err) {
       console.error('Failed to fetch subscriptions:', err);
-      setError('Failed to load subscriptions. Please try again later.');
+      setError('Failed to load any subscriptions. Please try again later.');
       setLoading(false);
     }
   };
@@ -237,7 +243,7 @@ const Subscriptions = () => {
 
   // Share a subscription
   const handleShare = (item) => {
-    const link = `${siteURL}/sub/${item.reference_id}`; // Corrected URL
+    const link = `${siteURL}/subscribe/${item.reference_id}`; // Corrected URL
     setShareLink(link);
     setOpenShareDialog(true);
   };
@@ -285,20 +291,20 @@ const Subscriptions = () => {
               <TableCell>Title</TableCell>
               <TableCell>Description</TableCell>
               <TableCell>Create Date</TableCell>
-              <TableCell>Create Time</TableCell>
-              <TableCell>Type</TableCell>
+              {/* <TableCell>Create Time</TableCell> */}
+              <TableCell>Frequency</TableCell>
               <TableCell>Price</TableCell>
-              <TableCell>Action</TableCell>
+              <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {!loading && filteredSubs.map((sub) => (
+            {!loading && filteredSubs && (filteredSubs.map((sub) => (
               <TableRow key={sub.id}>
                 <TableCell>{sub.title}</TableCell>
                 <TableCell>{sub.description}</TableCell>
                 <TableCell>{sub.created_at.slice(0, 10)}</TableCell>
-                <TableCell>{sub.created_at.slice(11, 19)}</TableCell>
-                <TableCell>{sub.type}</TableCell>
+                {/* <TableCell>{sub.created_at.slice(11, 19)}</TableCell> */}
+                <TableCell>{sub.frequency}</TableCell>
                 <TableCell>₡{sub.cost}</TableCell>
                 <TableCell>
                   <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(sub.id)}>
@@ -312,7 +318,14 @@ const Subscriptions = () => {
                   </IconButton>
                 </TableCell>
               </TableRow>
-            ))}
+            )))}
+            {filteredSubs.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={16} align="center">
+                  No content available.
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </TableContainer>
