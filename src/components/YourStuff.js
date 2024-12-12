@@ -86,6 +86,7 @@ const YourStuff = () => {
   const [error, setError] = useState(null);
   const [sortBy, setSortBy] = useState('date');
   const [sortOrder, setSortOrder] = useState('asc');
+  const [ud] = useState(JSON.parse(localStorage.getItem("userdata")));
 
   const [newContent, setNewContent] = useState({
     title: '',
@@ -223,7 +224,7 @@ const YourStuff = () => {
   const loadWalletData = async () => {
     try {
       setIsLoading(true);
-      const data = await fetchWalletData();
+      const data = await fetchWalletData(ud);
       setWalletData(data);
     } catch (err) {
       console.error('Error fetching wallet data:', err);
