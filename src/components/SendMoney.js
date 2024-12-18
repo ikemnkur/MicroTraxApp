@@ -96,7 +96,7 @@ const SendMoney = () => {
     try {
       const sendmoneyData = {
         recipient: recipient,
-        recipientId: toUser.id,
+        recipientId: toUser.user_id,
         recipientUsername: toUser.username,
         sendingUsername: thisUser.username,
         amount: parseFloat(amount),
@@ -112,9 +112,9 @@ const SendMoney = () => {
 
       const notif = {
         type: 'money_received',
-        recipient_user_id: toUser.id,
+        recipient_user_id: toUser.user_id, 
         message: `You received ₡${amount} from ${thisUser.username}.`,
-        from_user: thisUser.id,
+        from_user: thisUser.user_id,
         date: new Date(),
         recipient_username: toUser.username
       }

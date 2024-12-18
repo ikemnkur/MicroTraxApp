@@ -164,19 +164,19 @@ const UnlockContent = () => {
     try {
       const profile = await fetchUserProfile();
       // setProfile(profile);
-      // const updatedUserData = {
-      //   ...profile,
-      //   birthDate: profile.birthDate ? profile.birthDate.split('T')[0] : '',
-      // };
+      const updatedUserData = {
+        ...profile,
+        birthDate: profile.birthDate ? profile.birthDate.split('T')[0] : '',
+      };
 
       setUserData(updatedUserData);
       localStorage.setItem("userdata", JSON.stringify(updatedUserData));
       console.log(userData.user_id)
-      console.log("Account Tier: ", profile.accountTier);
-      setTier(parseInt(profile.accountTier));
+      // console.log("Account Tier: ", profile.accountTier);
+      // setTier(parseInt(profile.accountTier));
 
     } catch (error) {
-      console.error('DashBrdPG - Error fetching user profile:', error);
+      console.error('UnlockPG - Error fetching user profile:', error);
       setSnackbarMessage(error.response?.data?.message || 'Failed to load user profile, refresh page or login again');
       setOpenSnackbar(true);
       if (error.response?.status === 401) {

@@ -190,6 +190,7 @@ const YourStuff = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = response.data;
+      console.log("Your Stuff Data:", data)
       setContentList(data);
       setFilteredContent(data);
       // setLoading(false);
@@ -451,7 +452,7 @@ const YourStuff = () => {
                     <TableCell>{item.created_at.slice(0, 10)}</TableCell>
                     <TableCell>{item.type}</TableCell>
                     <TableCell>{item.host_username}</TableCell>
-                    <TableCell>${parseFloat(item.cost).toFixed(2)}</TableCell>
+                    <TableCell>{item.cost}</TableCell>
                     <TableCell>                     
                       <IconButton edge="end" aria-label="View" onClick={() => handleViewContent(item)}>
                         <Visibility />

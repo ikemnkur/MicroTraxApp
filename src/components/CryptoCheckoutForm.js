@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
 // import { stripePromise } from './path-to-stripe-promise'; // Ensure you import your stripePromise correctly
-import { fetchUserProfile, walletReloadAction, walletCryptoReloadAction } from "./api";
+import { fetchUserProfile, walletReloadAction, validateCryptoTransaction } from "./api";
 import { loadStripe } from '@stripe/stripe-js';
 require('dotenv').config();
 const { v4: uuidv4 } = require('uuid');
@@ -44,7 +44,7 @@ export const CryptoCheckoutForm = ({ setCoins }) => {
       LTC: 'your-litecoin-wallet-address',
       SOL: 'your-solana-wallet-address',
       ETH: 'your-ethereum-wallet-address',
-      XMR: 'your-monero-wallet-address',
+      XMR: '44X8AgosuXFCuRmBoDRc66Vw1FeCaL6vRiKRqrmqXeJdeKAciYuyaJj7STZnHMg7x8icHJL6M1hzeAPqSh8NSC1GGC9bkCp',
     };
   
     // Fetch current crypto rates whenever currency changes
@@ -95,19 +95,20 @@ export const CryptoCheckoutForm = ({ setCoins }) => {
   
       let data = {
           username: ud.username,
-          userId: ud.id,
+          userId: ud.user_id,
           name: userDetails.name,
           email: userDetails.email,
-          wallertAddress: userDetails.walletAddress,
+          walletAddress: userDetails.walletAddress,
           key:  userDetails.key,
           transactionId: userDetails.transactionId,
           currency: currency,
           amount: amount,
+          cryptoAmount: cryptoAmount,
           date: new Date(),
           session_id: uuidv4()
       }
   
-        const response = await walletCryptoReloadAction(data);
+        const response = await validateCryptoTransaction(data);
        
         console.log("Response: ", response)
 
@@ -235,7 +236,7 @@ export const CryptoCheckoutForm = ({ setCoins }) => {
   
           <div style={styles.formGroup}>
             <label>
-              Secret Key:
+            Note (KEY):
             </label>
             <input
               type="text"
@@ -287,7 +288,7 @@ export const CryptoCheckoutForm = ({ setCoins }) => {
             <button style={styles.button} type="submit">
               Log Your Order
             </button>
-            <button style={styles.button} type="button" onClick={handleCancelOrder}>
+            <button style={styles.cancel_button} type="button" onClick={handleCancelOrder}>
               Cancel Order
             </button>
           </div>
@@ -354,6 +355,16 @@ export const CryptoCheckoutForm = ({ setCoins }) => {
       padding: '10px 20px',
       margin: '5px',
       backgroundColor: '#007bff',
+      color: '#fff',
+      border: 'none',
+      borderRadius: '3px',
+      cursor: 'pointer',
+      fontSize: '16px',
+    },
+    cancel_button: {
+      padding: '10px 20px',
+      margin: '5px',
+      backgroundColor: '#F01b2f',
       color: '#fff',
       border: 'none',
       borderRadius: '3px',

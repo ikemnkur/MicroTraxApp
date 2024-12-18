@@ -171,6 +171,16 @@ export const walletReloadAction = async (walletActionData) => {
   }
 };
 
+export const validateCryptoTransaction = async (transactionData) => {
+  try {
+    console.log("verify transaction")
+    const response = await api.post('/crypto/validate-transaction', transactionData);
+    return response.data;
+  } catch (error) {
+    throw error.response.data;
+  }
+};
+
 export const walletWithdrawAction = async (walletActionData) => {
   try {
     console.log("walletWithdrawAction")
@@ -200,6 +210,7 @@ export const fetchDashboardData = async () => {
 export const fetchNotifications = async () => {
   try {
     const response = await api.get('/notifications');
+    console.log("response: ", response)
     return response.data;
   } catch (error) {
     console.error('API - Error fetching notifications data:', error);

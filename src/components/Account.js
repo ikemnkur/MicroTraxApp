@@ -78,7 +78,7 @@ const AccountPage = () => {
         console.log("Account Tier: ", updatedUserData.accountTier);
         setTier(parseInt(updatedUserData.accountTier));
       } catch (error) {
-        console.error('DashBrdPG - Error fetching user profile:', error);
+        console.error('AccountPG - Error fetching user profile:', error);
         setSnackbarMessage(error.response?.data?.message || 'Failed to load user profile, refresh page or login again');
         setOpenSnackbar(true);
         // if (error.response?.status === 401) {
