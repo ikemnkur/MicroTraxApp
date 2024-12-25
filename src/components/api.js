@@ -151,9 +151,9 @@ export const sendMoneyToOtherUser = async (sendmoneyData) => {
   }
 };
 
-export const walletReloadAction = async (walletActionData) => {
+export const walletStripeReloadAction = async (walletActionData) => {
   try {
-    console.log("walletReloadAction")
+    console.log("walletStripeReloadAction")
     const response = await api.post('/wallet/stripe-reload', walletActionData);
     return response.data;
   } catch (error) {
@@ -163,7 +163,7 @@ export const walletReloadAction = async (walletActionData) => {
 
  export const walletCryptoReloadAction = async (walletActionData) => {
   try {
-    console.log("walletReloadAction")
+    console.log("walletCryptoReloadAction")
     const response = await api.post('/wallet/crypto-reload', walletActionData);
     return response.data;
   } catch (error) {

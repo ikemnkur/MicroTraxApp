@@ -43,7 +43,7 @@ import {
 
 
 
-import { fetchUserProfile, walletReloadAction, walletWithdrawAction } from "./components/api";
+import { fetchUserProfile, walletStripeReloadAction, walletWithdrawAction } from "./components/api";
 
 import { useParams } from 'react-router-dom';
 import SubscribeToContent from "./components/SubscribeToContent";
@@ -73,49 +73,6 @@ function App() {
     coins: 0,
   });
 
-  const increaseCoins = useCallback(async (coin) => {
-    const queryString = window.location.search;
-    const urlParams = new URLSearchParams(queryString);
-    const sessionId = urlParams.get('session_id');
-
-    try {
-      const profile = await fetchUserProfile();
-      const updatedUserData = {
-        ...profile,
-        birthDate: profile.birthDate ? profile.birthDate.split('T')[0] : '',
-      };
-
-      setUserData(updatedUserData);
-      localStorage.setItem("userdata", JSON.stringify(updatedUserData));
-
-      const d = new Date();
-      console.log('Adding ', coin, ' coins to your wallet');
-      console.log("At time: " + d);
-
-      const walletActionData = {
-        username: updatedUserData.username,
-        amount: parseInt(coin),
-        date: d.getTime(),
-        stripe: uuidv4(),
-        session_id: sessionId
-      };
-
-      const result = await walletReloadAction(walletActionData);
-      console.log("Coins purchased successfully!", result);
-
-      // Update the local state with the new coin balance
-      setUserData(prevData => ({
-        ...prevData,
-        coins: (prevData.coins || 0) + parseInt(coin)
-      }));
-    } catch (error) {
-      console.log(error.message || "Failed to reload wallet. Please try again later.");
-      if (error.response?.status === 401) {
-        // Unauthorized, token might be expired
-        setTimeout(() => window.location.href = '/wallet', 250);
-      }
-    }
-  }, []);
 
   return (
     <ThemeProvider theme={theme}>
@@ -124,6 +81,7 @@ function App() {
         <NavBar>
           <Routes>
             {/* Public Routes */}
+            
             <Route path="/login" element={<Auth isLogin={true} />} />
             <Route path="/" element={<Auth isLogin={true} />} />
             <Route path="/register" element={<Auth isLogin={false} />} />
@@ -180,7 +138,7 @@ function App() {
             <Route path="/crypto-checkout" element={
               <ProtectedRoute> <CryptoCheckoutForm setCoins={setCoins} /> </ProtectedRoute>} />
             <Route path="/return" element={
-              <ProtectedRoute> <Return increaseCoins={increaseCoins} /> </ProtectedRoute>} />
+              <ProtectedRoute> <Return /> </ProtectedRoute>} />
 
           </Routes>
         </NavBar>

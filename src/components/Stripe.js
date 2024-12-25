@@ -1,10 +1,11 @@
 // Move these components to the top level of your file or into separate files
 require('dotenv').config();
+const { v4: uuidv4 } = require('uuid');
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
 // import { stripePromise } from './path-to-stripe-promise'; // Ensure you import your stripePromise correctly
-import { fetchUserProfile, walletReloadAction, purchaseCrypto } from "./api";
+import { fetchUserProfile, walletStripeReloadAction, purchaseCrypto } from "./api";
 import { loadStripe } from '@stripe/stripe-js';
 import axios from 'axios';
 import Notifications from './Notifications';
@@ -41,6 +42,8 @@ export const CheckoutForm = ({ setCoins }) => {
         return <div>Loading...</div>;
     }
 
+
+
     return (
         <div id="checkout">
             <div style={{ margin: "auto", padding: "auto", textAlign: "center" }}>
@@ -57,8 +60,9 @@ export const CheckoutForm = ({ setCoins }) => {
 };
 
 
-export const Return = ({ increaseCoins }) => {
+export const Return = () => {
     const [status, setStatus] = useState(null);
+    const [TRXdata, setTRXdata] = useState(null);
     const [customerEmail, setCustomerEmail] = useState('');
     const [done, setDone] = useState(false);
     const [userdata, setUserData] = useState([]);
@@ -68,6 +72,55 @@ export const Return = ({ increaseCoins }) => {
         const storedData = localStorage.getItem("userdata");
         return storedData ? JSON.parse(storedData) : {};
     });
+
+
+
+    const increaseCoins = useCallback(async (coin) => {
+        const queryString = window.location.search;
+        const urlParams = new URLSearchParams(queryString);
+        const sessionId = urlParams.get('session_id');
+        if(TRXdata)
+        try {
+            const profile = await fetchUserProfile();
+            const updatedUserData = {
+                ...profile,
+                birthDate: profile.birthDate ? profile.birthDate.split('T')[0] : '',
+            };
+
+            setUserData(updatedUserData);
+            localStorage.setItem("userdata", JSON.stringify(updatedUserData));
+
+            const d = new Date();
+            console.log('Adding ', coin, ' coins to your wallet');
+            console.log("At time: " + d);
+            console.log("TRX: ", TRXdata)
+
+            const walletActionData = {
+                username: updatedUserData.username,
+                amount: parseInt(coin),
+                date: d.getTime(),
+                stripe: uuidv4(),
+                session_id: sessionId,
+                TRXdata: TRXdata
+                
+            };
+
+            const result = await walletStripeReloadAction(walletActionData);
+            console.log("Coins purchased successfully!", result);
+
+            // Update the local state with the new coin balance
+            setUserData(prevData => ({
+                ...prevData,
+                coins: (prevData.coins || 0) + parseInt(coin)
+            }));
+        } catch (error) {
+            console.log(error.message || "Failed to reload wallet. Please try again later.");
+            if (error.response?.status === 401) {
+                // Unauthorized, token might be expired
+                setTimeout(() => window.location.href = '/wallet', 250);
+            }
+        }
+    }, [TRXdata]);
 
     console.log("Stripe page - user data: ", ud);
 
@@ -79,30 +132,85 @@ export const Return = ({ increaseCoins }) => {
     const createNotification = async (notificationData) => {
         try {
             const token = localStorage.getItem('token');
-            const API_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:5000';
+            const API_URL = process.env.REACT_APP_API_SERVER_URL + "/api" || 'http://localhost:5000/api';
             await axios.post(`${API_URL}/notifications/create`, notificationData, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             console.log("New notification: ", notificationData.message);
         } catch (error) {
-            console.error('Error creating notification:', error);
+            console.error('Error creating notification');
         }
     };
 
-    useEffect(() => {
-        const queryString = window.location.search;
-        const urlParams = new URLSearchParams(queryString);
-        const sessionId = urlParams.get('session_id');
-        const API_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:5000';
+    // Retrive data from Session ID
+    // useEffect(() => {
+    //     const queryString = window.location.search;
+    //     const urlParams = new URLSearchParams(queryString);
+    //     const sessionId = urlParams.get('session_id');
+    //     const API_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:5000';
 
-        fetch(`${API_URL}/session-status?session_id=${sessionId}`)
-            .then((res) => res.json())
-            .then((data) => {
-                setStatus(data.status);
-                setCustomerEmail(data.customer_email);
-            });
+    //     fetch(`${API_URL}/session-status?session_id=${sessionId}`)
+    //         .then((res) => res.json())
+    //         .then((data) => {
+    //             setTRXdata(data);
+    //             console.log("Data: ", data)
+    //             setStatus(data.status);
+    //             setCustomerEmail(data.customer_email);
+    //         });
+    // }, []);
+
+    useEffect(() => {
+        const fetchSessionStatus = async () => {
+          try {
+            // Extract sessionId from URL
+            const queryString = window.location.search;
+            const urlParams = new URLSearchParams(queryString);
+            const sessionId = urlParams.get('session_id');
+      
+            // Bail out early if no sessionId
+            if (!sessionId) {
+              console.warn('No session_id found in URL');
+              return;
+            }
+      
+            // Build your API URL
+            const API_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:5000/api';
+      
+            // Fetch session status
+            const response = await fetch(`${API_URL}/session-status?session_id=${sessionId}`);
+            if (!response.ok) {
+              throw new Error(`HTTP Error: ${response.status}`);
+            }
+      
+            // Parse JSON data
+            const data = await response.json();
+            console.log('Session status data:', data);
+      
+            // ------------------------- NEW LINES HERE -------------------------
+            // Log the paymentIntent portion for debugging, then set your TRXdata
+            console.log("Payment Intent Data:", data.paymentIntent);
+            setTRXdata(data.paymentIntent);
+            // ------------------------------------------------------------------
+      
+            // Keep storing other pieces of data, if you need them
+            setStatus(data.status);
+            setCustomerEmail(data.customer_email);
+      
+          } catch (error) {
+            console.error('Failed to fetch session status:', error);
+            // Optionally, set some error state here if desired
+          }
+        };
+      
+        fetchSessionStatus();
     }, []);
 
+    useEffect(() => {
+        console.log("Updated TRXdata: ", TRXdata);
+    }, [TRXdata]);
+
+
+    // Add coins to account
     useEffect(() => {
         if (status === 'complete' && !done) {
             const amount = parseInt(new URLSearchParams(window.location.search).get('amount')) || 0;
@@ -117,14 +225,15 @@ export const Return = ({ increaseCoins }) => {
 
     useEffect(() => {
         if (status === 'complete') {
-            createNotification({
-                type: 'coin purchase',
-                recipient_user_id: userdata.user_id,
-                recipient_username: userdata.username,
-                message: `You bought ₡${amnt} via Stripe: [from: Bot].`,
-                from: "Admin",
-                date: new Date()
-            });
+            if (amnt != 0)
+                createNotification({
+                    type: 'coin purchase',
+                    recipient_user_id: userdata.user_id,
+                    recipient_username: userdata.username,
+                    message: `From: Bot - You bought ₡${amnt} via Stripe.`,
+                    from: "Admin",
+                    date: new Date()
+                });
 
             const errorTimeout = setTimeout(() => {
                 // Handle server error or duplicate request
@@ -147,7 +256,7 @@ export const Return = ({ increaseCoins }) => {
         return (
             <section id="success">
                 <p>
-                    We appreciate your business! A confirmation email will be sent to {customerEmail}. 
+                    We appreciate your business! A confirmation email will be sent to {customerEmail}.
                 </p>
                 <p>
                     If you have any questions, please email <a href="mailto:orders@example.com">orders@example.com</a>.
@@ -161,97 +270,3 @@ export const Return = ({ increaseCoins }) => {
 
     return <div>Processing...</div>;
 };
-
-// export const Return = ({ increaseCoins }) => {
-//     const [status, setStatus] = useState(null);
-//     const [customerEmail, setCustomerEmail] = useState('');
-//     const [done, setDone] = useState(false);
-//     const [userdata, setUserData] = useState([])
-//     const navigate = useNavigate();
-//     const [amnt, setAmnt] = useState(0);
-//     const [ud, setUD] = useState(JSON.parse(localStorage.getItem("userdata")))
-
-//     // let ud = JSON.parse(localStorage.getItem("userdata"))
-//     console.log("Stripe page - user data: ", ud)
-//     setUserData(ud)
-
-//     const createNotification = async (notificationData) => {
-//         try {
-//           const token = localStorage.getItem('token');
-//           await Axios.post(API_URL + '/notifications/create', notificationData, {
-//             headers: { Authorization: `Bearer ${token}` },
-//           });
-//           console.log("New notification: ", notificationData.message)
-//           // Optionally, update the notifications state or refetch notifications
-//         } catch (error) {
-//           console.error('Error creating notification:', error);
-//         }
-//       };
-    
-    
-
-//     useEffect(() => {
-//         const queryString = window.location.search;
-//         const urlParams = new URLSearchParams(queryString);
-//         const sessionId = urlParams.get('session_id');
-//         const API_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:5000'; // Adjust this if your API URL is different
-//         // const YOUR_DOMAIN = 'http://localhost:5000';
-//         fetch(`${API_URL}/session-status?session_id=${sessionId}`)
-//             .then((res) => res.json())
-//             .then((data) => {
-//                 setStatus(data.status);
-//                 setCustomerEmail(data.customer_email);
-//             });
-
-//     }, []);
-
-//     useEffect(() => {
-//         if (status === 'complete' && !done) {
-//             const amount = parseInt(new URLSearchParams(window.location.search).get('amount')) || 0;
-//             amnt = amount;
-//             increaseCoins(amount * 1000);
-//             setDone(true);
-//             // alert("Purchase Successful");
-//             console.log(status)
-//         } else if (status === 'open') {
-//             navigate('/stripe-checkout');
-//         }
-//     }, [status, done, increaseCoins, navigate]);
-
-//     useEffect(() => {
-//         if (status === 'complete') {
-//             setTimeout(() => {
-//                 return <div>Server Error. Same Request.</div>;
-//             }, 5000)
-//         }
-
-//         setTimeout(() => {
-//             navigate('/dashboard');
-//         }, 10000)
-//     })
-
-
-//     if (status === 'complete') {
-//         // Example usage
-//       createNotification({
-//         type: 'coin purchase',
-//         recipient_user_id: userdata.user_id,
-//         recipient_username: userdata.username,
-//         message: `You bought ₡${amnt} via Stripe: [from: Bot].`,
-//         from: "Admin",
-//         date: new Date()
-//       });
-//         return (
-//             <section id="success">
-//                 <p>
-//                     We appreciate your business! A confirmation email will be sent to {customerEmail}.
-//                 </p>
-//                 <p>
-//                     If you have any questions, please email <a href="mailto:orders@example.com">orders@example.com</a>.
-//                 </p>
-//             </section>
-//         );
-//     }
-
-//     return <div>Processing...</div>;
-// };

@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
 // import { stripePromise } from './path-to-stripe-promise'; // Ensure you import your stripePromise correctly
-import { fetchUserProfile, walletReloadAction, validateCryptoTransaction } from "./api";
+import { fetchUserProfile, walletCryptoReloadAction, validateCryptoTransaction } from "./api";
 import { loadStripe } from '@stripe/stripe-js';
 require('dotenv').config();
 const { v4: uuidv4 } = require('uuid');

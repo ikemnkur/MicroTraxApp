@@ -11,7 +11,8 @@ const ReloadWallet = () => {
   const [paymentMethod, setPaymentMethod] = useState('stripe');
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [walletData, setWalletData] = useState(null);
-  const [purchaseAmount, setPurchaseAmount] = useState(null);
+  const [purchaseAmount, setPurchaseAmount] = useState('20');
+
   const [isLoading, setIsLoading] = useState(true);
 
   const navigate = useNavigate()
@@ -109,10 +110,12 @@ const ReloadWallet = () => {
             </Box>
           )}
 
-          <FormControl component="fieldset" margin="normal">
-            <FormLabel component="legend">Select an payment method: </FormLabel>
+          {/* Payment Method */}
+          <FormControl margin="normal">
+            <FormLabel>Select a payment method</FormLabel>
+            <br></br>
             <Select
-              value={purchaseAmount}
+              value={paymentMethod}
               onChange={(e) => setPaymentMethod(e.target.value)}
               variant="outlined"
             >
@@ -121,21 +124,35 @@ const ReloadWallet = () => {
               <MenuItem value="sendwave">Sendwave</MenuItem>
               <MenuItem value="shopify">Shopify</MenuItem>
             </Select>
+          </FormControl>
+
+          {/* Amount Selection */}
+          <Box marginTop={2}>
+            <FormLabel>Select an amount to buy</FormLabel>
+            <></>
             <br></br>
-            <FormLabel component="legend">Select an amount to buy: </FormLabel>
-            {paymentMethod === "crypto" && <TextField
-              label="Amount"
-              fullWidth
-              margin="normal"
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              required
-              inputProps={{ min: "0.01", step: "0.01" }}
-            />}
-            {paymentMethod === "sendwave" &&
-              <div style={{display: "flex"}}>
-                <button onClick={(e) => setAmount(amount-1)} style={{width: 32, height: 32, margin: "auto 10px", padding: 5}}>-</button>
+            {/* If crypto, show TextField */}
+            {paymentMethod === 'crypto' && (
+              <TextField
+                label="Amount"
+                fullWidth
+                margin="normal"
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                required
+                inputProps={{ min: '0.01', step: '0.01' }}
+              />
+            )}
+            {/* If sendwave, show +/- buttons + TextField */}
+            {paymentMethod === 'sendwave' && (
+              <div style={{ display: 'flex' }}>
+                <button
+                  onClick={() => setAmount(amount - 1)}
+                  style={{ width: 32, height: 32, margin: 'auto 10px', padding: 5 }}
+                >
+                  -
+                </button>
                 <TextField
                   label="Amount"
                   fullWidth
@@ -144,25 +161,42 @@ const ReloadWallet = () => {
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   required
-                  inputProps={{ min: "5", step: "0.5" }}
+                  inputProps={{ min: '5', step: '0.5' }}
                 />
-                <button onClick={(e) => setAmount(amount+1)} style={{width: 32, height: 32, margin: "auto 10px", padding: 5}}>+</button>
+                <button
+                  onClick={() => setAmount(amount + 1)}
+                  style={{ width: 32, height: 32, margin: 'auto 10px', padding: 5 }}
+                >
+                  +
+                </button>
               </div>
-            }
-            {paymentMethod === "stripe" && <Select
-              value={purchaseAmount}
-              onChange={(e) => setPurchaseAmount(e.target.value)}
-              variant="outlined"
-            >
-              <MenuItem value="1">1000 coins</MenuItem>
-              <MenuItem value="2">2125 coins</MenuItem>
-              <MenuItem value="5">5250 coins</MenuItem>
-              <MenuItem value="10">10500 coins</MenuItem>
-            </Select>}
-            {paymentMethod === "shopify" &&
-              <Typography variant="h6" gutterBottom>This method is not supported yet. Coming soon.  </Typography>
-            }
-          </FormControl>
+            )}
+            {/* If stripe, show a second Select */}
+            {paymentMethod === 'stripe' && (
+              <FormControl >
+                <Select
+                  value={purchaseAmount}
+                  onChange={(e) => setPurchaseAmount(e.target.value)}
+                  variant="outlined"
+                >
+                  <MenuItem value="3">3000 coins</MenuItem>
+                  <MenuItem value="5">5125 coins</MenuItem>
+                  <MenuItem value="10">10250 coins</MenuItem>
+                  <MenuItem value="20">20500 coins</MenuItem>
+                  <MenuItem value="50">50750 coins</MenuItem>
+                  <MenuItem value="100">101000 coins</MenuItem>
+                </Select>
+              </FormControl>
+            )}
+            {paymentMethod === 'shopify' && (
+              <Typography variant="h6" gutterBottom>
+                This method is not supported yet. Coming soon.
+              </Typography>
+            )}
+          </Box>
+
+
+
           <br></br>
           <Button type="submit" variant="contained" color="primary" sx={{ mt: 2 }}>
             Reload Wallet

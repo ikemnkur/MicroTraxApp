@@ -97,16 +97,21 @@ const Dashboard = () => {
       <Grid container spacing={3}>
         <Grid item xs={12} md={4}>
           <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Balance
+            <Typography variant="h5" gutterBottom>
+              Balance: {dashboardData?.balance ?? 'N/A'}₡ 
             </Typography>
-            <Typography variant="h4">
+            <Typography variant="h6">
               {/* ${dashboardData?.balance?.toFixed(2) ?? 'N/A'} */}
-              {dashboardData?.balance ?? 'N/A'}₡
+              {/* {dashboardData?.balance ?? 'N/A'}₡  */}
+              <Typography variant="h6">Spendable: {dashboardData?. spendable ?? 0}</Typography>
+              <Typography variant="h6"> Redeemable: {dashboardData?.redeemable ?? 0} </Typography>
+              
+              
+              
             </Typography>
           </Paper>
         </Grid>
-        <Grid item xs={12} md={4}>
+        {/* <Grid item xs={12} md={4}>
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
               Account Tier
@@ -115,7 +120,7 @@ const Dashboard = () => {
               Tier {dashboardData?.accountTier ?? 'N/A'}
             </Typography>
           </Paper>
-        </Grid>
+        </Grid> */}
         <Grid item xs={12} md={4}>
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
@@ -136,7 +141,7 @@ const Dashboard = () => {
 
           </Paper>
         </Grid>
-        <Grid item xs={12} md={4}>
+        {/* <Grid item xs={12} md={4}>
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
               Subscriptions
@@ -145,8 +150,8 @@ const Dashboard = () => {
               Count: {profile?.subscriptions ?? 'N/A'}
             </Typography>
           </Paper>
-        </Grid>
-        <Grid item xs={12} md={4}>
+        </Grid> */}
+        {/* <Grid item xs={12} md={4}>
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
               Unlocked Content
@@ -155,7 +160,7 @@ const Dashboard = () => {
               Count: {profile?.unlocks ?? 'N/A'}
             </Typography>
           </Paper>
-        </Grid>
+        </Grid> */}
         {/* <Grid item xs={12} md={4}>
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
