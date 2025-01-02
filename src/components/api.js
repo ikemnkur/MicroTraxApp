@@ -3,7 +3,7 @@ import axios from 'axios';
 // import { useNavigate } from 'react-router-dom';
 
 
-const API_URL = process.env.REACT_APP_API_SERVER_URL+'/api'; // Adjust this if your API URL is different
+const API_URL = process.env.REACT_APP_API_SERVER_URL + '/api'; // Adjust this if your API URL is different
 
 // const navigate = useNavigate();
 
@@ -39,19 +39,19 @@ api.interceptors.response.use(
     // Check if the current path starts with '/unlock'
     const unlockPage = window.location.pathname.startsWith('/unlock');
     const subPage = window.location.pathname.startsWith('/sub');
-    
+
     if (unlockPage || subPage) {
       // User is on the unlock page; do not redirect to login
       // Allow the error to be handled by the component
       return Promise.reject(error);
     }
-    
+
     if (error.response && error.response.status === 401) {
       // Token has expired or user is unauthorized
       localStorage.removeItem('token'); // Remove the expired token
       window.location.href = '/login'; // Redirect to login page
     }
-    
+
     // For other errors, reject the promise to handle them elsewhere
     return Promise.reject(error);
   }
@@ -81,7 +81,7 @@ export const fetchUserProfile = async (page) => {
     console.log("FUP: ", response.data)
     return response.data;
   } catch (error) {
-    console.error(`Page: ${page}; API - Error fetching user profile:`, error);
+    console.error(`Page: ${page}; API - Error fetching user profile:`);
     // setTimeout(() => {
     //   navigate("/login");
     //   setOpenSnackbar(true);
@@ -161,7 +161,7 @@ export const walletStripeReloadAction = async (walletActionData) => {
   }
 };
 
- export const walletCryptoReloadAction = async (walletActionData) => {
+export const walletCryptoReloadAction = async (walletActionData) => {
   try {
     console.log("walletCryptoReloadAction")
     const response = await api.post('/wallet/crypto-reload', walletActionData);
@@ -175,6 +175,26 @@ export const validateCryptoTransaction = async (transactionData) => {
   try {
     console.log("verify transaction")
     const response = await api.post('/crypto/validate-transaction', transactionData);
+    return response.data;
+  } catch (error) {
+    throw error.response.data;
+  }
+};
+
+export const logCoinbaseTransaction = async (transactionData) => {
+  try {
+    console.log("log transaction")
+    const response = await api.post('/coinbase/log-transaction', transactionData);
+    return response.data;
+  } catch (error) {
+    throw error.response.data;
+  }
+};
+
+export const logCashappTransaction = async (transactionData) => {
+  try {
+    console.log("logged transaction")
+    const response = await api.post('/cashapp/log-transaction', transactionData);
     return response.data;
   } catch (error) {
     throw error.response.data;
@@ -234,7 +254,7 @@ export const updateFavoriteStatus = async (userId, isFavorite) => {
 };
 
 export const submitUserReport = async (userId, reportMessage) => {
- try {
+  try {
     const response = await api.post(`/user/${userId}/report`, { reportMessage });
     return response.data;
   } catch (error) {
@@ -243,15 +263,60 @@ export const submitUserReport = async (userId, reportMessage) => {
   }
 };
 
-export const fetchUploadProfilePicture = async (formData) => {
-   try {
-    const response = await api.post(`/upload-profile-picture`, { formData });
-    return response.data;
-  } catch (error) {
-    console.error('API - Error submitting user profile image:', error);
-    throw error;
-  }
-};
+// // api.js (or whichever file has fetchUploadProfilePicture)
+// export async function fetchUploadProfilePicture({ file, username, id, date }) {
+//   // 1) Create FormData
+//   const formData = new FormData();
+//   // 2) Append the actual file; the key must match the multer field name ("profilePicture")
+//   formData.append('profilePicture', file);
+//   // 3) Append extra data
+//   formData.append('username', username);
+//   formData.append('id', id);
+//   formData.append('date', date);
+
+//   // 4) Make the request with "multipart/form-data"
+//   const response = await api.post('/api/upload-profile-picture', {
+//     method: 'POST',
+//     body: formData,
+//     // Do NOT set `Content-Type`; fetch will do it for you
+//   });
+
+//   // 5) Return response (or handle errors)
+//   return response;
+// }
+
+
+
+// export const fetchUploadProfilePicture = async (data) => {
+//   console.log("data: ", data)
+
+//    // 1) Create FormData
+//    const formData = new FormData();
+//    // 2) Append the actual file; the key must match the multer field name ("profilePicture")
+//    formData.append('profilePicture', data.file);
+//    // 3) Append extra data
+//    formData.append('username', data.username);
+//    formData.append('id', data.id);
+//    formData.append('date', data.date);
+ 
+//    try {
+//     const response = await api.post(`/upload-profile-picture`, { formData });
+//     return response;
+//   } catch (error) {
+//     console.error('API - Error submitting user profile image:');
+//     throw error;
+//   }
+// }; 
+
+// export const fetchUploadProfilePicture = async (formData) => {
+//   try {
+//    const response = await api.post(`/uploadImage/upload-profile-picture`, { formData });
+//    return response.data;
+//  } catch (error) {
+//    console.error('API - Error submitting user profile image:', error);
+//    throw error;
+//  }
+// };
 
 // By the HTTP specification, GET requests typically don’t include a body. Instead, data is usually passed as query parameters. If your intention is to send the user_id associated with ud alongside the GET request, you can include it as params in the Axios configuration object. For example:
 
@@ -363,7 +428,7 @@ export const handleDeletePublicContent = async (contentId) => {
 // Idk what this does, but it adds a new column in the user_content table
 export const confirmUnlockContent = async (contentData, message) => {
   try {
-    const response = await api.post(`/unlock/unlock-content`, { contentId: contentData.id, msg : message });
+    const response = await api.post(`/unlock/unlock-content`, { contentId: contentData.id, msg: message });
     return response.data;
   } catch (error) {
     console.error('API - Error adding new content:', error);
@@ -378,7 +443,7 @@ export const fetchLockedContent = async (itemId) => {
       api.get(`/unlock/unlock-content/${itemId}`),
       api.get(`/unlock/user-balance`)
     ]);
-    console.log("fetchLockedContent = "+ JSON.stringify(contentResponse.data)+ "&"+ JSON.stringify(balanceResponse.data) )
+    console.log("fetchLockedContent = " + JSON.stringify(contentResponse.data) + "&" + JSON.stringify(balanceResponse.data))
     return [contentResponse, balanceResponse];
   } catch (error) {
     console.error('API - Error fetching user content:', error);
@@ -404,7 +469,7 @@ export const fetchUserSubscriptions = async () => {
 // Adds a subcription to a user's Subscriptions list
 export const confirmUserSubToContent = async (contentData, message) => {
   try {
-    const response = await api.post(`/user-subscriptions/sub-to-content`, { contentId: contentData.id, msg : message });
+    const response = await api.post(`/user-subscriptions/sub-to-content`, { contentId: contentData.id, msg: message });
     return response.data;
   } catch (error) {
     console.error('API - Error adding new content:', error);

@@ -11,6 +11,8 @@ import SendMoney from './components/SendMoney';
 import ReceivedPayments from './components/ReceivedPayments';
 import { CheckoutForm, Return } from "./components/Stripe";
 
+import { CoinBaseCheckoutForm } from "./components/CoinBaseCheckoutForm";
+import { CashappCheckoutForm } from "./components/CashappCheckoutForm";
 import { CryptoCheckoutForm } from "./components/CryptoCheckoutForm";
 import ReloadWallet from './components/ReloadWallet';
 import WithdrawWallet from './components/WithdrawWallet';
@@ -81,7 +83,7 @@ function App() {
         <NavBar>
           <Routes>
             {/* Public Routes */}
-            
+
             <Route path="/login" element={<Auth isLogin={true} />} />
             <Route path="/" element={<Auth isLogin={true} />} />
             <Route path="/register" element={<Auth isLogin={false} />} />
@@ -137,6 +139,10 @@ function App() {
               <ProtectedRoute> <CheckoutForm setCoins={setCoins} /> </ProtectedRoute>} />
             <Route path="/crypto-checkout" element={
               <ProtectedRoute> <CryptoCheckoutForm setCoins={setCoins} /> </ProtectedRoute>} />
+            <Route path="/cashapp-checkout" element={
+              <ProtectedRoute> <CashappCheckoutForm setCoins={setCoins} /> </ProtectedRoute>} />
+            <Route path="/coinbase-checkout" element={
+              <ProtectedRoute> <CoinBaseCheckoutForm setCoins={setCoins} /> </ProtectedRoute>} />
             <Route path="/return" element={
               <ProtectedRoute> <Return /> </ProtectedRoute>} />
 

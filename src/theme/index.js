@@ -2,7 +2,7 @@ import { createTheme } from '@mui/material/styles';
 
 const reducedFontTheme = createTheme({
   typography: {
-    fontSize: 12, // Default is 14, so this reduces it by 2 points
+    fontSize: 10, // Default is 14, so this reduces it by 2 points
     h1: {
       fontSize: '2rem', // Adjust as needed
     },
@@ -20,7 +20,7 @@ const theme = createTheme({
     zoom: "80%", /* Scales the content to 80% */
   },
   typography: {
-    fontSize: 12, // Base font size
+    fontSize: 10, // Base font size
     h1: {
       fontSize: '2rem', // Reduced from default 3rem
     },
@@ -53,6 +53,9 @@ const theme = createTheme({
     },
     secondary: {
       main: '#dc004e',
+    },
+    tertiary: {
+      main: '#4cf08e',
     },
   },
   // You can customize other aspects of the theme here

@@ -16,6 +16,7 @@ import {
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { Link as RouterLink } from 'react-router-dom';
 import DotCaptcha from './DotCaptcha';
+import CoinAnimationCanvas from './CoinAnimationCanvas.js';
 
 const Auth = ({ isLogin, onLoginSuccess }) => {
   // State variables
@@ -220,6 +221,12 @@ const Auth = ({ isLogin, onLoginSuccess }) => {
         mt: 2
       }}
     >
+
+
+      {/* Add your coin animation just under the avatar, for example */}
+      <Box sx={{ mb: 2 }}>
+        <CoinAnimationCanvas />
+      </Box>
       <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
         <LockOutlinedIcon />
       </Avatar>

@@ -7,7 +7,7 @@ import {
   Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton
 } from '@mui/material';
-import { Delete as DeleteIcon, EditNote as EditNoteIcon, Share as ShareIcon } from '@mui/icons-material';
+import { Delete as DeleteIcon, EditNote as EditNoteIcon, Share as ShareIcon, SortByAlpha, SortTwoTone } from '@mui/icons-material';
 import QRCode from 'qrcode.react';
 import Clipboard from "./Clipboard.js";
 import axios from 'axios';
@@ -116,7 +116,7 @@ const ManageContent = () => {
     });
     setFilteredContentList(filtered);
   };
-  
+
   const handleSearch = () => {
     searchContent();
   };
@@ -245,93 +245,118 @@ const ManageContent = () => {
 
   return (
     <Box>
-      <Typography variant="h4" style={{alignContent: "center"}} gutterBottom>Manage Unlockable Content</Typography>
-      <Box sx={{gap: 2, mb: 2, alignContent: "center" }}>
-        
-        <div style={{display: 'flex', gap: 15, mb: 2, margin: "0" }}>
-         <strong style={{ padding: "15px" }}>Search:</strong> 
-         <TextField style={{width: "40%",}}
-          label="Search"
-          variant="outlined"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-        <Button variant="contained" color="primary" onClick={handleSearch}>
-          Search
-        </Button>
+      <Typography variant="h4" style={{ alignContent: "center" }} gutterBottom>Manage Unlockable Content</Typography>
+      <Box sx={{ gap: 2, mb: 2, alignContent: "center" }}>
+
+        <div style={{ display: 'flex', gap: 15, mb: 2, margin: "0" }}>
+          {/* <strong style={{ padding: "15px" }}>Search:</strong>  */}
+          <TextField style={{ width: "30%", }}
+            label="Search"
+            variant="outlined"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <Button variant="contained" color="primary" onClick={handleSearch}>
+            Search
+          </Button>
+
+
+          <SortByAlpha />
+          <Select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            variant="outlined"
+          >
+            <MenuItem value="date">Date</MenuItem>
+            <MenuItem value="cost">Cost</MenuItem>
+            <MenuItem value="username">Username</MenuItem>
+          </Select>
+          {/* <strong style={{ padding: "15px" }}>Sort:</strong> */}
+          <SortTwoTone />
+          <Select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value)}
+            variant="outlined"
+          >
+            <MenuItem value="asc">Ascending</MenuItem>
+            <MenuItem value="desc">Descending</MenuItem>
+          </Select>
+
+
         </div>
         <br></br>
-        <div style={{display: 'flex', gap: 10, mb: 2 }}>
-          <strong style={{ padding: "15px" }}>Filter:</strong>
-        <Select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-          variant="outlined"
-        >
-          <MenuItem value="date">Date</MenuItem>
-          <MenuItem value="cost">Cost</MenuItem>
-          <MenuItem value="username">Username</MenuItem>
-        </Select>
-        <strong style={{ padding: "15px" }}>Sort:</strong>
-        <Select
-          value={sortOrder}
-          onChange={(e) => setSortOrder(e.target.value)}
-          variant="outlined"
-        >
-          <MenuItem value="asc">Ascending</MenuItem>
-          <MenuItem value="desc">Descending</MenuItem>
-        </Select>
-        <Button variant="contained" color="primary" onClick={() => setOpenDialog(true)}>
-          Create New Content
-        </Button>
+        <div style={{ display: 'flex', gap: 10, mb: 2 }}>
+          {/* <strong style={{ padding: "15px" }}>Filter:</strong> */}
+          {/* <IconButton edge="end" aria-label="share" onClick={() => handleShare(item)}> */}
+
+          {/* </IconButton> */}
+
+
         </div>
-        
+
       </Box>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Title</TableCell>
-              <TableCell>Description</TableCell>
-              <TableCell>Create Date</TableCell>
-              <TableCell>Create Time</TableCell>
-              <TableCell>Type</TableCell>
-              <TableCell>Price</TableCell>
-              <TableCell>Action</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {!loading && filteredContentList.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell>{item.title}</TableCell>
-                <TableCell>{item.description}</TableCell>
-                <TableCell>{item.created_at.slice(0, 10)}</TableCell>
-                <TableCell>{item.created_at.slice(11, 19)}</TableCell>
-                <TableCell>{item.type}</TableCell>
-                <TableCell>₡{item.cost}</TableCell>
-                <TableCell>
-                  <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(item.id)}>
-                    <DeleteIcon />
-                  </IconButton>
-                  <IconButton edge="end" aria-label="edit" onClick={() => handleEdit(item)}>
-                    <EditNoteIcon />
-                  </IconButton>
-                  <IconButton edge="end" aria-label="share" onClick={() => handleShare(item)}>
-                    <ShareIcon />
-                  </IconButton>
-                </TableCell>
+      <div style={{ maxHeight: 480 }}>
+        {/* Table container with a fixed max height */}
+        <TableContainer
+          component={Paper}
+          style={{ maxHeight: 360, overflowY: "auto" }}
+        >
+          <Table stickyHeader>
+            {/* If you want the header to stay visible, use stickyHeader on the <Table> */}
+            <TableHead>
+              <TableRow>
+                <TableCell>Title</TableCell>
+                <TableCell>Description</TableCell>
+                <TableCell>Date</TableCell>
+                <TableCell>Type</TableCell>
+                <TableCell>Price</TableCell>
+                <TableCell>Action</TableCell>
               </TableRow>
-            ))}
-            {filteredContentList.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={16} align="center">
-                      No content available.
-                    </TableCell>
-                  </TableRow>
-                )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+
+            {/* Remove custom height/overflow from here */}
+            <TableBody>
+              {!loading && filteredContentList.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell>{item.title}</TableCell>
+                  <TableCell>{item.description}</TableCell>
+                  <TableCell>{item.created_at.slice(0, 10)}</TableCell>
+                  <TableCell>{item.type}</TableCell>
+                  <TableCell>₡{item.cost}</TableCell>
+                  <TableCell
+                    style={{
+                      display: "flex",
+                      flexDirection: "row",
+                      alignItems: "center",
+                    }}
+                  >
+                    <IconButton aria-label="delete" onClick={() => handleDelete(item.id)}>
+                      <DeleteIcon />
+                    </IconButton>
+                    <IconButton aria-label="edit" onClick={() => handleEdit(item)}>
+                      <EditNoteIcon />
+                    </IconButton>
+                    <IconButton aria-label="share" onClick={() => handleShare(item)}>
+                      <ShareIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {filteredContentList.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={16} align="center">
+                    No content available.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </div>
+
+      <Button style={{ float: 'right', margin: 15 }} variant="contained" color="tertiary" onClick={() => setOpenDialog(true)}>
+        CREATE NEW CONTENT
+      </Button>
 
       {/* Dialog for creating/editing content */}
       <Dialog

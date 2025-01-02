@@ -32,8 +32,8 @@ import {
 import CategoryIcon from '@mui/icons-material/Category';
 import { fetchUserProfile } from './api';
 
-const drawerWidth = 240;
-const collapsedDrawerWidth = 60;
+const drawerWidth = 210;
+const collapsedDrawerWidth = 40;
 
 const NavBar = ({ children }) => {
   const [open, setOpen] = useState(true);
@@ -55,7 +55,7 @@ const NavBar = ({ children }) => {
 
   const unlockPage = location.pathname.startsWith('/unlock');
   const subPage = location.pathname.startsWith('/sub');
-  const hideNavBar = ['/login', '/register'].includes(location.pathname);
+  const hideNavBar = ['/login', '/register', '/'].includes(location.pathname);
 
   function refreshPage() {
     window.location.reload(false);

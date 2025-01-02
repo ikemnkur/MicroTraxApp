@@ -233,21 +233,57 @@ export const CryptoCheckoutForm = ({ setCoins }) => {
               style={styles.input}
             />
           </div>
+          
   
           <div style={styles.formGroup}>
             <label>
-            Note (KEY):
+           Transaction KEY:
             </label>
             <input
               type="text"
               name="key"
               value={userDetails.key}
               onChange={handleInputChange}
+              required
               style={styles.input}
             />
-            <small>For looking up your order later (optional)</small>
+            <small>For proof of payment</small>
           </div>
   
+          <div style={styles.formGroup}>
+          <label>Date:</label>
+          <br></br>
+          <input
+            // fullWidth
+            // margin="normal"
+            name="birthDate"
+            label="Birth Date"
+            type="date"
+            // disabled={isUpdating}
+            // value={userData.birthDate}
+            // onChange={handleInputChange}
+            // InputLabelProps={{ shrink: true }} 
+            style={styles.input}
+            required
+          />
+           <small>Enter the date of transaction</small>
+        </div>
+        <div style={styles.formGroup}>
+          <label>Time:</label>
+
+          <input
+            type="text"
+            name="Time"
+            value={userDetails.transactionId}
+            onChange={handleInputChange}
+            required
+            style={styles.input}
+          />
+   <small>For looking up your order later. Please format like so (HH:MM + AM/PM) Example: 12:15 PM</small>
+
+        </div>
+
+
           <div style={styles.formGroup}>
             <label>Transaction ID:</label>
             <input
@@ -258,6 +294,7 @@ export const CryptoCheckoutForm = ({ setCoins }) => {
               style={styles.input}
             />
           </div>
+          
   
           <div style={styles.formGroup}>
             <label>Cryptocurrency:</label>

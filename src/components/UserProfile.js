@@ -52,18 +52,23 @@ const UserProfile = () => {
 
     const loadUserProfile = async () => {
       try {
-        const userData = await fetchOtherUserProfileId(userId);
-        // alert(userId)
+        let userData = await fetchOtherUserProfileId(userId);
+
+        // Convert created_at timestamp
+        if (userData.created_at) {
+          userData.created_at = convertTimestamp(userData.created_at);
+        }
+
         setUser(userData);
+        console.log("User: ", userData);
         setIsFavorite(userData.isFavorite);
       } catch (error) {
         try {
           const userData = await fetchOtherUserProfile(userId);
-          // alert(userId)
           setUser(userData);
           setIsFavorite(userData.isFavorite);
         } catch (error) {
-          console.error('Error fetching user profile:');
+          console.error('Error fetching user profile:', error);
           setSnackbarMessage('Failed to load user profile of: ' + user);
           setOpenSnackbar(true);
           if (error.response?.status === 403) {
@@ -73,6 +78,37 @@ const UserProfile = () => {
         }
       }
     };
+
+    // Utility function to convert an ISO timestamp to the desired format
+    // Format Example: "2024-08-31T05:10:57.000Z" => "2024-08-31 at 05:10:57 AM"
+    function convertTimestamp(isoString) {
+      if (!isoString) return '';
+      const date = new Date(isoString);
+
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+
+      let hour = date.getHours();
+      let meridiem = 'AM';
+
+      // Convert 24-hour time to 12-hour time
+      if (hour === 0) {
+        hour = 12; // midnight is 12 AM
+      } else if (hour === 12) {
+        meridiem = 'PM';
+      } else if (hour > 12) {
+        hour -= 12;
+        meridiem = 'PM';
+      }
+
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+
+      // Build the final string
+      return `${year}-${month}-${day} at ${String(hour).padStart(2, '0')}:${minutes}:${seconds} ${meridiem}`;
+    }
+
 
     const getLoginStatus = async () => {
       // Check login status via wallet balance
@@ -132,26 +168,26 @@ const UserProfile = () => {
   };
 
   // Handler for rating
-  const handleRatingChange = async (event, newValue) => {
-    // if (!isLoggedIn) {
-    //   // setOpenLoginModal(true);
-    //   return;
-    // }
-    alert("you rated this user a: ", userRating)
-    console.log("User Rating: ", userRating)
-    try {
-      await axios.post(
-        `${API_URL}/api/user/add-rating`,
-        { rateduserId: contentData.id, rating: userRating },
-        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
-      );
+  // const handleRatingChange = async (event, newValue) => {
+  //   // if (!isLoggedIn) {
+  //   //   // setOpenLoginModal(true);
+  //   //   return;
+  //   // }
+  //   alert("you rated this user a: ", userRating)
+  //   console.log("User Rating: ", userRating)
+  //   try {
+  //     await axios.post(
+  //       `${API_URL}/api/user/add-rating`,
+  //       { rateduserId: contentData.id, rating: userRating },
+  //       { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+  //     );
 
-      setUserRating(newValue);
-      // Optionally, update the average rating from the server
-    } catch (error) {
-      setSnackbarMessage('Failed to submit rating.');
-    }
-  };
+  //     setUserRating(newValue);
+  //     // Optionally, update the average rating from the server
+  //   } catch (error) {
+  //     setSnackbarMessage('Failed to submit rating.');
+  //   }
+  // };
 
 
   if (!user) return <Typography>Loading...</Typography>;
@@ -160,7 +196,7 @@ const UserProfile = () => {
     <Box>
       <Paper sx={{ p: 2, display: "block", background: "#EEEEFF", alignItems: 'center', mb: 2 }}>
         <div style={{ display: "flex" }}>
-          <Avatar src={user.avatar} alt={user.username} sx={{ width: 100, height: 100, mr: 2 }} />
+          <Avatar src={user.profilePic || user.avatar} alt={user.username} sx={{ width: 100, height: 100, mr: 2 }} />
           <Typography variant="h1" style={{ marginTop: "30px" }}>{user.username}</Typography>
 
         </div>
@@ -168,23 +204,26 @@ const UserProfile = () => {
           <Typography variant="h4">Bio: {user.bio}</Typography>
         </div>
         <div style={{ display: "flex", padding: 5, margin: "10px" }}>
+          <Typography variant="h4">Joined: {user.created_at}</Typography>
+        </div>
+        <div style={{ display: "flex", padding: 5, margin: "10px" }}>
           <Typography variant="h4">Rating: {user.rating}<StarIcon /></Typography>
         </div>
 
       </Paper>
-      <Paper style={{ backgroundColor: 'lightgray', padding: '10px', margin: '10px' }}>
+      {/* <Paper style={{ backgroundColor: 'lightgray', padding: '10px', margin: '10px' }}>
         <Typography variant="h6" gutterBottom align="center">
           Rate this User
         </Typography>
         <Grid container spacing={2} alignItems="center" justifyContent="center">
           <Grid item>
             <Typography component="legend">
-              {/* <Rating
+              <Rating
                 name="content-rating"
                 value={userRating}
                 onChange={handleRatingChange}
-              /> */}
-              {/* <Rating
+              />
+              <Rating
                 name="hover-feedback"
                 value={value}
                 precision={0.5}
@@ -198,7 +237,7 @@ const UserProfile = () => {
                   setHover(newHover);
                 }}
                 emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
-              /> */}
+              />
               <Rating
                 name="hover-feedback"
                 value={value}
@@ -222,7 +261,7 @@ const UserProfile = () => {
 
           </Grid>
         </Grid>
-      </Paper>
+      </Paper> */}
 
       <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
         <Button variant="contained" startIcon={<SendIcon />} onClick={handleSendMoney}>

@@ -163,7 +163,7 @@ const SendMoney = () => {
       )}
       {toUser && (
         <Paper sx={{ p: 2, display: 'flex', alignItems: 'center', mb: 2 }}>
-          <Avatar src={toUser.avatar} alt={toUser.username} sx={{ width: 100, height: 100, mr: 2 }} />
+          <Avatar src={toUser.profilePic||toUser.avatar} alt={toUser.username} sx={{ width: 100, height: 100, mr: 2 }} />
           <Typography variant="h4">{toUser.username}</Typography>
           <Button style={{ float: 'right', marginLeft: "50px" }} onClick={goToUserProfile} variant="contained" color="primary" sx={{ mt: 2 }}>
             View Profile

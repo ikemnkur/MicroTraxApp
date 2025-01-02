@@ -7,7 +7,7 @@ import {
 } from './api';
 
 const ReloadWallet = () => {
-  const [amount, setAmount] = useState('');
+  const [amount, setAmount] = useState(10000);
   const [paymentMethod, setPaymentMethod] = useState('stripe');
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [walletData, setWalletData] = useState(null);
@@ -80,8 +80,10 @@ const ReloadWallet = () => {
       navigate(`/stripe-checkout?amount=${purchaseAmount}`);
     if (paymentMethod === "crypto")
       navigate(`/crypto-checkout?amount=${amount}`);
-    if (paymentMethod === "sendwave")
-      navigate(`/sendwave-checkout?amount=${purchaseAmount}`);
+    if (paymentMethod === "cashapp")
+      navigate(`/cashapp-checkout?amount=${amount}`);
+    if (paymentMethod === "coinbase")
+      navigate(`/coinbase-checkout?amount=${purchaseAmount*1000}`);
 
   };
 
@@ -119,16 +121,16 @@ const ReloadWallet = () => {
               onChange={(e) => setPaymentMethod(e.target.value)}
               variant="outlined"
             >
+              <MenuItem value="crypto">Crypto (Manual)</MenuItem>
+              <MenuItem value="cashapp">CashApp</MenuItem>
+              <MenuItem value="coinbase">Coinbase</MenuItem> 
               <MenuItem value="stripe">Stripe</MenuItem>
-              <MenuItem value="crypto">Crypto</MenuItem>
-              <MenuItem value="sendwave">Sendwave</MenuItem>
-              <MenuItem value="shopify">Shopify</MenuItem>
             </Select>
           </FormControl>
 
           {/* Amount Selection */}
           <Box marginTop={2}>
-            <FormLabel>Select an amount to buy</FormLabel>
+          {paymentMethod != 'coinbase' && (<FormLabel>Select an amount to buy</FormLabel>)}
             <></>
             <br></br>
             {/* If crypto, show TextField */}
@@ -144,8 +146,8 @@ const ReloadWallet = () => {
                 inputProps={{ min: '0.01', step: '0.01' }}
               />
             )}
-            {/* If sendwave, show +/- buttons + TextField */}
-            {paymentMethod === 'sendwave' && (
+            {/* If cashapp, show +/- buttons + TextField */}
+            {paymentMethod === 'cashapp' && (
               <div style={{ display: 'flex' }}>
                 <button
                   onClick={() => setAmount(amount - 1)}
@@ -180,18 +182,29 @@ const ReloadWallet = () => {
                   variant="outlined"
                 >
                   <MenuItem value="3">3000 coins</MenuItem>
-                  <MenuItem value="5">5125 coins</MenuItem>
-                  <MenuItem value="10">10250 coins</MenuItem>
-                  <MenuItem value="20">20500 coins</MenuItem>
-                  <MenuItem value="50">50750 coins</MenuItem>
-                  <MenuItem value="100">101000 coins</MenuItem>
+                  <MenuItem value="5">5000 coins</MenuItem>
+                  <MenuItem value="10">10000 + 100 coins</MenuItem>
+                  <MenuItem value="20">20000 + 250 coins</MenuItem>
+                  <MenuItem value="50">50000 + 550 coins</MenuItem>
+                  <MenuItem value="100">100000 + 1250 coins</MenuItem>
                 </Select>
               </FormControl>
             )}
-            {paymentMethod === 'shopify' && (
-              <Typography variant="h6" gutterBottom>
-                This method is not supported yet. Coming soon.
-              </Typography>
+            {paymentMethod === 'coinbase' && (
+               <FormControl >
+               <Select
+                 value={purchaseAmount}
+                 onChange={(e) => setPurchaseAmount(e.target.value)}
+                 variant="outlined"
+               >
+                 <MenuItem value="3">3000 coins</MenuItem>
+                 <MenuItem value="5">5000 coins</MenuItem>
+                 <MenuItem value="10">10000 coins</MenuItem>
+                 <MenuItem value="20">20000 coins</MenuItem>
+                 <MenuItem value="50">50000 coins</MenuItem>
+                 <MenuItem value="100">100000 coins</MenuItem>
+               </Select>
+             </FormControl>
             )}
           </Box>
 

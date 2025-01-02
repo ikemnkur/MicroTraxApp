@@ -58,16 +58,21 @@ const Wallet = () => {
   }, []);
 
   const handleOpenDialog = (selectedAction) => {
-    setAction(selectedAction);
-    setOpenDialog(true);
+    // setAction(selectedAction);
+    // setOpenDialog(true);
+    if (selectedAction === 'reload') {
+      navigate('/reload');
+    } else if (selectedAction === 'withdraw') {
+      navigate('/withdraw');
+    }
   };
 
   const handleCloseDialog = () => {
-    setOpenDialog(false);
+    // setOpenDialog(false);
   };
 
   const handleConfirm = () => {
-    setOpenDialog(false);
+    // setOpenDialog(false);
     if (action === 'reload') {
       navigate('/reload');
     } else if (action === 'withdraw') {

@@ -79,47 +79,47 @@ export const Return = () => {
         const queryString = window.location.search;
         const urlParams = new URLSearchParams(queryString);
         const sessionId = urlParams.get('session_id');
-        if(TRXdata)
-        try {
-            const profile = await fetchUserProfile();
-            const updatedUserData = {
-                ...profile,
-                birthDate: profile.birthDate ? profile.birthDate.split('T')[0] : '',
-            };
+        if (TRXdata)
+            try {
+                const profile = await fetchUserProfile();
+                const updatedUserData = {
+                    ...profile,
+                    birthDate: profile.birthDate ? profile.birthDate.split('T')[0] : '',
+                };
 
-            setUserData(updatedUserData);
-            localStorage.setItem("userdata", JSON.stringify(updatedUserData));
+                setUserData(updatedUserData);
+                localStorage.setItem("userdata", JSON.stringify(updatedUserData));
 
-            const d = new Date();
-            console.log('Adding ', coin, ' coins to your wallet');
-            console.log("At time: " + d);
-            console.log("TRX: ", TRXdata)
+                const d = new Date();
+                console.log('Adding ', coin, ' coins to your wallet');
+                console.log("At time: " + d);
+                console.log("TRX: ", TRXdata)
 
-            const walletActionData = {
-                username: updatedUserData.username,
-                amount: parseInt(coin),
-                date: d.getTime(),
-                stripe: uuidv4(),
-                session_id: sessionId,
-                TRXdata: TRXdata
-                
-            };
+                const walletActionData = {
+                    username: updatedUserData.username,
+                    amount: parseInt(coin),
+                    date: d.getTime(),
+                    stripe: uuidv4(),
+                    session_id: sessionId,
+                    TRXdata: TRXdata
 
-            const result = await walletStripeReloadAction(walletActionData);
-            console.log("Coins purchased successfully!", result);
+                };
 
-            // Update the local state with the new coin balance
-            setUserData(prevData => ({
-                ...prevData,
-                coins: (prevData.coins || 0) + parseInt(coin)
-            }));
-        } catch (error) {
-            console.log(error.message || "Failed to reload wallet. Please try again later.");
-            if (error.response?.status === 401) {
-                // Unauthorized, token might be expired
-                setTimeout(() => window.location.href = '/wallet', 250);
+                const result = await walletStripeReloadAction(walletActionData);
+                console.log("Coins purchased successfully!", result);
+
+                // Update the local state with the new coin balance
+                setUserData(prevData => ({
+                    ...prevData,
+                    coins: (prevData.coins || 0) + parseInt(coin)
+                }));
+            } catch (error) {
+                console.log(error.message || "Failed to reload wallet. Please try again later.");
+                if (error.response?.status === 401) {
+                    // Unauthorized, token might be expired
+                    setTimeout(() => window.location.href = '/wallet', 250);
+                }
             }
-        }
     }, [TRXdata]);
 
     console.log("Stripe page - user data: ", ud);
@@ -161,47 +161,47 @@ export const Return = () => {
 
     useEffect(() => {
         const fetchSessionStatus = async () => {
-          try {
-            // Extract sessionId from URL
-            const queryString = window.location.search;
-            const urlParams = new URLSearchParams(queryString);
-            const sessionId = urlParams.get('session_id');
-      
-            // Bail out early if no sessionId
-            if (!sessionId) {
-              console.warn('No session_id found in URL');
-              return;
+            try {
+                // Extract sessionId from URL
+                const queryString = window.location.search;
+                const urlParams = new URLSearchParams(queryString);
+                const sessionId = urlParams.get('session_id');
+
+                // Bail out early if no sessionId
+                if (!sessionId) {
+                    console.warn('No session_id found in URL');
+                    return;
+                }
+
+                // Build your API URL
+                const API_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:5000/api';
+
+                // Fetch session status
+                const response = await fetch(`${API_URL}/session-status?session_id=${sessionId}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.status}`);
+                }
+
+                // Parse JSON data
+                const data = await response.json();
+                console.log('Session status data:', data);
+
+                // ------------------------- NEW LINES HERE -------------------------
+                // Log the paymentIntent portion for debugging, then set your TRXdata
+                console.log("Payment Intent Data:", data.paymentIntent);
+                setTRXdata(data.paymentIntent);
+                // ------------------------------------------------------------------
+
+                // Keep storing other pieces of data, if you need them
+                setStatus(data.status);
+                setCustomerEmail(data.customer_email);
+
+            } catch (error) {
+                console.error('Failed to fetch session status:', error);
+                // Optionally, set some error state here if desired
             }
-      
-            // Build your API URL
-            const API_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:5000/api';
-      
-            // Fetch session status
-            const response = await fetch(`${API_URL}/session-status?session_id=${sessionId}`);
-            if (!response.ok) {
-              throw new Error(`HTTP Error: ${response.status}`);
-            }
-      
-            // Parse JSON data
-            const data = await response.json();
-            console.log('Session status data:', data);
-      
-            // ------------------------- NEW LINES HERE -------------------------
-            // Log the paymentIntent portion for debugging, then set your TRXdata
-            console.log("Payment Intent Data:", data.paymentIntent);
-            setTRXdata(data.paymentIntent);
-            // ------------------------------------------------------------------
-      
-            // Keep storing other pieces of data, if you need them
-            setStatus(data.status);
-            setCustomerEmail(data.customer_email);
-      
-          } catch (error) {
-            console.error('Failed to fetch session status:', error);
-            // Optionally, set some error state here if desired
-          }
         };
-      
+
         fetchSessionStatus();
     }, []);
 
@@ -255,8 +255,11 @@ export const Return = () => {
     if (status === 'complete') {
         return (
             <section id="success">
+                <h2>
+                    Make you you have sent the make and wait for its confirmation in your notifications.
+                </h2>
                 <p>
-                    We appreciate your business! A confirmation email will be sent to {customerEmail}.
+                    We appreciate your business! A confirmation email may also be sent to {customerEmail}.
                 </p>
                 <p>
                     If you have any questions, please email <a href="mailto:orders@example.com">orders@example.com</a>.

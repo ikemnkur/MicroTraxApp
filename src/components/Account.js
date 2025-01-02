@@ -13,7 +13,6 @@ import {
   Select,
   MenuItem,
   Snackbar,
-  IconButton,
   Dialog,
   DialogActions,
   DialogContent,
@@ -22,13 +21,48 @@ import {
 } from '@mui/material';
 import { PhotoCamera } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { fetchUserProfile, updateUserProfile, fetchWalletData, fetchUploadProfilePicture} from './api';
+import { fetchUserProfile, updateUserProfile, fetchWalletData } from './api';
 import { useAuthCheck } from './useAuthCheck';
+import axios from 'axios';
+import { Autocomplete } from '@mui/material';
+import moment from 'moment-timezone'; // or use Intl.supportedValuesOf('timeZone')
+
+const API_URL = process.env.REACT_APP_API_SERVER_URL + '/api';
+
+// Axios instance
+const api = axios.create({
+  baseURL: API_URL,
+  withCredentials: true,
+});
+
+
+const allTimeZones = moment.tz.names(); // ["Africa/Abidjan", "Africa/Accra", ...]
+const timeZoneOptions = allTimeZones.map((tz) => tz); // or an object { label, value }
+
+
+// // This is a new JavaScript API
+// const allTimeZones = Intl.supportedValuesOf('timeZone'); 
+// // => ["Africa/Abidjan", "Africa/Accra", "Africa/Algiers", ...]
+
+// const timeZones = allTimeZones.map((tz) => ({
+//   label: tz,
+//   value: tz,
+// }));
+
+// **Sample** time zones (expand as you wish)
+// const timeZones = [
+//   { label: '(UTC-05:00) Eastern Time (US & Canada)', value: 'America/New_York' },
+//   { label: '(UTC-06:00) Central Time (US & Canada)', value: 'America/Chicago' },
+//   { label: '(UTC-07:00) Mountain Time (US & Canada)', value: 'America/Denver' },
+//   { label: '(UTC-08:00) Pacific Time (US & Canada)', value: 'America/Los_Angeles' },
+//   { label: '(UTC+00:00) UTC', value: 'UTC' },
+// ];
 
 const AccountPage = () => {
-  useAuthCheck(); // This will check the token and redirect if necessary
+  useAuthCheck(); // Checks token and redirects if necessary
+
   const [userData, setUserData] = useState({
-    id: '', // Added to store user ID
+    id: '',
     username: '',
     email: '',
     firstName: '',
@@ -37,24 +71,29 @@ const AccountPage = () => {
     birthDate: '',
     encryptionKey: '',
     accountTier: 1,
-    profilePicture: "",
-    account_id: "",
-    bio: '', // Added to store biography
-    profilePictureUrl: '' // Added to store the URL
+    profilePicture: '',
+    account_id: '',
+    bio: '',
+    // We'll store the server-provided avatar URL here
+    profilePictureUrl: '',
+    // Store the user's time zone value here
+    timeZone: '',
   });
-  const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [profilePictureUrl, setProfilePictureUrl] = useState(null); // To store the URL returned from the server
+
   const [profilePicturePreview, setProfilePicturePreview] = useState(null);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedTimeZone, setSelectedTimeZone] = useState('');
+
   const [tier, setTier] = useState(1);
   const navigate = useNavigate();
 
   // Save userData to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem("userdata", JSON.stringify(userData));
+    localStorage.setItem('userdata', JSON.stringify(userData));
   }, [userData]);
 
   // Fetch user profile on component mount
@@ -62,28 +101,26 @@ const AccountPage = () => {
     const loadUserProfile = async () => {
       try {
         const profile = await fetchUserProfile();
-
         const updatedUserData = {
           ...profile,
           birthDate: profile.birthDate ? profile.birthDate.split('T')[0] : '',
-          accountTier: profile.accountTier || 1, // Ensure accountTier is set
-          encryptionKey: profile.encryptionKey || '', // Ensure encryptionKey is set
-          bio: profile.bio || '', // Ensure bio is set
-          profilePictureUrl: profile.profilePictureUrl || '' // Ensure profilePictureUrl is set
+          accountTier: profile.accountTier || 1,
+          encryptionKey: profile.encryptionKey || '',
+          bio: profile.bio || '',
+          profilePictureUrl: profile.profilePictureUrl || '',
+          // Suppose the API returns userData.timeZone = "America/New_York"
+          timeZone: profile.timeZone || '',
         };
 
         setUserData(updatedUserData);
-        // Removed redundant localStorage.setItem here
-
-        console.log("Account Tier: ", updatedUserData.accountTier);
         setTier(parseInt(updatedUserData.accountTier));
       } catch (error) {
         console.error('AccountPG - Error fetching user profile:', error);
-        setSnackbarMessage(error.response?.data?.message || 'Failed to load user profile, refresh page or login again');
+        setSnackbarMessage(
+          error.response?.data?.message ||
+          'Failed to load user profile, refresh page or login again'
+        );
         setOpenSnackbar(true);
-        // if (error.response?.status === 401) {
-        //   setTimeout(() => navigate('/login'), 1500);
-        // }
       } finally {
         setIsLoading(false);
       }
@@ -92,16 +129,12 @@ const AccountPage = () => {
     loadUserProfile();
   }, [navigate]);
 
-  // Fetch wallet data on component mount (if applicable)
-  // Assuming fetchWalletData is still relevant for this component
-  // If not, you can remove this useEffect
+  // (Optional) Fetch wallet data
   useEffect(() => {
     const loadWalletData = async () => {
       try {
         setIsLoading(true);
-        const data = await fetchWalletData();
-        // Process wallet data as needed
-        // Example: setWalletData(data);
+        await fetchWalletData();
       } catch (err) {
         console.error('Error fetching wallet data:', err);
         setSnackbarMessage('Failed to load wallet data.');
@@ -115,14 +148,34 @@ const AccountPage = () => {
     loadWalletData();
   }, [navigate]);
 
-  
-
-  // Handle input changes for form fields
+  // Handle text input changes (for most fields)
   const handleInputChange = (event) => {
     const { name, value } = event.target;
-    setUserData(prevData => ({
+    setUserData((prevData) => ({ ...prevData, [name]: value }));
+  };
+
+  // Handle account tier changes
+  const handleTierInputChange = (event) => {
+    const { name, value } = event.target;
+    setUserData((prevData) => ({
       ...prevData,
-      [name]: name === 'accountTier' ? parseInt(value) : value
+      [name]: parseInt(value),
+    }));
+  };
+
+  // Handle Time Zone input changes
+  // const handleTimeZoneInputChange = (event) => {
+  //   const { value } = event.target;
+  //   setUserData((prevData) => ({
+  //     ...prevData,
+  //     timeZone: value,
+  //   }));
+  // };
+
+  const handleTimeZoneChange = (event, newValue) => {
+    setUserData((prev) => ({
+      ...prev,
+      timeZone: newValue || '',
     }));
   };
 
@@ -130,55 +183,39 @@ const AccountPage = () => {
   const handleProfilePictureChange = async (event) => {
     const file = event.target.files[0];
     if (file) {
-      console.log("image vaild")
-      // Preview the image
+      // Show immediate preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setProfilePicturePreview(reader.result);
-        setUserData(prevData => ({
+        setUserData((prevData) => ({
           ...prevData,
-          profilePicture: file // Store the file object, not the data URL
+          profilePicture: file, // store the File object
         }));
       };
       reader.readAsDataURL(file);
 
-      // Prepare form data
-      // const formData = new FormData();
-      // formData.append('profilePicture', file);
-      // formData.append('username', userData.username);
-      // formData.append('id', userData.id);
-      // formData.append('date', ;
-      console.log(file)
-      let formData = {
-        profilePicture: JSON.stringify(file),
-        file: event.target.files[0],
-        username: userData.username,
-        id: userData.id,
-        date: new Date().toISOString(),
-      }
+      // Build form data for uploading
+      const formData = new FormData();
+      formData.append('profilePicture', file);
+      formData.append('username', userData.username);
+      formData.append('userId', userData.user_id); // Adjust if your API expects something else
+      formData.append('date', new Date().toISOString());
 
       try {
-        const response = await fetchUploadProfilePicture(formData);
-        // await fetch('/upload-profile-picture', { // Adjust the endpoint as needed
-        //   method: 'POST',
-        //   body: formData,
-        //   // Note: Do not set the 'Content-Type' header when sending FormData
-        // });
+        const response = await api.post('/upload-profile-picture', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
 
-        if (response.ok) {
-          const data = await response.json();
-          setProfilePictureUrl(data.url); // Assuming the server returns the URL
-          setUserData(prevData => ({
-            ...prevData,
-            profilePictureUrl: data.url,
-          }));
-          setSnackbarMessage('Profile picture uploaded successfully!');
-        } else {
-          const errorData = await response.json();
-          setSnackbarMessage(errorData.message || 'Failed to upload profile picture.');
-        }
+        console.log('Response: ', response.data);
+
+        // Update userData with new URL from server
+        setUserData((prevData) => ({
+          ...prevData,
+          profilePictureUrl: response.data.url || '',
+        }));
+        setSnackbarMessage('Profile picture uploaded successfully!');
       } catch (error) {
-        console.error('Error uploading image:', error);
+        console.error('API - Error uploading user profile image:', error);
         setSnackbarMessage('An error occurred while uploading the image.');
       } finally {
         setOpenSnackbar(true);
@@ -186,16 +223,16 @@ const AccountPage = () => {
     }
   };
 
-  // Implement the deleteUserAccount function
+  // Handle account deletion
   const deleteUserAccount = async () => {
     try {
-      const response = await fetch('/api/delete-account', { // Ensure this endpoint exists
+      const response = await fetch('/api/delete-account', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}` // Include auth token if required
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
-        body: JSON.stringify({ userId: userData.id }) // Adjust according to your backend requirements
+        body: JSON.stringify({ userId: userData.id }),
       });
 
       if (!response.ok) {
@@ -209,32 +246,23 @@ const AccountPage = () => {
     }
   };
 
-  // Account tiers data
-  const tiers = [
-    { id: 1, name: 'Basic', limit: 2000, fee: 30 },
-    { id: 2, name: 'Standard', limit: 5000, fee: 65 },
-    { id: 3, name: 'Premium', limit: 10000, fee: 125 },
-    { id: 4, name: 'Gold', limit: 20000, fee: 250 },
-    { id: 5, name: 'Platinum', limit: 40000, fee: 350 },
-    { id: 6, name: 'Diamond', limit: 50000, fee: 400 },
-    { id: 7, name: 'Ultimate', limit: 100000, fee: 500 },
-  ];
-
-  // Handle account deletion
+  // Confirm account deletion
   const handleDeleteAccount = async () => {
     try {
-      await deleteUserAccount(); // Ensure this function is correctly implemented
+      await deleteUserAccount();
       localStorage.removeItem('token');
-      localStorage.removeItem('userdata'); // Clear user data
+      localStorage.removeItem('userdata');
       setSnackbarMessage('Account deleted successfully.');
       setOpenSnackbar(true);
       // setTimeout(() => navigate('/login'), 1500);
     } catch (error) {
       console.error('AcntPG - Error deleting account:', error);
-      setSnackbarMessage(error.response?.data?.message || 'Failed to delete account. Please try again.');
+      setSnackbarMessage(
+        error.response?.data?.message ||
+        'Failed to delete account. Please try again.'
+      );
       setOpenSnackbar(true);
       if (error.response?.status === 403) {
-        // Unauthorized, token might be expired
         setTimeout(() => navigate('/'), 1000);
       }
     }
@@ -244,44 +272,45 @@ const AccountPage = () => {
   // Handle logout
   const handleLogout = () => {
     localStorage.removeItem('token');
-    localStorage.removeItem('userdata'); // Clear user data
-    
+    localStorage.removeItem('userdata');
     setSnackbarMessage('Logged out successfully.');
     setOpenSnackbar(true);
-    // In a real app, you'd want to clear user session/tokens here
+
     setTimeout(() => {
-      navigate('/login')
+      navigate('/login');
       setUserData({
-            id: '',
-            username: '',
-            email: '',
-            firstName: '',
-            lastName: '',
-            phoneNumber: '',
-            birthDate: '',
-            encryptionKey: '',
-            accountTier: 1,
-            profilePicture: "",
-            bio: '',
-            profilePictureUrl: ''
-          });
+        id: '',
+        username: '',
+        email: '',
+        firstName: '',
+        lastName: '',
+        phoneNumber: '',
+        birthDate: '',
+        encryptionKey: '',
+        accountTier: 1,
+        profilePicture: '',
+        bio: '',
+        profilePictureUrl: '',
+        timezone: '',
+      });
     }, 500);
   };
 
-  // Handle account updates
+  // Handle account updates (Save Changes)
   const handleUpdateAccount = async (event) => {
-    event.preventDefault(); // Prevent default form submission
+    event.preventDefault();
     setIsUpdating(true);
     try {
-      // Optionally, exclude certain fields before sending
       const { encryptionKey, ...profileData } = userData;
-
-      await updateUserProfile(profileData); // Ensure the backend expects the correct data
+      await updateUserProfile(profileData);
       setSnackbarMessage('Account updated successfully!');
       setOpenSnackbar(true);
     } catch (error) {
       console.error('AcntPG - Error updating account:', error);
-      setSnackbarMessage(error.response?.data?.message || 'Failed to update account. Please try again.');
+      setSnackbarMessage(
+        error.response?.data?.message ||
+        'Failed to update account. Please try again.'
+      );
       setOpenSnackbar(true);
     } finally {
       setIsUpdating(false);
@@ -290,7 +319,10 @@ const AccountPage = () => {
 
   return (
     <Box sx={{ maxWidth: 800, margin: 'auto', padding: 2 }}>
-      <Typography variant="h4" gutterBottom>Account </Typography>
+      <Typography variant="h4" gutterBottom>
+        Account
+      </Typography>
+
       {isLoading ? (
         <Typography variant="body1">Loading...</Typography>
       ) : (
@@ -298,9 +330,13 @@ const AccountPage = () => {
           {/* Profile Picture Upload Section */}
           <Box sx={{ mb: 4, textAlign: 'center' }}>
             <Avatar
-              src={profilePictureUrl || profilePicturePreview || '/default-avatar.png'} // Ensure a default avatar exists at this path
+              src={
+                profilePicturePreview ||
+                userData.profilePic ||
+                '/default-avatar.png'
+              }
               alt="Profile Preview"
-              sx={{ width: 130, height: 130, mb: 2, margin: 'auto', padding: "5px" }}
+              sx={{ width: 100, height: 100, mb: 2, margin: 'auto' }}
             />
             <input
               accept="image/*"
@@ -310,7 +346,12 @@ const AccountPage = () => {
               onChange={handleProfilePictureChange}
             />
             <label htmlFor="profile-picture-upload">
-              <Button style={{margin: "5px"}} variant="contained" component="span" startIcon={<PhotoCamera />}>
+              <Button
+                style={{ margin: '5px' }}
+                variant="contained"
+                component="span"
+                startIcon={<PhotoCamera />}
+              >
                 Upload Profile Picture
               </Button>
             </label>
@@ -390,9 +431,7 @@ const AccountPage = () => {
                   disabled={isUpdating}
                   value={userData.birthDate}
                   onChange={handleInputChange}
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
+                  InputLabelProps={{ shrink: true }}
                 />
               </Grid>
 
@@ -423,6 +462,61 @@ const AccountPage = () => {
                   onChange={handleInputChange}
                 />
               </Grid>
+              <Grid item xs={12}>
+              {/* Time Zone Selection */}
+              <Autocomplete
+                fullWidth
+                options={timeZoneOptions}
+                // Optionally, you can format label vs. value:
+                // options={timeZoneOptions.map((tz) => ({ label: tz, value: tz }))}
+
+                value={userData.timeZone}
+                onChange={handleTimeZoneChange}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Search Time Zone"
+                    variant="outlined"
+                    margin="normal"
+                  />
+                )}
+
+                // value={selectedTimeZone}
+                // onChange={(event, newValue) => {
+                //   setSelectedTimeZone(newValue || '');
+                // }}
+
+                // // The text box for searching
+                // renderInput={(params) => (
+                //   <TextField
+                //     {...params}
+                //     label="Search Time Zone"
+                //     variant="outlined"
+                //   />
+                // )}
+
+                // This helps "type to search" among your array
+                filterSelectedOptions
+                autoHighlight
+              />
+              </Grid>
+              {/* <Grid item xs={12}>
+                <FormControl fullWidth margin="normal" disabled={isUpdating}>
+                  <InputLabel>Time Zone</InputLabel>
+                  <Select
+                    name="timeZone"
+                    value={userData.timeZone || ''}
+                    onChange={handleTimeZoneInputChange}
+                    label="Time Zone"
+                  >
+                    {timeZones.map((tz) => (
+                      <MenuItem key={tz.value} value={tz.value}>
+                        {tz.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid> */}
 
               {/* Account Tier Selection */}
               <Grid item xs={12}>
@@ -431,14 +525,14 @@ const AccountPage = () => {
                   <Select
                     name="accountTier"
                     value={userData.accountTier}
-                    onChange={handleInputChange}
+                    onChange={handleTierInputChange}
                     label="Account Tier"
                   >
-                    {tiers.map((tierItem) => (
-                      <MenuItem key={tierItem.id} value={tierItem.id}>
-                        {`${tierItem.name} - Wallet Limit: ₡${tierItem.limit.toLocaleString()}, Monthly Fee: ₡${tierItem.fee}`}
-                      </MenuItem>
-                    ))}
+                    {/* Example of data (replace with your "tiers" array) */}
+                    {/* If you want to keep your existing tier structure, do so here */}
+                    <MenuItem value={1}>Basic</MenuItem>
+                    <MenuItem value={2}>Standard</MenuItem>
+                    <MenuItem value={3}>Premium</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
@@ -454,6 +548,7 @@ const AccountPage = () => {
               >
                 {isUpdating ? 'Saving...' : 'Save Changes'}
               </Button>
+
               <Box>
                 <Button
                   variant="outlined"
@@ -475,34 +570,36 @@ const AccountPage = () => {
             </Box>
           </form>
         </Paper>
-        )}
-        {/* Snackbar for user feedback */}
-        <Snackbar
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-          open={openSnackbar}
-          autoHideDuration={3000}
-          onClose={() => setOpenSnackbar(false)}
-          message={snackbarMessage}
-        />
+      )}
 
-        {/* Delete Account Confirmation Dialog */}
-        <Dialog
-          open={openDeleteDialog}
-          onClose={() => setOpenDeleteDialog(false)}
-        >
-          <DialogTitle>Delete Account</DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              Are you sure you want to delete your account? This action cannot be undone.
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenDeleteDialog(false)}>Cancel</Button>
-            <Button onClick={handleDeleteAccount} color="error">Delete</Button>
-          </DialogActions>
-        </Dialog>
-      </Box>
-      
+      {/* Snackbar for user feedback */}
+      <Snackbar
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        open={openSnackbar}
+        autoHideDuration={3000}
+        onClose={() => setOpenSnackbar(false)}
+        message={snackbarMessage}
+      />
+
+      {/* Delete Account Confirmation Dialog */}
+      <Dialog
+        open={openDeleteDialog}
+        onClose={() => setOpenDeleteDialog(false)}
+      >
+        <DialogTitle>Delete Account</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete your account? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDeleteDialog(false)}>Cancel</Button>
+          <Button onClick={handleDeleteAccount} color="error">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 };
 

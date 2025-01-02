@@ -52,6 +52,19 @@ const UnlockContent = () => {
 
   const API_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:5000';
 
+  const createNotification = async (notificationData) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(API_URL + '/notifications/create', notificationData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log("New notification: ", notificationData.message)
+      // Optionally, update the notifications state or refetch notifications
+    } catch (error) {
+      console.error('Error creating notification:', error);
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -118,6 +131,8 @@ const UnlockContent = () => {
     };
 
     fetchData();
+    
+
     
 
     // // Fetch user's like status when loading content
@@ -211,6 +226,18 @@ const UnlockContent = () => {
       setUnlocked(true);
       setUserBalance((prevBalance) => prevBalance - contentData.cost);
       setSnackbarMessage('Content unlocked successfully!');
+      
+      const notif = {
+        type: 'Unlock',
+        recipient_user_id: toUser.user_id, 
+        message: `User ${thisUser.username} unlocked you content: ${contentData.title} and you received ₡${amount}.`,
+        from_user: thisUser.user_id,
+        date: new Date(),
+        recipient_username: toUser.username
+      }
+
+      createNotification(notif)
+
     } catch (err) {
       setSnackbarMessage('Failed to unlock content. Please try again.');
     } finally {

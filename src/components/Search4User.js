@@ -94,7 +94,7 @@ const Search4User = () => {
         {searchResults.map((user) => (
           <ListItem key={user.id} button onClick={() => gotoUserProfile(user)}>
             <ListItemAvatar>
-              <Avatar src={user.avatar} alt={user.username} />
+              <Avatar src={user.profilePic || user.avatar} alt={user.username} />
             </ListItemAvatar>
             <ListItemText primary={user.username} />
           </ListItem>
