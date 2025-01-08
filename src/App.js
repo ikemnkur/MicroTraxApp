@@ -32,6 +32,7 @@ import AddToWallet from './components/AddToWallet';
 import YourStuff from './components/YourStuff';
 // import { Elements } from '@stripe/react-stripe-js';
 import AdminDashboard from './components/AdminDashboard';
+import AdminPurchasesPage from './components/adminPurchases';
 import ProtectedRoute from './components/ProtectedRoute';
 
 
@@ -134,6 +135,8 @@ function App() {
                 <ProtectedRoute> <Navigate to="/" replace />} /> */}
             <Route path="/Admin" element={
               <ProtectedRoute> <AdminDashboard /> </ProtectedRoute>} />
+                <Route path="/admin-purchases" element={
+              <ProtectedRoute> <AdminPurchasesPage /> </ProtectedRoute>} />
 
             <Route path="/stripe-checkout" element={
               <ProtectedRoute> <CheckoutForm setCoins={setCoins} /> </ProtectedRoute>} />

@@ -1,12 +1,8 @@
-// Move these components to the top level of your file or into separate files
 require('dotenv').config();
-import React, { useState, useEffect, useCallback } from 'react';
-import { useLocation, useNavigate, Navigate } from 'react-router-dom';
-import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
-// import { stripePromise } from './path-to-stripe-promise'; // Ensure you import your stripePromise correctly
-import { fetchUserProfile, walletCryptoReloadAction, logCashappTransaction } from "./api";
+import React, { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { logCashappTransaction } from "./api";
 import { loadStripe } from '@stripe/stripe-js';
-require('dotenv').config();
 const { v4: uuidv4 } = require('uuid');
 
 export const CashappCheckoutForm = ({ setCoins }) => {
@@ -14,7 +10,7 @@ export const CashappCheckoutForm = ({ setCoins }) => {
   const navigate = useNavigate();
   const query = new URLSearchParams(location.search);
   const amount = query.get('amount') || 0;
-  let ud = JSON.parse(localStorage.getItem("userdata"))
+  let ud = JSON.parse(localStorage.getItem("userdata")) || {};
 
   const [userDetails, setUserDetails] = useState({
     name: '',
@@ -22,18 +18,16 @@ export const CashappCheckoutForm = ({ setCoins }) => {
     cashappTag: '',
     key: '',
     transactionId: '',
+    time: '',
+    date: ''
   });
   const [orderSubmitted, setOrderSubmitted] = useState(false);
   const [currency, setCurrency] = useState('USD'); // Default currency
-  const [rate, setRate] = useState(0);
   const [errorMessage, setErrorMessage] = useState('');
-  const [message, setMessage] = useState(''); // For success messages
+  const [message, setMessage] = useState('');
 
-// this is a copy of a file I made I am converting this 
-
-  // Calculate the amount in USD and crypto
-  const cashappAmount = amount / 1000; // Assuming 1000 coins = $1
-  
+  // Calculate the amount in USD based on user assumption (e.g., 1000 coins = $1)
+  const cashappAmount = amount / 1000;
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -52,27 +46,26 @@ export const CashappCheckoutForm = ({ setCoins }) => {
       return;
     }
 
-    // Send order details to backend
     try {
-
-      let data = {
+      // Data payload for backend
+      const data = {
         username: ud.username,
         userId: ud.user_id,
         name: userDetails.name,
         email: userDetails.email,
         cashappTag: userDetails.cashappTag,
         key: userDetails.key,
-        transactionId: userDetails.transactionId,
+        transactionId: userDetails.transactionId, // You might rename this field if it's actually an amount
         currency: currency,
         amount: amount,
         cashappAmount: cashappAmount,
-        date: new Date(),
+        date: userDetails.date || new Date().toISOString().split('T')[0],
+        time: userDetails.time,
         session_id: uuidv4()
-      }
+      };
 
       const response = await logCashappTransaction(data);
-
-      console.log("Response: ", response)
+      console.log("Response: ", response);
 
       if (response.ok) {
         setOrderSubmitted(true);
@@ -87,14 +80,13 @@ export const CashappCheckoutForm = ({ setCoins }) => {
   };
 
   const handleCancelOrder = () => {
-    // Navigate back to dashboard or previous page
-    navigate('/dashboard'); // Adjust the path as needed
+    navigate('/dashboard'); // or another path as needed
   };
 
   const handleCopyAddress = () => {
-    const cashappTag = '$CloutCoinPay';
+    const cashappTagStatic = '$CloutCoinPay';
     navigator.clipboard
-      .writeText(cashappTag)
+      .writeText(cashappTagStatic)
       .then(() => {
         setMessage('Cash Tag copied to clipboard!');
         setTimeout(() => setMessage(''), 3000);
@@ -105,31 +97,27 @@ export const CashappCheckoutForm = ({ setCoins }) => {
       });
   };
 
-  const cashappTag = '$CloutCoinPay';
+  const cashappTagStatic = '$CloutCoinPay';
 
   if (orderSubmitted) {
     return (
       <div id="checkout" style={styles.container}>
         <h2>Order Logged!</h2>
         <h2>
-          Step 3: Make you you have sent the make and wait for its confirmation
+          Step 3: Confirm that you have sent the payment, then wait for its confirmation by the system.
         </h2>
         <p>
-          Please make sure that you have sent <strong>{cashappAmount} {currency}</strong> to the following the following CashApp Tag:
+          Please confirm you have sent <strong>{cashappAmount} {currency}</strong> to the following CashApp Tag:
         </p>
         <div style={styles.cashappTagContainer}>
-          <p style={styles.cashappTag}>{cashappTag}</p>
+          <p style={styles.cashappTag}>{cashappTagStatic}</p>
           <button style={styles.button} onClick={handleCopyAddress}>
             Copy Cashapp Tag
           </button>
         </div>
         {message && <p style={styles.successMessage}>{message}</p>}
-        {/* <p>
-            After sending the payment, please provide the transaction ID so we can verify your payment.
-          </p> */}
         <p>
           You will receive your coins once the cashapp payment transaction is confirmed.
-          You check back on this order in a few hours.
         </p>
       </div>
     );
@@ -140,32 +128,29 @@ export const CashappCheckoutForm = ({ setCoins }) => {
       <div style={styles.header}>
         <h1>You are buying: {parseInt(amount).toLocaleString()} Coins</h1>
       </div>
-      <h2>
-        Step 1: Send money to the cashapp account below:
-      </h2>
+
+      <h2>Step 1: Send money to the CashApp account below:</h2>
+
       {errorMessage && <p style={styles.errorMessage}>{errorMessage}</p>}
       {message && <p style={styles.successMessage}>{message}</p>}
+
       <div style={styles.walletInfo}>
         <p>
-          Please send <strong>{cashappAmount} {currency}</strong> to the following cashapp account:
+          Please send <strong>{cashappAmount} {currency}</strong> to the following CashApp account:
         </p>
         <div style={styles.cashappTagContainer}>
-          <img width="256px" src="./public/CashappQR.jpg"></img>
-          <br></br>
-
+          <img width="256px" src="./public/CashappQR.jpg" alt="CashApp QR" />
         </div>
         <div style={styles.cashappTagContainer}>
-          <p style={styles.cashappTag}>{cashappTag}</p>
+          <p style={styles.cashappTag}>{cashappTagStatic}</p>
           <button style={styles.button} onClick={handleCopyAddress}>
-            Copy Cash App Tag
+            Copy CashApp Tag
           </button>
         </div>
-        {message && <p style={styles.successMessage}>{message}</p>}
       </div>
-      <br></br>
-      <h2>
-        Step 2: Log the details of you order in this form below:
-      </h2>
+
+      <h2>Step 2: Log the details of your order in this form below:</h2>
+
       <form onSubmit={handleOrderSubmit} style={styles.form}>
         <div style={styles.formGroup}>
           <label>
@@ -190,14 +175,14 @@ export const CashappCheckoutForm = ({ setCoins }) => {
             name="email"
             value={userDetails.email}
             onChange={handleInputChange}
-
+            required
             style={styles.input}
           />
         </div>
 
         <div style={styles.formGroup}>
           <label>
-            Your Cashapp User Tag/Name:<span style={styles.required}>*</span>
+            Your CashApp User Tag/Name:<span style={styles.required}>*</span>
           </label>
           <input
             type="text"
@@ -209,48 +194,42 @@ export const CashappCheckoutForm = ({ setCoins }) => {
           />
         </div>
 
-
         <div style={styles.formGroup}>
           <label>Amount Sent ($USD):</label>
           <input
             type="text"
             name="transactionId"
+            placeholder="e.g. 10.00"
             value={userDetails.transactionId}
             onChange={handleInputChange}
             required
             style={styles.input}
           />
         </div>
+
         <div style={styles.formGroup}>
           <label>Date of Payment:</label>
-          <br></br>
           <input
-            // fullWidth
-            // margin="normal"
-            name="birthDate"
-            label="Birth Date"
             type="date"
-            // disabled={isUpdating}
-            // value={userData.birthDate}
-            // onChange={handleInputChange}
-            // InputLabelProps={{ shrink: true }} 
+            name="date"
+            value={userDetails.date}
+            onChange={handleInputChange}
             style={styles.input}
             required
           />
         </div>
+
         <div style={styles.formGroup}>
           <label>Time of Payment (HH:MM AM/PM):</label>
-
           <input
             type="text"
-            name="Time"
-            value={userDetails.transactionId}
+            name="time"
+            placeholder="e.g. 09:30 AM"
+            value={userDetails.time}
             onChange={handleInputChange}
             required
             style={styles.input}
           />
-
-
         </div>
 
         <div style={styles.buttonGroup}>
@@ -262,8 +241,6 @@ export const CashappCheckoutForm = ({ setCoins }) => {
           </button>
         </div>
       </form>
-
-
     </div>
   );
 };
@@ -298,24 +275,8 @@ const styles = {
     border: '1px solid #ccc',
     fontSize: '16px',
   },
-  select: {
-    width: '100%',
-    padding: '8px 10px',
-    marginTop: '5px',
-    borderRadius: '3px',
-    border: '1px solid #ccc',
-    fontSize: '16px',
-    backgroundColor: '#fff',
-  },
   required: {
     color: 'red',
-  },
-  rateInfo: {
-    marginTop: '20px',
-    marginBottom: '20px',
-    backgroundColor: '#e0f7fa',
-    padding: '15px',
-    borderRadius: '5px',
   },
   buttonGroup: {
     textAlign: 'center',
@@ -344,6 +305,7 @@ const styles = {
     backgroundColor: '#fff8e1',
     padding: '15px',
     borderRadius: '5px',
+    marginBottom: '20px',
   },
   cashappTagContainer: {
     display: 'flex',
