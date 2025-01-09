@@ -49,6 +49,7 @@ const AdminPurchasesPage = () => {
     try {
       const res = await api.get(`/api/adminp/user-info/${username}`);
       setUserInfo(res.data);
+      console.log("user info: ", res.data);
     } catch (err) {
       console.error('Error fetching user info:', err);
     }
@@ -156,6 +157,7 @@ const AdminPurchasesPage = () => {
         <div style={styles.userInfoContainer}>
           <h2>User Details: {userInfo.user.username}</h2>
           <p>Email: {userInfo.user.email}</p>
+          <p>Balance: {userInfo.account.balance}</p>
           {/* Display more fields as needed */}
           <h3>User Transactions:</h3>
           <ul>
