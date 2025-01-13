@@ -244,7 +244,8 @@ const ManageContent = () => {
   };
 
   return (
-    <Box>
+    <Box> 
+      <Paper sx={{ p: 2, pb: 8, mb: 2 }}>
       <Typography variant="h4" style={{ alignContent: "center" }} gutterBottom>Manage Unlockable Content</Typography>
       <Box sx={{ gap: 2, mb: 2, alignContent: "center" }}>
 
@@ -304,7 +305,7 @@ const ManageContent = () => {
           <Table stickyHeader>
             {/* If you want the header to stay visible, use stickyHeader on the <Table> */}
             <TableHead>
-              <TableRow>
+              <TableRow style={{background: "white"}}>
                 <TableCell>Title</TableCell>
                 <TableCell>Description</TableCell>
                 <TableCell>Date</TableCell>
@@ -354,9 +355,11 @@ const ManageContent = () => {
         </TableContainer>
       </div>
 
-      <Button style={{ float: 'right', margin: 15 }} variant="contained" color="tertiary" onClick={() => setOpenDialog(true)}>
+      <Button style={{ float: 'right', margin: "15px 0px" }} variant="contained" color="tertiary" onClick={() => setOpenDialog(true)}>
         CREATE NEW CONTENT
       </Button>
+
+      </Paper>
 
       {/* Dialog for creating/editing content */}
       <Dialog

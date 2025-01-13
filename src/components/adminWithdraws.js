@@ -8,14 +8,14 @@ const API_URL = process.env.REACT_APP_API_SERVER_URL // Adjust this if your API 
 
 
 
-const AdminPurchasesPage = () => {
-  const [purchases, setPurchases] = useState([]);
+const AdminWithdrawsPage = () => {
+  const [withdraws, setWithdraws] = useState([]);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [sortField, setSortField] = useState('created_at');
   const [sortDirection, setSortDirection] = useState('DESC');
 
-  const [selectedPurchase, setSelectedPurchase] = useState(null);
+  const [selectedWithdraw, setSelectedWithdraw] = useState(null);
   const [userInfo, setUserInfo] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
@@ -27,10 +27,10 @@ const AdminPurchasesPage = () => {
     withCredentials: true // Add this line
   });
 
-  // Load the purchases from backend
-  const loadPurchases = async () => {
+  // Load the withdraws from backend
+  const loadWithdraws = async () => {
     try {
-      const res = await api.get('/api/adminp/purchases', {
+      const res = await api.get('/api/adminp/withdraws', {
         params: {
           search,
           status: statusFilter,
@@ -38,9 +38,9 @@ const AdminPurchasesPage = () => {
           sortDirection
         }
       });
-      setPurchases(res.data);
+      setWithdraws(res.data);
     } catch (err) {
-      console.error('Error fetching purchases:', err);
+      console.error('Error fetching withdraws:', err);
     }
   };
 
@@ -56,37 +56,37 @@ const AdminPurchasesPage = () => {
   };
 
   useEffect(() => {
-    loadPurchases();
+    loadWithdraws();
   }, [search, statusFilter, sortField, sortDirection]);
 
   // Handle single click to load user info
-  const handleSelectPurchase = (purchase) => {
-    setSelectedPurchase(purchase);
-    fetchUserInfo(purchase.username);
+  const handleSelectWithdraw = (withdraw) => {
+    setSelectedWithdraw(withdraw);
+    fetchUserInfo(withdraw.username);
   };
 
-  // Handle double click to confirm purchase
-  const handleConfirmPurchase = (purchase) => {
-    setSelectedPurchase(purchase);
+  // Handle double click to confirm withdraw
+  const handleConfirmWithdraw = (withdraw) => {
+    setSelectedWithdraw(withdraw);
     setShowConfirmModal(true);
   };
 
-  const confirmPurchaseYes = async () => {
-    if (!selectedPurchase) return;
+  const confirmWithdrawYes = async () => {
+    if (!selectedWithdraw) return;
 
     try {
-      // Example: Increase user’s account by the purchase amount, or any custom logic
-      await api.post(`/api/adminp/confirm-purchase/${selectedPurchase.id}`, {
-        username: selectedPurchase.username,
-        created_at: selectedPurchase.created_at,
-        increaseAmount: selectedPurchase.amount // or a custom amount
+      // Example: Increase user’s account by the withdraw amount, or any custom logic
+      await api.post(`/api/adminp/confirm-withdraw/${selectedWithdraw.id}`, {
+        username: selectedWithdraw.username,
+        created_at: selectedWithdraw.created_at,
+        increaseAmount: selectedWithdraw.amount // or a custom amount
       });
 
-      alert('Purchase confirmed successfully.');
+      alert('Withdraw confirmed successfully.');
       const notif = {
-        type: 'purchase-confirmed',
+        type: 'withdraw-confirmed',
         recipient_user_id: toUser.user_id,
-        message: `Your Purchase has been confirmed and approved, Enjoy: ${increaseAmount} coins.`,
+        message: `Your Withdraw has been confirmed and approved, Enjoy: ${increaseAmount} coins.`,
         from_user: thisUser.user_id,
         date: new Date(),
         recipient_username: toUser.username
@@ -94,14 +94,14 @@ const AdminPurchasesPage = () => {
 
       createNotification(notif)
       setShowConfirmModal(false);
-      loadPurchases(); // Reload to see status changes
+      loadWithdraws(); // Reload to see status changes
     } catch (error) {
-      console.error('Error confirming purchase:', error);
-      alert('Failed to confirm purchase.');
+      console.error('Error confirming withdraw:', error);
+      alert('Failed to confirm withdraw.');
     }
   };
 
-  const confirmPurchaseNo = () => {
+  const confirmWithdrawNo = () => {
     setShowConfirmModal(false);
   };
 
@@ -134,7 +134,7 @@ const AdminPurchasesPage = () => {
 
   return (
     <div style={styles.container}>
-      <h1>Admin Purchases (Last 48 Hours)</h1>
+      <h1>Admin Withdraws (Last 48 Hours)</h1>
 
       {/* Search/Filter/Sort Controls */}
       <div style={styles.controlsContainer}>
@@ -162,24 +162,24 @@ const AdminPurchasesPage = () => {
         </div>
       </div>
 
-      {/* Purchases List */}
-      <ul style={styles.purchaseList}>
-        {purchases.map((purchase) => (
+      {/* Withdraws List */}
+      <ul style={styles.withdrawList}>
+        {withdraws.map((withdraw) => (
           <li
-            key={purchase.id}
-            style={styles.purchaseItem}
-            onClick={() => handleSelectPurchase(purchase)}
-            onDoubleClick={() => handleConfirmPurchase(purchase)}
+            key={withdraw.id}
+            style={styles.withdrawItem}
+            onClick={() => handleSelectWithdraw(withdraw)}
+            onDoubleClick={() => handleConfirmWithdraw(withdraw)}
           >
-            <strong>{purchase.username}</strong> - {purchase.amount} coins
+            <strong>{withdraw.username}</strong> - {withdraw.amount} coins
             <br />
-            Status: {purchase.status || 'N/A'} | Created: {purchase.created_at}
+            Status: {withdraw.status || 'N/A'} | Created: {withdraw.created_at}
           </li>
         ))}
       </ul>
 
       {/* User Info and Transactions */}
-      {selectedPurchase && userInfo && userInfo.user && (
+      {selectedWithdraw && userInfo && userInfo.user && (
         <div style={styles.userInfoContainer}>
           <h2>User Details: {userInfo.user.username}</h2>
           <p>Email: {userInfo.user.email}</p>
@@ -202,12 +202,12 @@ const AdminPurchasesPage = () => {
         <div style={styles.modalBackdrop}>
           <div style={styles.modalContent}>
             <h3>
-              Are you sure you want to confirm this purchase for "
-              {selectedPurchase?.username}"?
+              Are you sure you want to confirm this withdraw for "
+              {selectedWithdraw?.username}"?
             </h3>
             <div style={styles.modalButtons}>
-              <button onClick={confirmPurchaseYes}>Yes</button>
-              <button onClick={confirmPurchaseNo}>No</button>
+              <button onClick={confirmWithdrawYes}>Yes</button>
+              <button onClick={confirmWithdrawNo}>No</button>
             </div>
           </div>
         </div>
@@ -216,7 +216,7 @@ const AdminPurchasesPage = () => {
   );
 };
 
-export default AdminPurchasesPage;
+export default AdminWithdrawsPage;
 
 // Basic styling
 const styles = {
@@ -237,11 +237,11 @@ const styles = {
     display: 'flex',
     gap: '10px',
   },
-  purchaseList: {
+  withdrawList: {
     listStyle: 'none',
     padding: 0,
   },
-  purchaseItem: {
+  withdrawItem: {
     padding: '10px',
     marginBottom: '5px',
     border: '1px solid #ddd',

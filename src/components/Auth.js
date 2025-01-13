@@ -227,15 +227,18 @@ const Auth = ({ isLogin, onLoginSuccess }) => {
       <Box sx={{ mb: 2 }}>
         <CoinAnimationCanvas />
       </Box>
-      <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
-        <LockOutlinedIcon />
-      </Avatar>
+
+
       <Card sx={{ maxWidth: 400, width: '100%' }} elevation={0}>
+        <Avatar sx={{ m: 1, margin: "10px auto", textAlign: 'center', bgcolor: 'secondary.main' }}>
+          <LockOutlinedIcon />
+        </Avatar>
         <CardHeader
           title={isLogin ? 'Login' : 'Sign Up'}
           sx={{ textAlign: 'center' }}
         />
         <CardContent>
+
           {!showCaptcha && (
             <>
               <form onSubmit={handleSubmit}>
@@ -323,6 +326,8 @@ const Auth = ({ isLogin, onLoginSuccess }) => {
         </CardContent>
       </Card>
     </Box>
+
+
   );
 };
 

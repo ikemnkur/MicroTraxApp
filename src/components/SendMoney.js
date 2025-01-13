@@ -99,6 +99,7 @@ const SendMoney = () => {
         recipientId: toUser.user_id,
         recipientUsername: toUser.username,
         sendingUsername: thisUser.username,
+        sendingUsername: thisUser.user_id,
         amount: parseFloat(amount),
         message: message
       };
@@ -120,6 +121,18 @@ const SendMoney = () => {
       }
 
       createNotification(notif)
+
+      // const recentTransaction = {
+      //   trx: "debit",
+      //   type: 'send_money',
+      //   message: message,
+      //   from_user: thisUser.username,
+      //   to_user: toUser.username,
+      //   amount: parseFloat(amount),
+      //   date: new Date(),
+      // }
+
+      // addToRecentTransactions(recentTransaction)
 
     } catch (error) {
       setSnackbarMessage(error.message || "Failed to send coins. Please try again later.");
@@ -143,6 +156,19 @@ const SendMoney = () => {
       console.error('Error creating notification:', error);
     }
   };
+
+  // const addToRecentTransactions = async (notificationData) => {
+  //   try {
+  //     const token = localStorage.getItem('token');
+  //     await axios.post(API_URL + '/notifications/create', notificationData, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     });
+  //     console.log("New notification: ", notificationData.message)
+  //     // Optionally, update the notifications state or refetch notifications
+  //   } catch (error) {
+  //     console.error('Error creating notification:', error);
+  //   }
+  // };
 
 
 
