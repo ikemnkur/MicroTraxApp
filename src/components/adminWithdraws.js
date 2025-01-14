@@ -30,7 +30,7 @@ const AdminWithdrawsPage = () => {
   // Load the withdraws from backend
   const loadWithdraws = async () => {
     try {
-      const res = await api.get('/api/adminp/withdraws', {
+      const res = await api.get('/api/adminw/withdraws', {
         params: {
           search,
           status: statusFilter,
@@ -47,7 +47,7 @@ const AdminWithdrawsPage = () => {
   // Fetch user details and transactions
   const fetchUserInfo = async (username) => {
     try {
-      const res = await api.get(`/api/adminp/user-info/${username}`);
+      const res = await api.get(`/api/adminw/user-info/${username}`);
       setUserInfo(res.data);
       console.log("user info: ", res.data);
     } catch (err) {
@@ -76,7 +76,7 @@ const AdminWithdrawsPage = () => {
 
     try {
       // Example: Increase user’s account by the withdraw amount, or any custom logic
-      await api.post(`/api/adminp/confirm-withdraw/${selectedWithdraw.id}`, {
+      await api.post(`/api/adminw/confirm-withdraw/${selectedWithdraw.id}`, {
         username: selectedWithdraw.username,
         created_at: selectedWithdraw.created_at,
         increaseAmount: selectedWithdraw.amount // or a custom amount
@@ -187,12 +187,21 @@ const AdminWithdrawsPage = () => {
           {/* Display more fields as needed */}
           <h3>User Transactions:</h3>
           <ul>
-            {userInfo.transactions.map((tx) => (
-              <li key={tx.id}>
-                Type: {tx.transaction_type} | Amount: {tx.amount} |
-                Status: {tx.status} | Created: {tx.created_at}
-              </li>
-            ))}
+            {userInfo.transactions.map((tx) => {
+              let sign = "-";
+              console.log("tx.recipient_user_id: ", tx.recipient_account_id  )
+              console.log("userInfo.user.user_id: ", userInfo.user.user_id  )
+              if (tx.recipient_account_id === userInfo.user.user_id) {
+                sign = "+";
+              }
+
+              return (
+                <li key={tx.id}>
+                  Type: {sign} {tx.transaction_type} | Amount: {tx.amount} |
+                  Status: {tx.status} | Created: {tx.created_at}
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}
