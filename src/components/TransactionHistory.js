@@ -3,7 +3,7 @@ import {
   Button, Typography, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Paper, TextField, Select, MenuItem, Box
 } from '@mui/material';
-import { fetchTransactionHistory } from './api';
+import { fetchTransactionHistory, deleteTransaction } from './api';
 require('dotenv').config();
 
 const TransactionHistory = () => {
@@ -29,7 +29,6 @@ const TransactionHistory = () => {
         setLoading(false);
       }
     };
-    console.log("transactions: ", transactions)
     loadTransactions();
   }, []);
 
@@ -77,6 +76,44 @@ const TransactionHistory = () => {
 
   const transactionsToDisplay = sortTransactions(filteredTransactions);
 
+  const exportToCSV = () => {
+    const headers = ['Amount', 'From', 'To', 'Message', 'Type', 'Date', 'Time', 'Status'];
+    const rows = transactionsToDisplay.map(transaction => [
+      transaction.amount,
+      transaction.sending_user,
+      transaction.receiving_user,
+      transaction.message,
+      transaction.transaction_type,
+      transaction.created_at.slice(0, 10),
+      transaction.created_at.slice(11, 19),
+      transaction.status,
+    ]);
+
+    let csvContent = "data:text/csv;charset=utf-8," 
+      + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', 'transactions.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleDelete = async (transactionId) => {
+    if (window.confirm('Are you sure you want to delete this transaction?')) {
+      try {
+        await deleteTransaction(transactionId);
+        setTransactions(transactions.filter(transaction => transaction.id !== transactionId));
+        setFilteredTransactions(filteredTransactions.filter(transaction => transaction.id !== transactionId));
+      } catch (error) {
+        console.error('Failed to delete transaction:', error);
+        setError('Failed to delete transaction. Please try again later.');
+      }
+    }
+  };
+
   return (
     <Box>
       <Typography variant="h4" gutterBottom>Transaction History</Typography>
@@ -109,6 +146,9 @@ const TransactionHistory = () => {
           <MenuItem value="asc">Ascending</MenuItem>
           <MenuItem value="desc">Descending</MenuItem>
         </Select>
+        <Button variant="contained" color="secondary" onClick={exportToCSV}>
+          Export to CSV
+        </Button>
       </Box>
       {error && <Typography color="error">{error}</Typography>}
       <TableContainer component={Paper}>
@@ -123,8 +163,7 @@ const TransactionHistory = () => {
               <TableCell>Date</TableCell>
               <TableCell>Time</TableCell>
               <TableCell>Status</TableCell>
-              
-              
+              <TableCell>Action</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -138,12 +177,16 @@ const TransactionHistory = () => {
                 <TableCell>{transaction.created_at.slice(0, 10)}</TableCell>
                 <TableCell>{transaction.created_at.slice(11, 19)}</TableCell>
                 <TableCell>{transaction.status}</TableCell>
-                
+                <TableCell>
+                  <Button variant="contained" color="secondary" onClick={() => handleDelete(transaction.id)}>
+                    Delete
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
             {!loading && transactionsToDisplay.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} align="center">
+                <TableCell colSpan={9} align="center">
                   No transactions found.
                 </TableCell>
               </TableRow>

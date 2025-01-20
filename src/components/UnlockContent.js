@@ -1,17 +1,16 @@
-// src/components/UnlockContent.jsx
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Typography, TextField, Button, Box, CircularProgress, Snackbar, Paper,
   Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
-  Input, Modal, IconButton, Grid, Rating
+  Modal, IconButton, Grid, Rating
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import axios from 'axios';
 import Auth from './Auth';
 import {
-  HeartBrokenRounded, LockOpenRounded, Star, ThumbDownAlt, ThumbUp, ThumbUpOutlined,ThumbDownAltOutlined, Visibility
+  LockOpenRounded, Star, ThumbDownAlt, ThumbUp, ThumbUpOutlined,
+  ThumbDownAltOutlined, Visibility
 } from '@mui/icons-material';
 import { fetchUserProfile } from './api';
 
@@ -23,11 +22,15 @@ const UnlockContent = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [unlocked, setUnlocked] = useState(false);
+
+  // Notification & Dialog states
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [message, setMessage] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [openLoginModal, setOpenLoginModal] = useState(false);
+
+  // Maintain user profile data (make sure you include user_id)
   const [userData, setUserData] = useState({
     username: '',
     email: '',
@@ -37,207 +40,178 @@ const UnlockContent = () => {
     birthDate: '',
     encryptionKey: '',
     accountTier: 1,
-    profilePicture: null
+    profilePicture: null,
+    user_id: null, // important for identifying the currently logged-in user
   });
 
-  // New states for likes, dislikes, views, and ratings
+  // Track likes, dislikes, views, rating, etc.
   const [likes, setLikes] = useState(0);
   const [dislikes, setDislikes] = useState(0);
   const [views, setViews] = useState(0);
   const [rating, setRating] = useState(0);
   const [userRating, setUserRating] = useState(0);
-
-  // New state variables
   const [userLikeStatus, setUserLikeStatus] = useState(0); // 1: liked, -1: disliked, 0: none
+
+  // For building notification data before submission
+  const [notificationData, setNotificationData] = useState(null);
 
   const API_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:5000';
 
-  const createNotification = async (notificationData) => {
+  // Create notification by sending notificationData to backend
+  const createNotification = async (notifBody) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post(API_URL + '/notifications/create', notificationData, {
+      await axios.post(API_URL + '/notifications/create-unlock', notifBody, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log("New notification: ", notificationData.message)
-      // Optionally, update the notifications state or refetch notifications
+      console.log('New notification:', notifBody.message);
     } catch (error) {
       console.error('Error creating notification:', error);
     }
   };
 
+  // Load user profile from server
+  const loadUserProfile = async () => {
+    try {
+      const profile = await fetchUserProfile();
+      const updatedUserData = {
+        ...profile,
+        birthDate: profile.birthDate ? profile.birthDate.split('T')[0] : '',
+      };
+      setUserData(updatedUserData);
+      localStorage.setItem('userdata', JSON.stringify(updatedUserData));
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      setSnackbarMessage(error.response?.data?.message || 'Failed to load user profile. Please refresh or login again.');
+      if (error.response?.status === 401) {
+        setTimeout(() => navigate('/login'), 500);
+      }
+    }
+  };
+
+  // Fetch content data and handle initial logic
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch content data
+        // 1) Get content info
         const contentResponse = await axios.get(`${API_URL}/api/unlock/unlock-content/${itemid}`);
         const content = contentResponse.data;
         setContentData(content);
-        console.log("Content: ", content)
 
-        // Set initial values for likes, dislikes, views, and rating
         setLikes(content.likes || 0);
         setDislikes(content.dislikes || 0);
         setViews(content.views || 0);
         setRating(content.rating || 0);
 
-        // Check login status via wallet balance
+        // 2) Check if user is logged in
         try {
           const token = localStorage.getItem('token');
           if (token) {
-            // User is logged in, fetch balance
             const balanceResponse = await axios.get(`${API_URL}/api/wallet`, {
               headers: { Authorization: `Bearer ${token}` },
             });
             setUserBalance(balanceResponse.data.balance);
             setIsLoggedIn(true);
           }
-        } catch (error) {
-          setIsLoggedIn(false);
-        }
-
-        try {
-          if (isLoggedIn) {
-            loadUserProfile()
-            // Fetch user's like/dislike status
-            const token = localStorage.getItem('token');
-            const [ratingResponse] = await axios.get(
-              `${API_URL}/api/unlock/user-rating/${content.id}`,
-              { headers: { Authorization: `Bearer ${token}` } }
-            );
-            setUserLikeStatus(ratingResponse.data.like_status || 0);
-            setUserRating(ratingResponse.data.rating || 0);
-          }
         } catch {
           setIsLoggedIn(false);
         }
 
-        // Increment view count
+        // 3) If logged in, load user profile & user rating
+        if (isLoggedIn) {
+          await loadUserProfile();
+          try {
+            const token = localStorage.getItem('token');
+            const ratingResp = await axios.get(
+              `${API_URL}/api/unlock/user-rating/${content.id}`,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            setUserLikeStatus(ratingResp.data.like_status || 0);
+            setUserRating(ratingResp.data.rating || 0);
+          } catch (error) {
+            console.error('Failed to fetch user rating:', error);
+          }
+        }
+
+        // 4) Increment view count
         await axios.post(
           `${API_URL}/api/unlock/add-view`,
           { contentId: content.id },
           { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
         );
-        setViews((prevViews) => prevViews + 1);
+        setViews((prev) => prev + 1);
       } catch (err) {
         if (err.response && err.response.status === 401) {
           setIsLoggedIn(false);
         } else {
-          setError('Failed to load data');
+          setError('Failed to load data.');
         }
       } finally {
         setLoading(false);
       }
-
     };
 
     fetchData();
-    
 
-    
-
-    // // Fetch user's like status when loading content
-    // useEffect(() => {
-    //   const fetchUserLikeStatus = async () => {
-    //     if (isLoggedIn && contentData) {
-    //       try {
-    //         const response = await axios.get(
-    //           `${API_URL}/api/unlock/user-like-status`,
-    //           {
-    //             params: { contentId: contentData.id },
-    //             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-    //           }
-    //         );
-    //         setUserLikeStatus(response.data.like_status);
-    //       } catch (error) {
-    //         console.error('Failed to fetch user like status.');
-    //       }
-    //     }
-    //   };
-
-    //   fetchUserLikeStatus();
-    // }, [isLoggedIn, contentData]);
-
-    // ... existing code ...
-    // Add event listener for beforeunload when content is unlocked
+    // Warn user if they leave after unlocking
     const handleBeforeUnload = (e) => {
       if (unlocked) {
         e.preventDefault();
         e.returnValue = 'Go to the unlocked content section in your Stuff Tab';
       }
     };
-
     window.addEventListener('beforeunload', handleBeforeUnload);
 
-    // Clean up function
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
+  }, [itemid, unlocked, isLoggedIn, API_URL]);
 
-  }, [itemid, unlocked]);
-
-  const loadUserProfile = async () => {
-    try {
-      const profile = await fetchUserProfile();
-      // setProfile(profile);
-      const updatedUserData = {
-        ...profile,
-        birthDate: profile.birthDate ? profile.birthDate.split('T')[0] : '',
-      };
-
-      setUserData(updatedUserData);
-      localStorage.setItem("userdata", JSON.stringify(updatedUserData));
-      console.log(userData.user_id)
-      // console.log("Account Tier: ", profile.accountTier);
-      // setTier(parseInt(profile.accountTier));
-
-    } catch (error) {
-      console.error('UnlockPG - Error fetching user profile:', error);
-      setSnackbarMessage(error.response?.data?.message || 'Failed to load user profile, refresh page or login again');
-      setOpenSnackbar(true);
-      if (error.response?.status === 401) {
-        // Unauthorized, token might be expired
-        setTimeout(() => navigate('/login'), 500);
-      }
-    }
-  };
-
-  const handleUnlock = async () => {
+  // User initiates unlock
+  const handleUnlock = () => {
     if (!isLoggedIn) {
-      // If user is not logged in, open login modal
       setOpenLoginModal(true);
       return;
     }
-
-    if (userBalance < contentData.cost) {
+    if (userBalance < (contentData?.cost || 0)) {
       setSnackbarMessage('Insufficient balance. Please reload your wallet.');
       return;
     }
     setOpenDialog(true);
   };
 
+  // Confirm unlock after user sees the dialog
   const confirmUnlock = async () => {
     try {
       const token = localStorage.getItem('token');
+      alert('You will need to confirm your login credentials. This helps reduce spam or abuse.');
       await axios.post(
         `${API_URL}/api/unlock/unlock-content`,
-        { contentId: contentData.id, message: message, user_id: userData.user_id },
+        { contentId: contentData.id, message: message, user_id: userData.user_id, type: 'Unlock',
+          recipient_user_id: contentData.host_user_id, // The content owner's user ID
+          recipient_username: contentData.host_username,
+          Nmessage: `User "${userData.username}" unlocked your content "${contentData.title}" and you earned ₡${contentData.cost}.`,
+          from_user: userData.user_id, // The current user's ID
+          date: new Date(), },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setUnlocked(true);
-      setUserBalance((prevBalance) => prevBalance - contentData.cost);
+      setUserBalance((prev) => prev - contentData.cost);
       setSnackbarMessage('Content unlocked successfully!');
-      
-      const notif = {
-        type: 'Unlock',
-        recipient_user_id: toUser.user_id, 
-        message: `User ${thisUser.username} unlocked you content: ${contentData.title} and you received ₡${amount}.`,
-        from_user: thisUser.user_id,
-        date: new Date(),
-        recipient_username: toUser.username
+
+      // Build the notification if the content has a host user
+      if (contentData.host_user_id) {
+        const newNotification = {
+          type: 'Unlock',
+          recipient_user_id: contentData.host_user_id, // The content owner's user ID
+          recipient_username: contentData.host_username,
+          message: `User "${userData.username}" unlocked your content "${contentData.title}" and you earned ₡${contentData.cost}.`,
+          from_user: userData.user_id, // The current user's ID
+          date: new Date(),
+        };
+        setNotificationData(newNotification);
+        await createNotification(newNotification);
       }
-
-      createNotification(notif)
-
     } catch (err) {
       setSnackbarMessage('Failed to unlock content. Please try again.');
     } finally {
@@ -246,6 +220,7 @@ const UnlockContent = () => {
   };
 
   const renderContent = () => {
+    if (!contentData) return null;
     switch (contentData.type) {
       case 'url':
         return (
@@ -262,9 +237,7 @@ const UnlockContent = () => {
           />
         );
       case 'text':
-        return <Typography>{contentData.content.content}</Typography>;
       case 'code':
-        return <Typography>{contentData.content.content}</Typography>;
       case 'video':
         return <Typography>{contentData.content.content}</Typography>;
       case 'file':
@@ -278,10 +251,10 @@ const UnlockContent = () => {
     }
   };
 
+  // Handle successful login (close login modal and refresh balance)
   const handleLoginSuccess = async () => {
     setIsLoggedIn(true);
     setOpenLoginModal(false);
-    // Re-fetch user balance after login
     const token = localStorage.getItem('token');
     const balanceResponse = await axios.get(`${API_URL}/api/wallet`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -289,27 +262,27 @@ const UnlockContent = () => {
     setUserBalance(balanceResponse.data.balance);
   };
 
-  // Adjusted handlers for like and dislike
+  // Like and dislike handlers
   const handleLike = async () => {
     if (!isLoggedIn) {
       setOpenLoginModal(true);
+      alert('Please log in again to prevent spam/abuse.');
       return;
     }
     try {
       const response = await axios.post(
         `${API_URL}/api/unlock/add-like`,
-        { contentId: contentData.id, user_id: contentData.user_id },
+        { contentId: contentData.id },
         { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );
-      // Update local state based on response
       if (response.data.message === 'Content liked successfully') {
-        setLikes((prevLikes) => prevLikes + 1);
+        setLikes((prev) => prev + 1);
         if (userLikeStatus === -1) {
-          setDislikes((prevDislikes) => prevDislikes - 1);
+          setDislikes((prev) => prev - 1);
         }
         setUserLikeStatus(1);
       } else if (response.data.message === 'Like removed') {
-        setLikes((prevLikes) => prevLikes - 1);
+        setLikes((prev) => prev - 1);
         setUserLikeStatus(0);
       }
     } catch (error) {
@@ -320,6 +293,7 @@ const UnlockContent = () => {
   const handleDislike = async () => {
     if (!isLoggedIn) {
       setOpenLoginModal(true);
+      alert('Please log in again to prevent spam/abuse.');
       return;
     }
     try {
@@ -328,15 +302,14 @@ const UnlockContent = () => {
         { contentId: contentData.id },
         { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );
-      // Update local state based on response
       if (response.data.message === 'Content disliked successfully') {
-        setDislikes((prevDislikes) => prevDislikes + 1);
+        setDislikes((prev) => prev + 1);
         if (userLikeStatus === 1) {
-          setLikes((prevLikes) => prevLikes - 1);
+          setLikes((prev) => prev - 1);
         }
         setUserLikeStatus(-1);
       } else if (response.data.message === 'Dislike removed') {
-        setDislikes((prevDislikes) => prevDislikes - 1);
+        setDislikes((prev) => prev - 1);
         setUserLikeStatus(0);
       }
     } catch (error) {
@@ -344,10 +317,10 @@ const UnlockContent = () => {
     }
   };
 
-  // Handler for rating
   const handleRatingChange = async (event, newValue) => {
     if (!isLoggedIn) {
       setOpenLoginModal(true);
+      alert('Please log in again to prevent spam/abuse.');
       return;
     }
     try {
@@ -357,7 +330,6 @@ const UnlockContent = () => {
         { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );
       setUserRating(newValue);
-      // Optionally, update the average rating from the server
     } catch (error) {
       setSnackbarMessage('Failed to submit rating.');
     }
@@ -371,11 +343,13 @@ const UnlockContent = () => {
       <Typography variant="h4" gutterBottom>
         Unlock Content
       </Typography>
+
+      {/* Basic info about the content */}
       <Paper style={{ backgroundColor: 'lightblue', padding: '10px' }}>
         <Typography variant="h5" gutterBottom>
           Title: {contentData.title}
         </Typography>
-         <Typography variant="h5" gutterBottom>
+        <Typography variant="h5" gutterBottom>
           By: {contentData.host_username}
         </Typography>
         <Typography variant="subtitle1" gutterBottom>
@@ -391,6 +365,7 @@ const UnlockContent = () => {
         )}
       </Paper>
 
+      {/* Content stats */}
       <Paper style={{ backgroundColor: '#DEEFFF', padding: '10px', marginTop: '20px' }}>
         <Grid container spacing={2} alignItems="center" justifyContent="center">
           <Grid item>
@@ -411,6 +386,7 @@ const UnlockContent = () => {
         </Grid>
       </Paper>
 
+      {/* Unlock Button or Unlocked Content */}
       {!unlocked ? (
         <>
           <div style={{ marginTop: '30px' }}>
@@ -476,12 +452,12 @@ const UnlockContent = () => {
         </>
       )}
 
-      {/* Confirmation Dialog */}
+      {/* Unlock Confirmation Dialog */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogTitle>Confirm Unlock</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to unlock this content for: ₡{contentData.cost}?
+            Are you sure you want to unlock this content for ₡{contentData.cost}?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -501,15 +477,9 @@ const UnlockContent = () => {
       >
         <Box
           sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: 400,
-            bgcolor: 'background.paper',
-            boxShadow: 24,
-            p: 4,
-            outline: 'none',
+            position: 'absolute', top: '50%', left: '50%',
+            transform: 'translate(-50%, -50%)', width: 400,
+            bgcolor: 'background.paper', boxShadow: 24, p: 4, outline: 'none',
           }}
         >
           <IconButton
@@ -522,7 +492,7 @@ const UnlockContent = () => {
         </Box>
       </Modal>
 
-      {/* Snackbar for notifications */}
+      {/* Snackbar for messages */}
       <Snackbar
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         open={!!snackbarMessage}

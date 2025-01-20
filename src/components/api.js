@@ -75,6 +75,16 @@ api.interceptors.response.use(
 //   }
 // );
 
+export const deleteTransaction = async (transactionId) => {
+  try {
+    const response = await api.delete(`/transactions/transaction/${transactionId}`);
+    return response.data;
+  } catch (error) {
+    console.error('API - Error deleting transaction:', error);
+    throw error;
+  }
+};
+
 export const fetchUserProfile = async (page) => {
   try {
     const response = await api.get('/user/profile');
@@ -205,6 +215,16 @@ export const walletWithdrawAction = async (walletActionData) => {
   try {
     console.log("walletWithdrawAction")
     const response = await api.post('/wallet/withdraw', walletActionData);
+    return response.data;
+  } catch (error) {
+    throw error.response.data;
+  }
+};
+
+export const walletConvertAction = async (walletActionData) => {
+  try {
+    console.log("walletConvertAction")
+    const response = await api.post('/wallet/convert', walletActionData);
     return response.data;
   } catch (error) {
     throw error.response.data;

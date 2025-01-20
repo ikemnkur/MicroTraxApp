@@ -28,6 +28,7 @@ import {
   Settings as SettingsIcon,
   LockOutlined,
   BookmarkAdd,
+  LogoutOutlined,
 } from '@mui/icons-material';
 import CategoryIcon from '@mui/icons-material/Category';
 import { fetchUserProfile } from './api';
@@ -119,6 +120,12 @@ const NavBar = ({ children }) => {
           </Typography>
           <IconButton color="inherit" onClick={() => navigate('/settings')}>
             <SettingsIcon />
+          </IconButton>
+          <IconButton color="inherit" onClick={() => navigate('/account')}>
+            <AccountCircle/>
+          </IconButton>
+          <IconButton color="inherit" onClick={() => navigate('/login')}>
+            <LogoutOutlined/>
           </IconButton>
         </Toolbar>
       </AppBar>
