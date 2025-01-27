@@ -116,6 +116,7 @@ const TransactionHistory = () => {
 
   return (
     <Box>
+      <Paper sx={{ p: 2, pb: 8, mb: 2 }}>
       <Typography variant="h4" gutterBottom>Transaction History</Typography>
       <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
         <TextField
@@ -194,6 +195,7 @@ const TransactionHistory = () => {
           </TableBody>
         </Table>
       </TableContainer>
+      </Paper>
     </Box>
   );
 };

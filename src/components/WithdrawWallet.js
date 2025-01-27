@@ -211,6 +211,19 @@ const WithdrawWallet = () => {
     loadWalletData();
   }, [navigate]);
 
+  const createNotification = async (notificationData) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(API_URL + '/notifications/create', notificationData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log("New notification: ", notificationData.message)
+      // Optionally, update the notifications state or refetch notifications
+    } catch (error) {
+      console.error('Error creating notification:', error);
+    }
+  };
+
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -256,6 +269,17 @@ const WithdrawWallet = () => {
       setOpenSnackbar(true);
       // Optionally, navigate to another page or refresh wallet data
       await loadWalletData();
+      const notif = {
+        type: 'withdrawl-order',
+        recipient_user_id: userData.user_id, 
+        message: `You have made withdraw order of ₡${amount} coins via ${withdrawMethod}.`,
+        from_user: 0,
+        date: new Date(),
+        recipient_username: userData.username
+      }
+
+      // createNotification(notif)
+      
     } catch (err) {
       console.error('Error processing withdrawal:', err);
       setSnackbarMessage(

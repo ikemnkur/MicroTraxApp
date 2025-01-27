@@ -5,6 +5,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import theme from './theme';
 import NavBar from './components/NavBar';
 import Dashboard from './components/Dashboard';
+import Info from './components/Info';
 import TransactionHistory from './components/TransactionHistory';
 import SendMoney from './components/SendMoney';
 import ReceivedPayments from './components/ReceivedPayments';
@@ -78,7 +79,7 @@ function App() {
             <Route path="/dashboard" element={
               <ProtectedRoute> <Dashboard /> </ProtectedRoute>} />
               <Route path="/" element={
-              <ProtectedRoute> <Dashboard /> </ProtectedRoute>} />
+              <ProtectedRoute> <Info /> </ProtectedRoute>} />
             <Route path="/transactions" element={
               <ProtectedRoute> <TransactionHistory /> </ProtectedRoute>} />
             <Route path="/send" element={

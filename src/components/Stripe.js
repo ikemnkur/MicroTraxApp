@@ -230,7 +230,7 @@ export const Return = () => {
                     type: 'coin purchase',
                     recipient_user_id: userdata.user_id,
                     recipient_username: userdata.username,
-                    message: `From: Bot - You bought ₡${amnt} via Stripe.`,
+                    message: `From: Bot - You bought ₡${amnt*1000} coins via Stripe.`,
                     from: "Admin",
                     date: new Date()
                 });

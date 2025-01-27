@@ -57,24 +57,6 @@ api.interceptors.response.use(
   }
 );
 
-// // Add a response interceptor
-// api.interceptors.response.use(
-//   (response) => response,
-//   (error) => {
-//     const unlockPage = ['/unlock'].includes(location.pathname);
-//     if (unlockPage){
-//       return;
-//     }
-//     if (error.response && error.response.status === 401) {
-//       // Token has expired
-//       localStorage.removeItem('token'); // Remove the expired token
-//       window.location.href = '/register'; // Redirect to login page
-//       // window.location.href = '/login'; // Redirect to login page
-//     }
-//     return Promise.reject(error);
-//   }
-// );
-
 export const deleteTransaction = async (transactionId) => {
   try {
     const response = await api.delete(`/transactions/transaction/${transactionId}`);
@@ -228,6 +210,21 @@ export const walletConvertAction = async (walletActionData) => {
     return response.data;
   } catch (error) {
     throw error.response.data;
+  }
+};
+
+// In api.js
+export const fetchInfoData = async () => {
+  try {
+    const response = await api.get('/info');
+    return response.data;
+  } catch (error) {
+    console.error('API - Error fetching Info data:', error);
+    // setTimeout(() => {
+    //   navigate("/login");
+    //   setOpenSnackbar(true);
+    // }, 1000)
+    throw error;
   }
 };
 

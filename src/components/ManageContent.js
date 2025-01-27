@@ -303,9 +303,10 @@ const ManageContent = () => {
           style={{ maxHeight: 360, overflowY: "auto" }}
         >
           <Table stickyHeader>
+          
             {/* If you want the header to stay visible, use stickyHeader on the <Table> */}
-            <TableHead>
-              <TableRow style={{background: "white"}}>
+            <TableHead style={{background: "white"}}>  {/* Override the coloring with XXS */}
+              <TableRow >
                 <TableCell>Title</TableCell>
                 <TableCell>Description</TableCell>
                 <TableCell>Date</TableCell>
