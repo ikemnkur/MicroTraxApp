@@ -126,7 +126,7 @@ export default function CoinAnimationCanvas() {
     ctx.fillStyle = 'black';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
-    ctx.fillText('Welcome to Koin Klub', width / 2, 10);
+    ctx.fillText('Welcome to Kreator Koin Klub', width / 2, 10);
     ctx.restore();
   }
 

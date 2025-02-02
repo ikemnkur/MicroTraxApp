@@ -54,7 +54,7 @@ const Info = () => {
         console.error('DashBrdPG - Error fetching user profile:', err);
         setSnackbarMessage(
           err.response?.data?.message ||
-            'Failed to load user profile, please refresh or login again'
+          'Failed to load user profile, please refresh or login again'
         );
         setOpenSnackbar(true);
         if (err.response?.status === 401) {
@@ -70,13 +70,13 @@ const Info = () => {
   useEffect(() => {
     const loadInfoData = async () => {
       // try {
-        // const data = await fetchInfoData();
-        // setInfoData(data);
+      // const data = await fetchInfoData();
+      // setInfoData(data);
       // } catch (err) {
       //   setTimeout(() => navigate('/login'), 500);
       //   setError('Failed to load data, Please Re-Login');
       // } finally {
-        setIsLoading(false);
+      setIsLoading(false);
       // }
     };
     loadInfoData();
@@ -146,6 +146,16 @@ const Info = () => {
             anybody can monetize clout. If you have clout, sell it! People will do anything
             for clout—why not combine it with money?
           </Typography>
+          {/* Responsive Video */}
+          <Box sx={responsiveVideoWrapper}>
+            <iframe
+              style={responsiveIframe}
+              src="https://www.youtube.com/embed/Q_KxEMxn2pc"
+              title="Embedded Video"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+          </Box>
         </Paper>
 
         {/* 2) News Section */}
@@ -190,13 +200,90 @@ const Info = () => {
           Need Help?
         </Typography>
         <Box display="flex" alignItems="center" gap={2}>
-          <Button variant="contained">Support</Button>
+
           <Typography variant="body1">
-            Submit a support ticket |
+            Submit a support ticket
           </Typography>
-          <Button variant="outlined">FAQ</Button>
+          <Button variant="contained">Support</Button>
+          {/* TODO: Create Modal */}
         </Box>
       </Box>
+
+      {/* Faq section */}
+      {/* <Button variant="outlined">FAQ</Button> */}
+      {/* Search bar */}
+      <Box>
+        <Paper sx={{ flex: 1, p: 2 }}>
+          <Typography variant="h" gutterBottom>
+            Rules, FAQs, and Comments!
+          </Typography>
+          <Typography variant="h6">• Account Tiers
+            <p>
+              Account Tier help to allocate site and server resources for traffic on the site to remain stable and sustainable.
+              <Typography variant="body1">  Q: What are the tiers and what features do they have ?</Typography>
+              <Typography variant="body1">  A: .</Typography>
+              <table>
+                {/* TODO: Insert tier features table here */}
+              </table>
+            </p>
+          </Typography>
+          <Typography variant="h6">• Account Limits
+            <p>Account Tier exist to limit the amount of traffic on the site from bieng to excessive
+              <Typography variant="body1">  Q: Can I change the account limits that I currenlty have?</Typography>
+              <Typography variant="body1">  A: Yes, upgrade/downgrade to a different tier; there are daily fees for each account type.</Typography>
+              <table>
+                {/* TODO: Insert account-teir limits table here */}
+              </table>
+            </p>
+          </Typography>
+          <Typography variant="h6">• Impersonation
+            <p>
+              <Typography variant="body1">  Q: Should you trust anyone on the site?</Typography>
+              <Typography variant="body1">  A: No, always verfify out side the app that the person you are engaging with is real.</Typography>
+              <Typography variant="body1">  Q: Will I be banned for impersonation?</Typography>
+              <Typography variant="body1">  A: Only if you are reported alot or have many bad ratings or reviews.</Typography>
+            </p>
+          </Typography>
+
+          <Typography variant="body1">• Trick and Scams
+            <p>
+              <Typography variant="body1">  Q: How can I scammed?</Typography>
+              <Typography variant="body1">  A: No, always verfify out side the app that the person you are engaging with is real.</Typography>
+              <Typography variant="body1">  Q: What to do if tricked or scammed?</Typography>
+              <Typography variant="body1">  A: You need to create a support ticket, and add evidence of the scam in order to report and punish the offending user.</Typography>
+              <Typography variant="body1">  Q: How can I get my money back after being tricked?</Typography>
+              <Typography variant="body1">  A: Yes, but only for large transactions. There will also be a penalty for resolving conflicts.</Typography>
+              <Typography variant="body1">  Q: Should I worry about fraudsters and scammers?</Typography>
+              <Typography variant="body1">  A: No, this site is not designed for handling things of significant purchase.</Typography>
+            </p>
+          </Typography>
+          <Typography variant="body1">• Your Content
+            <p>
+              Your content can be any thing, at the bare minimum just have a link to it. Alos avoid braking the rules.
+              <Typography variant="body1">  Q: I delete content will my rating change?</Typography>
+              <Typography variant="body1">  A: No, rating only change with new contente added and changes as a moving average as time passes.</Typography>
+            </p>
+
+          </Typography>
+          <Typography variant="body1">• Content Limitations
+            <Typography variant="body1">  Q: What cant you create?</Typography>
+            <Typography variant="body1">  A: Stuff that will get the site shut down for legal reasons, Viruses and Malware, Inappropriate Child Content, Excessive X-rated gore and porn (shock-sites), maybe: Racist? Stuff (idk depends) </Typography>
+          </Typography>
+
+          <Typography variant="body1">• Bans and Account Restirctions
+            <p>
+              <Typography variant="body1">  Q: How can your account be deleted?</Typography>
+              <Typography variant="body1">  A: Inactivity for 90 days. Failing Captchas. Causing glitching event. Leftover coins may be redeemed/recovered via email support services.</Typography>
+              <Typography variant="body1">  Q: How can you get banned?</Typography>
+              <Typography variant="body1">  A: Hacking, Scamming, Spamming, Glitching</Typography>
+              <Typography variant="body1">  Q: How can you get your account resiteristed?</Typography>
+              <Typography variant="body1">  A: By having many bad reviews or being reported alot</Typography>
+            </p>
+          </Typography>
+
+        </Paper>
+      </Box>
+
 
       {/* Notifications and Error Handling */}
       <Snackbar

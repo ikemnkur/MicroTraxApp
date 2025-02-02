@@ -118,10 +118,10 @@ function App() {
               <ProtectedRoute> <YourStuff /> </ProtectedRoute>} />
             <Route path="/Admin" element={
               <ProtectedRoute> <AdminDashboard /> </ProtectedRoute>} />
-            <Route path="/admin-purchases" element={
+            {/* <Route path="/admin-purchases" element={
               <ProtectedRoute> <AdminPurchasesPage /> </ProtectedRoute>} />
             <Route path="/admin-withdraws" element={
-              <ProtectedRoute> <AdminWithdrawsPage /> </ProtectedRoute>} />
+              <ProtectedRoute> <AdminWithdrawsPage /> </ProtectedRoute>} /> */}
             <Route path="/stripe-checkout" element={
               <ProtectedRoute> <CheckoutForm setCoins={setCoins} /> </ProtectedRoute>} />
             <Route path="/crypto-checkout" element={
