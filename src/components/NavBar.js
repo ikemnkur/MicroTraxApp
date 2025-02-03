@@ -33,7 +33,7 @@ import {
 import CategoryIcon from '@mui/icons-material/Category';
 import { fetchUserProfile } from './api';
 
-const drawerWidth = 210;
+const drawerWidth = 190;
 const collapsedDrawerWidth = 40;
 
 const NavBar = ({ children }) => {

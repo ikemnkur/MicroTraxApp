@@ -99,7 +99,7 @@ const SendMoney = () => {
         recipientId: toUser.user_id,
         recipientUsername: toUser.username,
         sendingUsername: thisUser.username,
-        sendingUsername: thisUser.user_id,
+        sendingId: thisUser.user_id,
         amount: parseFloat(amount),
         message: message
       };
