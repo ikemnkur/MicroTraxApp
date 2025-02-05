@@ -36,6 +36,8 @@ const TransactionHistory = () => {
     const filtered = transactions.filter(t => {
       return (
         t.receiving_user.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        t.sending_user.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        t.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
         t.amount.toString().includes(searchTerm)
       );
     });
@@ -63,6 +65,14 @@ const TransactionHistory = () => {
           aValue = a.receiving_user.toLowerCase();
           bValue = b.receiving_user.toLowerCase();
           break;
+        case 'status':
+            aValue = a.status.toLowerCase();
+            bValue = b.status.toLowerCase();
+            break; 
+        case 'type':
+            aValue = a.transaction_type.toLowerCase();
+            bValue = b.transaction_type.toLowerCase();
+            break;
         default:
           aValue = a.id;
           bValue = b.id;
@@ -128,7 +138,17 @@ const TransactionHistory = () => {
         <Button variant="contained" color="primary" onClick={handleSearch}>
           Search
         </Button>
-        <strong style={{ padding: "15px" }}>Filter:</strong>
+       
+        <strong style={{ paddingTop: "15px" }}>Sort:</strong>
+        <Select
+          value={sortOrder}
+          onChange={(e) => setSortOrder(e.target.value)}
+          variant="outlined"
+        >
+          <MenuItem value="asc">Ascending</MenuItem>
+          <MenuItem value="desc">Descending</MenuItem>
+        </Select> 
+        <strong style={{ paddingTop: "15px" }}>By:</strong>
         <Select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
@@ -137,15 +157,8 @@ const TransactionHistory = () => {
           <MenuItem value="date">Date</MenuItem>
           <MenuItem value="amount">Amount</MenuItem>
           <MenuItem value="username">Username</MenuItem>
-        </Select>
-        <strong style={{ padding: "15px" }}>Sort:</strong>
-        <Select
-          value={sortOrder}
-          onChange={(e) => setSortOrder(e.target.value)}
-          variant="outlined"
-        >
-          <MenuItem value="asc">Ascending</MenuItem>
-          <MenuItem value="desc">Descending</MenuItem>
+          <MenuItem value="type">Type</MenuItem>
+          <MenuItem value="status">Status</MenuItem>
         </Select>
         <Button variant="contained" color="secondary" onClick={exportToCSV}>
           Export to CSV

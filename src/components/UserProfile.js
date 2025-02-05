@@ -2,7 +2,7 @@ require('dotenv').config();
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Typography, Button, Avatar, Paper, Box, Snackbar, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Grid, Rating } from '@mui/material';
-import { Send as SendIcon, Favorite as FavoriteIcon, Report as ReportIcon, Message as MessageIcon, ThumbDownAlt, ThumbDownAltOutlined, ThumbUpOutlined, ThumbUp } from '@mui/icons-material';
+import { Send as SendIcon, Favorite as FavoriteIcon, Report as ReportIcon, Message as MessageIcon, ThumbDownAlt, ThumbDownAltOutlined, ThumbUpOutlined, ThumbUp, HeartBrokenTwoTone, ThumbUpRounded, PictureAsPdfRounded, PictureInPicture } from '@mui/icons-material';
 import { fetchOtherUserProfile, updateFavoriteStatus, submitUserReport, fetchOtherUserProfileId } from './api'; // You'll need to implement these API functions
 import StarIcon from '@mui/icons-material/Star';
 // import * as React from 'react';
@@ -206,8 +206,10 @@ const UserProfile = () => {
         <div style={{ display: "flex", padding: 5, margin: "10px" }}>
           <Typography variant="h4">Joined: {user.created_at}</Typography>
         </div>
-        <div style={{ display: "flex", padding: 5, margin: "10px" }}>
-          <Typography variant="h4">Rating: {user.rating}<StarIcon /></Typography>
+        <div style={{ display: "flex", padding: 5, margin: "10px", gap: 10 }}>
+          <Typography variant="h4">Rating: {user.avgRating}<StarIcon style={{marginLeft: 5}} /></Typography>
+          <Typography variant="h4">Liked: {user.numberOfLikes}<ThumbUpRounded style={{marginLeft: 5}}/></Typography>
+          <Typography variant="h4">Posts: {user.numberOfPosts}<PictureInPicture style={{marginLeft: 5}}/></Typography>
         </div>
 
       </Paper>
@@ -265,17 +267,18 @@ const UserProfile = () => {
 
       <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
         <Button variant="contained" startIcon={<SendIcon />} onClick={handleSendMoney}>
-          send coins
+         <Typography style={{marginTop: 3}}>Send Coins </Typography>
         </Button>
         <Button
           variant={isFavorite ? "contained" : "outlined"}
           startIcon={<FavoriteIcon />}
           onClick={handleToggleFavorite}
         >
-          {isFavorite ? "Remove Favorite" : "Add Favorite"}
+         
+          <Typography style={{marginTop: 3}}>{isFavorite ? "Remove Favorite" : "Add Favorite"} </Typography>
         </Button>
         <Button variant="outlined" startIcon={<ReportIcon />} onClick={handleReport}>
-          Report
+          <Typography style={{marginTop: 3}}>Report </Typography>
         </Button>
       </Box>
       {/* <Button variant="text" startIcon={<MessageIcon />} onClick={() => navigate(`/messages/${userId}`)}>

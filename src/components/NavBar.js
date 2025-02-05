@@ -71,14 +71,12 @@ const NavBar = ({ children }) => {
     const loadDashboardData = async () => {
       try {
         const profile = await fetchUserProfile('NavBar');
-
         const updatedUserData = {
           ...profile,
           birthDate: profile.birthDate ? profile.birthDate.split('T')[0] : '',
-          accountTier: profile.accountTier || 1, // Ensure accountTier is set
-          encryptionKey: profile.encryptionKey || '', // Ensure encryptionKey is set
+          accountTier: profile.accountTier || 1,
+          encryptionKey: profile.encryptionKey || '',
         };
-
         localStorage.setItem('userdata', JSON.stringify(updatedUserData));
       } catch (err) {
         console.log('Error: ', err);
@@ -122,10 +120,10 @@ const NavBar = ({ children }) => {
             <SettingsIcon />
           </IconButton>
           <IconButton color="inherit" onClick={() => navigate('/account')}>
-            <AccountCircle/>
+            <AccountCircle />
           </IconButton>
           <IconButton color="inherit" onClick={() => navigate('/login')}>
-            <LogoutOutlined/>
+            <LogoutOutlined />
           </IconButton>
         </Toolbar>
       </AppBar>
@@ -154,21 +152,27 @@ const NavBar = ({ children }) => {
                   to={item.path}
                   sx={{
                     justifyContent: open ? 'initial' : 'center',
-                    px: 2.5,
+                    // Change horizontal padding to 5px
+                    px: '5px',
                   }}
                 >
                   <ListItemIcon
                     sx={{
                       minWidth: 0,
-                      mr: open ? 3 : 'auto',
+                      // Change icon margin to 5px
+                      mr: open ? '5px' : 'auto',
                       justifyContent: 'center',
+                      px: '5px',
                     }}
                   >
                     {item.icon}
                   </ListItemIcon>
                   <ListItemText
                     primary={open ? item.text : ''}
-                    sx={{ opacity: open ? 1 : 0 }}
+                    sx={{ opacity: open ? 1 : 0,
+                      px: '05px 10px 10px 0px',
+                     }}
+                     style={{paddingTop: 5}}
                   />
                 </ListItem>
               </Tooltip>
