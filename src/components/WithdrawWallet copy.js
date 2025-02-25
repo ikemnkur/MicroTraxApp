@@ -16,7 +16,6 @@ import { useNavigate } from 'react-router-dom';
 import { fetchUserProfile, fetchWalletData, walletWithdrawAction } from './api';
 import { lightBlue } from '@mui/material/colors';
 
-
 const WithdrawWallet = () => {
   const [amount, setAmount] = useState('');
   const [withdrawMethod, setWithdrawMethod] = useState('Bank');
@@ -151,7 +150,7 @@ const WithdrawWallet = () => {
 
   // Derived values based on selected withdrawal method and amount
   const rate = rates[withdrawMethod] || 0;
-  const min = minWithdraw[withdrawMethod]*1000 || 0;
+  const min = (minWithdraw[withdrawMethod] * 1000) || 0;
   const fee = fees[withdrawMethod] || 0;
   const serverCostPercentage = server_cost[withdrawMethod] || 0;
   const time = waitTimes[withdrawMethod] || '';
@@ -180,7 +179,7 @@ const WithdrawWallet = () => {
           error.response?.data?.message || 'Failed to load user profile. Please refresh or log in again.'
         );
         setOpenSnackbar(true);
-        navigate('/login'); // Redirect to login if unauthorized
+        navigate('/login');
       }
     };
 
@@ -206,36 +205,19 @@ const WithdrawWallet = () => {
 
   // Fetch wallet data on component mount
   useEffect(() => {
-
-
     loadWalletData();
   }, [navigate]);
-
-  const createNotification = async (notificationData) => {
-    try {
-      const token = localStorage.getItem('token');
-      await axios.post(API_URL + '/notifications/create', notificationData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      console.log("New notification: ", notificationData.message)
-      // Optionally, update the notifications state or refetch notifications
-    } catch (error) {
-      console.error('Error creating notification:', error);
-    }
-  };
 
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation: Check if amount meets the minimum withdrawal requirement
     if (amountNum < min) {
       setSnackbarMessage(`Minimum withdrawal amount for ${methodNames[withdrawMethod]} is ${min} coins.`);
       setOpenSnackbar(true);
       return;
     }
 
-    // Prepare withdrawal data
     const withdrawData = {
       username: userData.username,
       amount: amountNum,
@@ -254,7 +236,6 @@ const WithdrawWallet = () => {
       extraData: extraFormData,
     };
 
-    // Call the withdrawal function
     await makeWithdraw(withdrawData);
     setAmount('');
     setExtraFormData({});
@@ -263,23 +244,10 @@ const WithdrawWallet = () => {
   // Handle withdrawal request
   const makeWithdraw = async (withdrawData) => {
     try {
-      // Optionally, you can set a loading state here
       await walletWithdrawAction(withdrawData);
       setSnackbarMessage('Withdrawal request submitted successfully.');
       setOpenSnackbar(true);
-      // Optionally, navigate to another page or refresh wallet data
       await loadWalletData();
-      const notif = {
-        type: 'withdrawl-order',
-        recipient_user_id: userData.user_id, 
-        message: `You have made withdraw order of ₡${amount} coins via ${withdrawMethod}.`,
-        from_user: 0,
-        date: new Date(),
-        recipient_username: userData.username
-      }
-
-      // createNotification(notif)
-      
     } catch (err) {
       console.error('Error processing withdrawal:', err);
       setSnackbarMessage(
@@ -335,11 +303,9 @@ const WithdrawWallet = () => {
             <MenuItem value="MEX">Mexico</MenuItem>
             <MenuItem value="ESP">Spain</MenuItem>
             <MenuItem value="FRN">France</MenuItem>
-            {/* Add more countries as needed */}
           </TextField>
         );
       case 'Ticket':
-        // Assuming tickets don't require extra info
         return null;
       case 'Bank':
         return (
@@ -389,11 +355,10 @@ const WithdrawWallet = () => {
             fullWidth
             margin="normal"
             type="email"
-            value={extraFormData.paypalEmail || ''}
+            value={extraFormData.sendwaveEmail || ''}
             onChange={(e) => updateExtraFormData('sendwaveEmail', e.target.value)}
             required
           />
-
         );
       case 'Check':
         return (
@@ -422,113 +387,129 @@ const WithdrawWallet = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 800, minWidth: 600, margin: 'auto', padding: 2 }}>
-      <Typography variant="h4" gutterBottom>
-        Redeem Clout Coins
-      </Typography>
-      {!isLoading && walletData && (
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="h6" gutterBottom>
-            Current Redeemable Balance: ₡{walletData.redeemable}
-          </Typography>
-          <Typography variant="body1" gutterBottom>
-            Account Tier: {userData.accountTier}
-          </Typography>
-          {/* <Typography variant="body1" gutterBottom>
-            Wallet Size Limit: ₡{userData.accountTier}
-          </Typography> */}
-        </Box>
-      )}
-      <Paper sx={{ p: 2 }} style={{ backgroundColor: 'lightBlue' }}>
-        <Typography variant="h6" gutterBottom>
-          Withdrawal: {amount}C ~ {(amount * 0.001).toFixed(2)} $USD{' '}
+    <Box
+      sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '100vh',
+        backgroundColor: '#f4f6f8',
+        p: 2,
+      }}
+    >
+      <Box sx={{ width: '100%', maxWidth: 800 }}>
+        <Typography variant="h4" align="center" gutterBottom>
+          Redeem Clout Coins
         </Typography>
-        <form onSubmit={handleSubmit}>
-          <TextField
-            label="Amount"
-            fullWidth
-            margin="normal"
-            type="number"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            required
-            inputProps={{ min: '0.01', step: '0.01' }}
-          />
+        {!isLoading && walletData && (
+          <Box sx={{ textAlign: 'center', mb: 3 }}>
+            <Typography variant="h6">
+              Current Redeemable Balance: ₡{walletData.redeemable}
+            </Typography>
+            <Typography variant="body1">
+              Account Tier: {userData.accountTier}
+            </Typography>
+          </Box>
+        )}
+        <Paper
+          sx={{
+            p: 4,
+            borderRadius: 2,
+            boxShadow: 3,
+            backgroundColor: lightBlue[50],
+          }}
+        >
+          <Typography variant="h6" gutterBottom>
+            Withdrawal: {amount}C ~ {(amount * 0.001).toFixed(2)} $USD
+          </Typography>
+          <form onSubmit={handleSubmit}>
+            <TextField
+              label="Amount"
+              fullWidth
+              margin="normal"
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              required
+              inputProps={{ min: '0.01', step: '0.01' }}
+            />
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Withdrawal Method</InputLabel>
+              <Select
+                value={withdrawMethod}
+                onChange={(e) => setWithdrawMethod(e.target.value)}
+                label="Withdrawal Method"
+              >
+                <MenuItem value="XMR">Crypto: Monero</MenuItem>
+                <MenuItem value="SOL">Crypto: Solana</MenuItem>
+                <MenuItem value="LTC">Crypto: Litecoin</MenuItem>
+                <MenuItem value="ETH">Crypto: Ethereum</MenuItem>
+                <MenuItem value="BTC">Crypto: Bitcoin</MenuItem>
+                <MenuItem value="Amazon">Amazon Gift Card</MenuItem>
+                <MenuItem value="Walmart">Walmart Gift Card</MenuItem>
+                <MenuItem value="Target">Target Gift Card</MenuItem>
+                <MenuItem value="Ticket">Prize Raffle Tickets</MenuItem>
+                <MenuItem value="Bank">Bank Transfer</MenuItem>
+                <MenuItem value="Paypal">PayPal</MenuItem>
+                <MenuItem value="Sendwave">Sendwave</MenuItem>
+                <MenuItem value="Check">Check by Mail (U.S Only)</MenuItem>
+              </Select>
+            </FormControl>
 
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Withdrawal Method</InputLabel>
-            <Select
-              value={withdrawMethod}
-              onChange={(e) => setWithdrawMethod(e.target.value)}
-              label="Withdrawal Method"
+            {renderExtraFields()}
+
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="h5" gutterBottom>
+                Minimum Withdraw: {min} Coins
+              </Typography>
+              <Typography variant="h5" gutterBottom>
+                Rate: {rate} Coins = 1 {methodNames[withdrawMethod]}
+              </Typography>
+              <Typography variant="h6" gutterBottom>
+                Estimated Wait Time: {time}
+              </Typography>
+            </Box>
+
+            <Box sx={{ backgroundColor: '#EEEEFF', p: 2, borderRadius: 1, my: 2 }}>
+              <Typography variant="h6" gutterBottom>
+                Amount: {amount} Coins
+              </Typography>
+              <Typography variant="h6" gutterBottom>
+                Fees: {fee} Coins
+              </Typography>
+              <Typography variant="h6" gutterBottom>
+                Server Cost: {Math.round(serverCost)} Coins
+              </Typography>
+              <Typography variant="h5" gutterBottom>
+                Total Cost: {Math.round(totalCost)} Coins
+              </Typography>
+            </Box>
+
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              fullWidth
+              sx={{ mt: 2, py: 1.5 }}
+              disabled={
+                isLoading ||
+                amountNum < min ||
+                isNaN(amountNum) ||
+                amount > parseInt(userData.balance)
+              }
             >
-              <MenuItem value="XMR">Crypto: Monero</MenuItem>
-              <MenuItem value="SOL">Crypto: Solana</MenuItem>
-              <MenuItem value="LTC">Crypto: Litecoin</MenuItem>
-              <MenuItem value="ETH">Crypto: Ethereum</MenuItem>
-              <MenuItem value="BTC">Crypto: Bitcoin</MenuItem>
-              <MenuItem value="Amazon">Amazon Gift Card</MenuItem>
-              <MenuItem value="Walmart">Walmart Gift Card</MenuItem>
-              <MenuItem value="Target">Target Gift Card</MenuItem>
-              <MenuItem value="Ticket">Prize Raffle Tickets</MenuItem>
-              <MenuItem value="Bank">Bank Transfer</MenuItem>
-              <MenuItem value="Paypal">PayPal</MenuItem>
-              <MenuItem value="Sendwave">Sendwave</MenuItem>
-              <MenuItem value="Check">Check by Mail (U.S Only)</MenuItem>
-            </Select>
-          </FormControl>
-
-          {/* Render additional fields based on withdrawal method */}
-          {renderExtraFields()}
-
-          {/* Display Derived Values */}
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="h5" gutterBottom>
-              Minimum Withdraw: {min} Coins
-            </Typography>
-            <Typography variant="h5" gutterBottom>
-              Rate: {rate} Coins = 1 {methodNames[withdrawMethod]}
-            </Typography>
-            <Typography variant="h6" gutterBottom>
-              Estimated Wait Time: {time}
-            </Typography>
-
-
-          </Box>
-          <Box style={{ backgroundColor: "#EEEEFF", padding: "5px" }}>
-
-            <Typography variant="h6" gutterBottom>
-              Amount: {amount} Coins
-            </Typography>
-            <Typography variant="h6" gutterBottom>
-              Fees: {fee} Coins
-            </Typography>
-            <Typography variant="h6" gutterBottom>
-              Server Cost: {Math.round(serverCost)} Coins
-            </Typography>
-            <Typography variant="h5" gutterBottom>
-              Total Cost: {Math.round(totalCost)} Coins
-            </Typography>
-          </Box>
-
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            sx={{ mt: 2 }}
-            disabled={isLoading || amountNum < min || isNaN(amountNum) || amount > parseInt(userData.balance)}
-          >
-            {isLoading ? 'Processing...' : 'Request Withdrawal'}
-          </Button>
-        </form>
-      </Paper>
-      <Snackbar
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        open={openSnackbar}
-        autoHideDuration={3000}
-        onClose={() => setOpenSnackbar(false)}
-        message={snackbarMessage}
-      />
+              {isLoading ? 'Processing...' : 'Request Withdrawal'}
+            </Button>
+          </form>
+        </Paper>
+        <Snackbar
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          open={openSnackbar}
+          autoHideDuration={3000}
+          onClose={() => setOpenSnackbar(false)}
+          message={snackbarMessage}
+        />
+      </Box>
     </Box>
   );
 };
