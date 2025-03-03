@@ -28,7 +28,7 @@
 
 
 //   console.log("dashboard data: ", dashboardData)
-  
+
 
 //   useEffect(() => {
 //     const loadUserProfile = async () => {
@@ -39,13 +39,13 @@
 //           ...profile,
 //           birthDate: profile.birthDate ? profile.birthDate.split('T')[0] : '',
 //         };
-  
+
 //         setUserData(updatedUserData);
 //         localStorage.setItem("userdata", JSON.stringify(updatedUserData));
-        
+
 //         console.log("Account Tier: ", profile.accountTier);
 //         setTier(parseInt(profile.accountTier));
-  
+
 //       } catch (error) {
 //         console.error('DashBrdPG - Error fetching user profile:', error);
 //         setSnackbarMessage(error.response?.data?.message || 'Failed to load user profile, refresh page or login again');
@@ -56,11 +56,11 @@
 //         }
 //       }
 //     };
-  
+
 //     loadUserProfile();
 //   }, [navigate]);
 
-  
+
 
 //   useEffect(() => {
 //     const loadDashboardData = async () => {
@@ -105,9 +105,9 @@
 //               {/* {dashboardData?.balance ?? 'N/A'}₡  */}
 //               <Typography variant="h6">Spendable: {dashboardData?. spendable ?? 0}</Typography>
 //               <Typography variant="h6"> Redeemable: {dashboardData?.redeemable ?? 0} </Typography>
-              
-              
-              
+
+
+
 //             </Typography>
 //           </Paper>
 //         </Grid>
@@ -171,7 +171,7 @@
 //             </Typography>
 //           </Paper>
 //         </Grid> */}
-       
+
 //         <Grid item xs={12} md={4}>
 //           <Paper sx={{ p: 2 }}>
 //             <Typography variant="h6" gutterBottom>
@@ -296,7 +296,7 @@ const Dashboard = () => {
         <Grid item xs={12} md={4}>
           <Paper sx={{ p: 2 }}>
             <Typography variant="h5" gutterBottom>
-              Balance: {dashboardData?.balance ?? 'N/A'}₡
+              Balance: {(dashboardData?.spendable + dashboardData?.redeemable) ?? 'N/A'}₡
             </Typography>
             <Typography variant="h6">
               Spendable: {dashboardData?.spendable ?? 0}₡
@@ -317,7 +317,13 @@ const Dashboard = () => {
               Times Sent Today: {dashboardData?.sentTransactions ?? 0} / {dashboardData?.dailyLimit ?? 'N/A'}
             </Typography>
             <Typography>
+              {/* Coins Sent Today: {dashboardData?.sentTransactions ?? 0} / {dashboardData?.dailyCoinLimit ?? 'N/A'} */}
+            </Typography>
+            <Typography>
               Times Received Today: {dashboardData?.receivedTransactions ?? 0} / {dashboardData?.dailyLimit ?? 'N/A'}
+            </Typography>
+            <Typography>
+              {/* Coins Received Today: {dashboardData?.sentTransactions ?? 0} / {dashboardData?.dailyCoinLimit ?? 'N/A'} */}
             </Typography>
           </Paper>
         </Grid>
@@ -329,13 +335,14 @@ const Dashboard = () => {
               Recent Transactions
             </Typography>
             <Typography>
-              Sent in last 24h: {dashboardData?.totalAmountSentLast24Hours ?? 0}₡
+              Sent in last 24h: {dashboardData?.totalAmountSentLast24Hours ?? 0} / {dashboardData?.dailyCoinLimit ?? 'N/A'}₡
             </Typography>
             <Typography>
-              Received in last 24h: {dashboardData?.totalAmountReceivedLast24Hours ?? 0}₡
+              Received in last 24h: {dashboardData?.totalAmountReceivedLast24Hours ?? 0} / {dashboardData?.dailyCoinLimit ?? 'N/A'}₡
+
             </Typography>
           </Paper>
-          </Grid>
+        </Grid>
       </Grid>
 
       {/* Insert Notifications component below the cards */}

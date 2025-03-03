@@ -1,66 +1,83 @@
 require('dotenv').config();
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Typography, Button, Avatar, Paper, Box, Snackbar, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Grid, Rating } from '@mui/material';
-import { Send as SendIcon, Favorite as FavoriteIcon, Report as ReportIcon, Message as MessageIcon, ThumbDownAlt, ThumbDownAltOutlined, ThumbUpOutlined, ThumbUp, HeartBrokenTwoTone, ThumbUpRounded, PictureAsPdfRounded, PictureInPicture } from '@mui/icons-material';
-import { fetchOtherUserProfile, updateFavoriteStatus, submitUserReport, fetchOtherUserProfileId } from './api'; // You'll need to implement these API functions
-import StarIcon from '@mui/icons-material/Star';
-// import * as React from 'react';
-// import Rating from '@mui/material/Rating';
-// import Box from '@mui/material/Box';
-// import StarIcon from '@mui/icons-material/Star';
+import {
+  Typography,
+  Button,
+  Avatar,
+  Paper,
+  Box,
+  Snackbar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Grid,
+  Rating
+} from '@mui/material';
+import { 
+  Send as SendIcon, 
+  Favorite as FavoriteIcon, 
+  Report as ReportIcon, 
+  Message as MessageIcon, 
+  Star as StarIcon, 
+  ThumbUpRounded, 
+  PictureInPicture 
+} from '@mui/icons-material';
+import { 
+  fetchOtherUserProfile, 
+  fetchOtherUserProfileId, 
+  updateFavoriteStatus, 
+  submitUserReport, 
+  submitUserMessage 
+} from './api'; // Ensure submitUserMessage is implemented in your API file
 
 const UserProfile = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
+  
   const [user, setUser] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [openReportDialog, setOpenReportDialog] = useState(false);
+  const [openMessageDialog, setOpenMessageDialog] = useState(false);
   const [reportMessage, setReportMessage] = useState('');
-  // const [rating, setRating] = useState(0);
+  const [userMessage, setUserMessage] = useState('');
   const [userRating, setUserRating] = useState(0);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [value, setValue] = useState(2);
-  const [hover, setHover] = useState(-1);
 
-  // New state variables
-  const [userLikeStatus, setUserLikeStatus] = useState(0); // 1: liked, -1: disliked, 0: none
-
-  function getLabelText(value) {
-    return `${value} Star${value !== 1 ? 's' : ''}, ${labels[value]}`;
-  }
-
-
-  const labels = {
-    0.5: 'Useless',
-    1: 'Useless+',
-    1.5: 'Poor',
-    2: 'Poor+',
-    2.5: 'Ok',
-    3: 'Ok+',
-    3.5: 'Good',
-    4: 'Good+',
-    4.5: 'Excellent',
-    5: 'Excellent+',
+  // Utility to convert ISO timestamps to a more readable format
+  const convertTimestamp = (isoString) => {
+    if (!isoString) return '';
+    const date = new Date(isoString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    let hour = date.getHours();
+    let meridiem = 'AM';
+    if (hour === 0) {
+      hour = 12;
+    } else if (hour === 12) {
+      meridiem = 'PM';
+    } else if (hour > 12) {
+      hour -= 12;
+      meridiem = 'PM';
+    }
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day} at ${String(hour).padStart(2, '0')}:${minutes}:${seconds} ${meridiem}`;
   };
 
-
-
   useEffect(() => {
-
     const loadUserProfile = async () => {
       try {
         let userData = await fetchOtherUserProfileId(userId);
-
-        // Convert created_at timestamp
         if (userData.created_at) {
           userData.created_at = convertTimestamp(userData.created_at);
         }
-
         setUser(userData);
-        console.log("User: ", userData);
         setIsFavorite(userData.isFavorite);
       } catch (error) {
         try {
@@ -69,67 +86,29 @@ const UserProfile = () => {
           setIsFavorite(userData.isFavorite);
         } catch (error) {
           console.error('Error fetching user profile:', error);
-          setSnackbarMessage('Failed to load user profile of: ' + user);
+          setSnackbarMessage('Failed to load user profile.');
           setOpenSnackbar(true);
           if (error.response?.status === 403) {
-            // Unauthorized, token might be expired
             setTimeout(() => navigate('/dashboard'), 1000);
           }
         }
       }
     };
 
-    // Utility function to convert an ISO timestamp to the desired format
-    // Format Example: "2024-08-31T05:10:57.000Z" => "2024-08-31 at 05:10:57 AM"
-    function convertTimestamp(isoString) {
-      if (!isoString) return '';
-      const date = new Date(isoString);
-
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-
-      let hour = date.getHours();
-      let meridiem = 'AM';
-
-      // Convert 24-hour time to 12-hour time
-      if (hour === 0) {
-        hour = 12; // midnight is 12 AM
-      } else if (hour === 12) {
-        meridiem = 'PM';
-      } else if (hour > 12) {
-        hour -= 12;
-        meridiem = 'PM';
-      }
-
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      const seconds = String(date.getSeconds()).padStart(2, '0');
-
-      // Build the final string
-      return `${year}-${month}-${day} at ${String(hour).padStart(2, '0')}:${minutes}:${seconds} ${meridiem}`;
-    }
-
-
-    const getLoginStatus = async () => {
-      // Check login status via wallet balance
+    const checkLoginStatus = async () => {
       try {
         const token = localStorage.getItem('token');
         if (token) {
-          // User is logged in, fetch balance
-          const balanceResponse = await axios.get(`${API_URL}/api/wallet`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          setUserBalance(balanceResponse.data.balance);
           setIsLoggedIn(true);
-          console.log("logged in")
         }
       } catch (error) {
         setIsLoggedIn(false);
       }
-    }
-    getLoginStatus();
+    };
+
+    checkLoginStatus();
     loadUserProfile();
-  }, [userId]);
+  }, [userId, navigate]);
 
   const handleSendMoney = () => {
     navigate(`/send?recipient=${user.username}`);
@@ -167,127 +146,87 @@ const UserProfile = () => {
     }
   };
 
-  // Handler for rating
-  // const handleRatingChange = async (event, newValue) => {
-  //   // if (!isLoggedIn) {
-  //   //   // setOpenLoginModal(true);
-  //   //   return;
-  //   // }
-  //   alert("you rated this user a: ", userRating)
-  //   console.log("User Rating: ", userRating)
-  //   try {
-  //     await axios.post(
-  //       `${API_URL}/api/user/add-rating`,
-  //       { rateduserId: contentData.id, rating: userRating },
-  //       { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
-  //     );
+  const handleMessage = () => {
+    setOpenMessageDialog(true);
+  };
 
-  //     setUserRating(newValue);
-  //     // Optionally, update the average rating from the server
-  //   } catch (error) {
-  //     setSnackbarMessage('Failed to submit rating.');
-  //   }
-  // };
-
+  const handleSubmitMessage = async () => {
+    try {
+      await submitUserMessage(userId, userMessage);
+      setOpenMessageDialog(false);
+      setUserMessage('');
+      setSnackbarMessage('Message sent successfully');
+      setOpenSnackbar(true);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setSnackbarMessage('Failed to send message');
+      setOpenSnackbar(true);
+    }
+  };
 
   if (!user) return <Typography>Loading...</Typography>;
 
   return (
-    <Box>
-      <Paper sx={{ p: 2, display: "block", background: "#EEEEFF", alignItems: 'center', mb: 2 }}>
-        <div style={{ display: "flex" }}>
-          <Avatar src={user.profilePic || user.avatar} alt={user.username} sx={{ width: 100, height: 100, mr: 2 }} />
-          <Typography variant="h1" style={{ marginTop: "30px" }}>{user.username}</Typography>
-
-        </div>
-        <div style={{ display: "flex", padding: 5, margin: "10px" }}>
-          <Typography variant="h4">Bio: {user.bio}</Typography>
-        </div>
-        <div style={{ display: "flex", padding: 5, margin: "10px" }}>
-          <Typography variant="h4">Joined: {user.created_at}</Typography>
-        </div>
-        <div style={{ display: "flex", padding: 5, margin: "10px", gap: 10 }}>
-          <Typography variant="h4">Rating: {user.avgRating}<StarIcon style={{marginLeft: 5}} /></Typography>
-          <Typography variant="h4">Liked: {user.numberOfLikes}<ThumbUpRounded style={{marginLeft: 5}}/></Typography>
-          <Typography variant="h4">Posts: {user.numberOfPosts}<PictureInPicture style={{marginLeft: 5}}/></Typography>
-        </div>
-
-      </Paper>
-      {/* <Paper style={{ backgroundColor: 'lightgray', padding: '10px', margin: '10px' }}>
-        <Typography variant="h6" gutterBottom align="center">
-          Rate this User
-        </Typography>
-        <Grid container spacing={2} alignItems="center" justifyContent="center">
-          <Grid item>
-            <Typography component="legend">
-              <Rating
-                name="content-rating"
-                value={userRating}
-                onChange={handleRatingChange}
-              />
-              <Rating
-                name="hover-feedback"
-                value={value}
-                precision={0.5}
-                // getLabelText={getLabelText}
-                onChange={(event, newValue) => {
-                  setUserRating(newValue);
-                  console.log("rating",newValue);
-                  handleRatingChange(newValue);
-                }}
-                onChangeActive={(event, newHover) => {
-                  setHover(newHover);
-                }}
-                emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
-              />
-              <Rating
-                name="hover-feedback"
-                value={value}
-                precision={0.5}
-                getLabelText={getLabelText}
-                onChange={(event, newValue) => {
-                  setValue(newValue);
-                  handleRatingChange("", newValue);
-                  setUserRating(newValue);
-                }}
-                onChangeActive={(event, newHover) => {
-                  setHover(newHover);
-                }}
-                emptyIcon={<StarIcon style={{ opacity: 0.55 }} fontSize="inherit" />}
-              />
-              {value !== null && (
-                <Box sx={{ ml: 2 }}>{labels[hover !== -1 ? hover : value]}</Box>
-              )}
-
+    <Box sx={{ p: 2 }}>
+      <Paper sx={{ p: 2, backgroundColor: '#EEEEFF', mb: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Avatar 
+            src={user.profilePic || user.avatar} 
+            alt={user.username} 
+            sx={{ width: 100, height: 100 }} 
+          />
+          <Typography variant="h3" sx={{ mt: 2 }}>
+            {user.username}
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'center', my: 2 }}>
+          <Typography variant="h5">
+            Rating: {user.avgRating} <StarIcon sx={{ ml: 1 }} />
+          </Typography>
+          <Typography variant="h5">
+            Likes: {user.numberOfLikes} <ThumbUpRounded sx={{ ml: 1 }} />
+          </Typography>
+          <Typography variant="h5">
+            Posts: {user.numberOfPosts} <PictureInPicture sx={{ ml: 1 }} />
+          </Typography>
+          <Typography variant="h5">
+            Favorites: {user.numberOfFavorites} <FavoriteIcon sx={{ ml: 1 }} />
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'center', my: 2 }}>
+          <Button 
+            variant="contained" 
+            startIcon={<SendIcon />} 
+            onClick={handleSendMoney}
+          >
+            <Typography sx={{ mt: 1 }}>Send Coins</Typography>
+          </Button>
+          <Button 
+            variant={isFavorite ? "contained" : "outlined"} 
+            startIcon={<FavoriteIcon />} 
+            onClick={handleToggleFavorite}
+          >
+            <Typography sx={{ mt: 1 }}>
+              {isFavorite ? "Remove Favorite" : "Add Favorite"}
             </Typography>
-
-          </Grid>
-        </Grid>
-      </Paper> */}
-
-      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-        <Button variant="contained" startIcon={<SendIcon />} onClick={handleSendMoney}>
-         <Typography style={{marginTop: 3}}>Send Coins </Typography>
-        </Button>
-        <Button
-          variant={isFavorite ? "contained" : "outlined"}
-          startIcon={<FavoriteIcon />}
-          onClick={handleToggleFavorite}
-        >
-         
-          <Typography style={{marginTop: 3}}>{isFavorite ? "Remove Favorite" : "Add Favorite"} </Typography>
-        </Button>
-        <Button variant="outlined" startIcon={<ReportIcon />} onClick={handleReport}>
-          <Typography style={{marginTop: 3}}>Report </Typography>
-        </Button>
-      </Box>
-      {/* <Button variant="text" startIcon={<MessageIcon />} onClick={() => navigate(`/messages/${userId}`)}>
-        Send Message
-      </Button> */}
-
-
-
-
+          </Button>
+          <Button 
+            variant="outlined" 
+            startIcon={<ReportIcon />} 
+            onClick={handleReport}
+          >
+            <Typography sx={{ mt: 1 }}>Report</Typography>
+          </Button>
+          <Button 
+            variant="outlined" 
+            startIcon={<MessageIcon />} 
+            onClick={handleMessage}
+          >
+            <Typography sx={{ mt: 1 }}>Message</Typography>
+          </Button>
+        </Box>
+      </Paper>
+      
       <Snackbar
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         open={openSnackbar}
@@ -295,6 +234,8 @@ const UserProfile = () => {
         onClose={() => setOpenSnackbar(false)}
         message={snackbarMessage}
       />
+
+      {/* Report Dialog */}
       <Dialog open={openReportDialog} onClose={() => setOpenReportDialog(false)}>
         <DialogTitle>Report User</DialogTitle>
         <DialogContent>
@@ -310,15 +251,34 @@ const UserProfile = () => {
             onChange={(e) => setReportMessage(e.target.value)}
           />
         </DialogContent>
-
         <DialogActions>
           <Button onClick={() => setOpenReportDialog(false)}>Cancel</Button>
           <Button onClick={handleSubmitReport}>Submit Report</Button>
         </DialogActions>
       </Dialog>
 
+      {/* Message Dialog */}
+      <Dialog open={openMessageDialog} onClose={() => setOpenMessageDialog(false)}>
+        <DialogTitle>Send a Message to {user.username}</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Message to user"
+            type="text"
+            fullWidth
+            multiline
+            rows={4}
+            value={userMessage}
+            onChange={(e) => setUserMessage(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenMessageDialog(false)}>Cancel</Button>
+          <Button onClick={handleSubmitMessage}>Submit Message</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
-
   );
 };
 

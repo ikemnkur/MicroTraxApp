@@ -280,6 +280,17 @@ export const submitUserReport = async (userId, reportMessage) => {
   }
 };
 
+export const submitUserMessage = async (userId, userMessage) => {
+  try {
+    const response = await api.post(`/user/${userId}/message`, { userMessage });
+    return response.data;
+  } catch (error) {
+    console.error('API - Error submitting mesage to user :', error);
+    throw error;
+  }
+};
+
+
 // // api.js (or whichever file has fetchUploadProfilePicture)
 // export async function fetchUploadProfilePicture({ file, username, id, date }) {
 //   // 1) Create FormData
