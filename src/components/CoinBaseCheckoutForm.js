@@ -147,10 +147,10 @@ export const CoinBaseCheckoutForm = ({ setCoins }) => {
       <div id="checkout" style={styles.container}>
         <h2>Order Logged!</h2>
         <h2>
-          Step 3: Make you you have sent the make and wait for its confirmation in your notifications.
+          Step 3: Make sure you have sent the payment, then wait for its confirmation, it will show in your Transaction History or Notifications.
         </h2>
         <p>
-          Incase you have not visited the  link:
+          Incase you have not visited the link:
         </p>
         <div style={styles.coinbaseURLContainer}>
           <p style={styles.coinbaseURL}>{coinbaseURL}</p>

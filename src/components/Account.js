@@ -533,6 +533,10 @@ const AccountPage = () => {
                     <MenuItem value={1}>Basic</MenuItem>
                     <MenuItem value={2}>Standard</MenuItem>
                     <MenuItem value={3}>Premium</MenuItem>
+                    <MenuItem value={4}>Gold</MenuItem>
+                    <MenuItem value={5}>Platinum</MenuItem>
+                    <MenuItem value={6}>Diamond</MenuItem>
+                    <MenuItem value={7}>Ultimate</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
