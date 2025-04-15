@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import { Search as SearchIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { searchUsers } from './api';
+import { searchUsers, getFavoritesList } from './api';
 
 const mockUsers = [
   { id: 1, username: 'alice123', avatar: 'https://mui.com/static/images/avatar/1.jpg' },
@@ -25,6 +25,7 @@ const mockUsers = [
 const Search4User = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [favoritesList, setFavoritesList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -36,6 +37,10 @@ const Search4User = () => {
 
     try {
       const results = await searchUsers(searchTerm);
+      let x = JSON.parse(localStorage.getItem('userdata'))
+      setFavoritesList(x.favorites)
+      console.log("Your favorites: "+ favoritesList)
+      const favoritesResultsList = await getFavoritesList(searchTerm);
 
       // If your searchUsers function doesn't provide avatars, you can assign default avatars here
       const resultsWithAvatars = results.map((user) => ({
@@ -64,43 +69,88 @@ const Search4User = () => {
   }
 
   return (
-    <Box>
-      <Typography variant="h4" gutterBottom>
-        Search Users
-      </Typography>
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <form onSubmit={handleSearch}>
-          <TextField
-            label="Search by username"
-            fullWidth
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            margin="normal"
-          />
-          <Button
-            type="submit"
-            variant="contained"
-            startIcon={<SearchIcon />}
-            disabled={isLoading}
-            sx={{ mt: 1 }}
-          >
-            Search
-          </Button>
-        </form>
-      </Paper>
-      {isLoading && <CircularProgress />}
-      {error && <Typography color="error">{error}</Typography>}
-      <List>
-        {searchResults.map((user) => (
-          <ListItem key={user.id} button onClick={() => gotoUserProfile(user)}>
-            <ListItemAvatar>
-              <Avatar src={user.profilePic || user.avatar} alt={user.username} />
-            </ListItemAvatar>
-            <ListItemText primary={user.username} />
-          </ListItem>
-        ))}
-      </List>
-    </Box>
+    <>
+      <Box>
+        <Typography variant="h4" gutterBottom>
+          Search Users
+        </Typography>
+        <Paper sx={{ p: 2, mb: 2 }}>
+          <form onSubmit={handleSearch}>
+            <TextField
+              label="Search by username"
+              fullWidth
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              margin="normal"
+            />
+            <Button
+              type="submit"
+              variant="contained"
+              startIcon={<SearchIcon />}
+              disabled={isLoading}
+              sx={{ mt: 1 }}
+            >
+              Search
+            </Button>
+          </form>
+        </Paper>
+        {isLoading && <CircularProgress />}
+        {error && <Typography color="error">{error}</Typography>}
+        <List>
+          {searchResults.map((user) => (
+            <ListItem key={user.id} button onClick={() => gotoUserProfile(user)}>
+              <ListItemAvatar>
+                <Avatar src={user.profilePic || user.avatar} alt={user.username} />
+              </ListItemAvatar>
+              <ListItemText primary={user.username} />
+            </ListItem>
+          ))}
+        </List>
+
+
+      </Box>
+
+      <Box>
+        <Typography variant="h4" gutterBottom>
+          Favorites List:
+        </Typography>
+        {/* <Paper sx={{ p: 2, mb: 2 }}>
+          <form onSubmit={handleSearch}>
+            <TextField
+              label="Search by username"
+              fullWidth
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              margin="normal"
+            />
+            <Button
+              type="submit"
+              variant="contained"
+              startIcon={<SearchIcon />}
+              disabled={isLoading}
+              sx={{ mt: 1 }}
+            >
+              Search
+            </Button>
+          </form>
+        </Paper> */}
+        {isLoading && <CircularProgress />}
+        {error && <Typography color="error">{error}</Typography>}
+        <List>
+          {favoritesResultsList.map((fav) => (
+            <ListItem key={fav.id} button onClick={() => gotofavProfile(fav)}>
+              <ListItemAvatar>
+                <Avatar src={fav.profilePic || fav.avatar} alt={fav.favname} />
+              </ListItemAvatar>
+              <ListItemText primary={fav.favname} />
+            </ListItem>
+          ))}
+        </List>
+
+
+      </Box>
+    </>
+
   );
 };
 
