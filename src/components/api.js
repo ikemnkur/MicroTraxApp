@@ -259,6 +259,15 @@ export const fetchNotifications = async () => {
   }
 };
 
+export const getFavoritesList = async (favoritesList) => {
+  try {
+    const response = await api.get(`/searchForUsers/favorites?list=${encodeURIComponent(favoritesList)}`);
+    return response.data;
+  } catch (error) {
+    console.error('API - Error searching users:', error);
+    throw error;
+  }
+};
 
 export const updateFavoriteStatus = async (userId, isFavorite) => {
   try {
