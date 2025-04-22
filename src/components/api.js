@@ -279,9 +279,9 @@ export const updateFavoriteStatus = async (userId, isFavorite) => {
   }
 };
 
-export const submitUserReport = async (userId, reportMessage) => {
+export const submitUserReport = async (userId, reportMessage, reportedUser, reportingUser) => {
   try {
-    const response = await api.post(`/user/${userId}/report`, { reportMessage });
+    const response = await api.post(`/user/${userId}/report`, { reportMessage: reportMessage, reportedUser:  reportedUser , reportingUser: reportingUser });
     return response.data;
   } catch (error) {
     console.error('API - Error submitting user report:', error);

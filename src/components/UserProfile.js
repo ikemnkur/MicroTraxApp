@@ -133,8 +133,26 @@ const UserProfile = () => {
   };
 
   const handleSubmitReport = async () => {
+    confirmation('Are you sure you want to report this user? This will cost you 10 coins.')
+    if (!reportMessage) {
+      setSnackbarMessage('Please provide a reason for reporting');
+      setOpenSnackbar(true);
+      return;
+    }
+    if (reportMessage.length < 10) {
+      setSnackbarMessage('Report message must be at least 10 characters long');
+      setOpenSnackbar(true);
+      return;
+    }
+    if (reportMessage.length > 500) {
+      setSnackbarMessage('Report message cannot exceed 500 characters');
+      setOpenSnackbar(true);
+      return;
+    }
     try {
-      await submitUserReport(userId, reportMessage);
+      let reportedUser = user.username;
+      let reportingUser = localStorage.getItem('username');
+      await submitUserReport(userId, reportMessage, reportedUser, reportingUser);
       setOpenReportDialog(false);
       setReportMessage('');
       setSnackbarMessage('Report submitted successfully');
