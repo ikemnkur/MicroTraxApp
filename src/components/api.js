@@ -289,9 +289,9 @@ export const submitUserReport = async (userId, reportMessage, reportedUser, repo
   }
 };
 
-export const submitUserMessage = async (userId, userMessage) => {
+export const submitUserMessage = async (userId, userMessage, messagedUser, messagingUser) => {
   try {
-    const response = await api.post(`/user/${userId}/message`, { userMessage });
+    const response = await api.post(`/user/${userId}/message`, { userMessage: userMessage, messagingUser: messagingUser, messagedUser: messagedUser });
     return response.data;
   } catch (error) {
     console.error('API - Error submitting mesage to user :', error);

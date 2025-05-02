@@ -24,12 +24,12 @@ const Search4User = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  
+
   // Favorites state
   const [favoritesList, setFavoritesList] = useState([]);
   const [favoritesSearchTerm, setFavoritesSearchTerm] = useState('');
   const [filteredFavorites, setFilteredFavorites] = useState([]);
-  
+
   const navigate = useNavigate();
 
   // Load favorites on component mount
@@ -51,8 +51,8 @@ const Search4User = () => {
       setFilteredFavorites(favoritesList);
       return;
     }
-    
-    const filtered = favoritesList.filter(fav => 
+
+    const filtered = favoritesList.filter(fav =>
       fav.favname.toLowerCase().includes(favoritesSearchTerm.toLowerCase())
     );
     setFilteredFavorites(filtered);
@@ -66,16 +66,21 @@ const Search4User = () => {
 
     try {
       // Search for users in the database
-      const results = await searchUsers(searchTerm);
-      
-      // Add avatars if needed
-      const resultsWithAvatars = results.map((user) => ({
-        ...user,
-        avatar: user.avatar || `https://mui.com/static/images/avatar/${randomIntFromInterval(1, 5)}.jpg`,
-      }));
+      if (searchTerm.length < 4) {
+        setError('Enter more than 4 characters to start search.');
+      } else {
+        let results = await searchUsers(searchTerm);
 
-      setSearchResults(resultsWithAvatars);
-      console.log('search results: ', resultsWithAvatars);
+        // Add avatars if needed
+        const resultsWithAvatars = results.map((user) => ({
+          ...user,
+          avatar: user.avatar || `https://mui.com/static/images/avatar/${randomIntFromInterval(1, 5)}.jpg`,
+        }));
+
+        setSearchResults(resultsWithAvatars);
+        console.log('search results: ', resultsWithAvatars);
+      }
+
     } catch (err) {
       console.error('Error searching users:', err);
       setError('An error occurred while searching. Please try again.');
@@ -139,7 +144,7 @@ const Search4User = () => {
         </Paper>
         {isLoading && <CircularProgress />}
         {error && <Typography color="error">{error}</Typography>}
-        
+
         <Paper sx={{ maxHeight: 300, overflow: 'auto' }}>
           <List>
             {searchResults.length > 0 ? (
@@ -148,8 +153,8 @@ const Search4User = () => {
                   <ListItemAvatar>
                     <Avatar src={user.profilePic || user.avatar} alt={user.username} />
                   </ListItemAvatar>
-                  <ListItemText 
-                    primary={user.username} 
+                  <ListItemText
+                    primary={user.username}
                     secondary={user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : ""}
                   />
                 </ListItem>
@@ -162,10 +167,10 @@ const Search4User = () => {
           </List>
         </Paper>
       </Box>
-      
+
       {/* Divider between sections */}
       <Divider sx={{ my: 3 }} />
-      
+
       {/* Favorites Section */}
       <Box>
         <Typography variant="h4" gutterBottom>
@@ -187,7 +192,7 @@ const Search4User = () => {
             }}
           />
         </Paper>
-        
+
         <Paper sx={{ maxHeight: 300, overflow: 'auto' }}>
           <List>
             {filteredFavorites.length > 0 ? (
@@ -202,8 +207,8 @@ const Search4User = () => {
             ) : (
               <ListItem>
                 <ListItemText primary={
-                  favoritesList.length > 0 
-                    ? "No favorites match your filter" 
+                  favoritesList.length > 0
+                    ? "No favorites match your filter"
                     : "You haven't added any favorites yet"
                 } />
               </ListItem>
