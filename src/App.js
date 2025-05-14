@@ -39,6 +39,9 @@ import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 
 import { fetchUserProfile, walletStripeReloadAction, walletWithdrawAction } from "./components/api";
+import UpgradeAccountPage from "./components/UpgradeAccountPage";
+import DowngradeAccountPage from "./components/DowngradeAccountPage";
+
 
 require('dotenv').config();
 const { v4: uuidv4 } = require('uuid');
@@ -100,6 +103,10 @@ function App() {
               <ProtectedRoute> <Messages /> </ProtectedRoute>} />
             <Route path="/messages/:username" element={
               <ProtectedRoute> <Messages /> </ProtectedRoute>} />
+            <Route path="/upgrade-account" element={
+              <ProtectedRoute> < UpgradeAccountPage/> </ProtectedRoute>} />
+            <Route path="/downgrade-account" element={
+              <ProtectedRoute> < DowngradeAccountPage/> </ProtectedRoute>} />
             <Route path="/account" element={
               <ProtectedRoute> <Account /> </ProtectedRoute>} />
             <Route path="/settings" element={

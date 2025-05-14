@@ -1,3 +1,4 @@
+require('dotenv').config();
 import React, { useState, useEffect } from 'react';
 import {
   Typography,
@@ -16,24 +17,15 @@ import {
   DialogActions,
   DialogContent,
   DialogContentText,
-  DialogTitle,
-  Card,
-  CardContent,
-  CardActions,
-  Divider,
-  Chip
+  DialogTitle
 } from '@mui/material';
-import { 
-  PhotoCamera, 
-  ArrowUpward, 
-  ArrowDownward 
-} from '@mui/icons-material';
+import { PhotoCamera } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { fetchUserProfile, updateUserProfile, fetchWalletData } from './api';
 import { useAuthCheck } from './useAuthCheck';
 import axios from 'axios';
 import { Autocomplete } from '@mui/material';
-import moment from 'moment-timezone';
+import moment from 'moment-timezone'; // or use Intl.supportedValuesOf('timeZone')
 
 const API_URL = process.env.REACT_APP_API_SERVER_URL + '/api';
 
@@ -43,61 +35,28 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Organized time zones with region grouping and offset information
-const organizeTimeZones = () => {
-  const allTimeZones = moment.tz.names();
-  
-  // Group time zones by region
-  const groupedTimeZones = allTimeZones.reduce((acc, tz) => {
-    const now = moment().tz(tz);
-    const offset = now.format('Z');
-    const region = tz.split('/')[0];
-    
-    if (!acc[region]) {
-      acc[region] = [];
-    }
-    
-    acc[region].push({
-      value: tz,
-      label: `(${offset}) ${tz.replace('_', ' ')}`,
-      offset: now.utcOffset()
-    });
-    
-    return acc;
-  }, {});
-  
-  // Sort each region by offset
-  Object.keys(groupedTimeZones).forEach(region => {
-    groupedTimeZones[region].sort((a, b) => a.offset - b.offset);
-  });
-  
-  // Create a flat array of time zones with group headers
-  const flatTimeZones = [];
-  Object.keys(groupedTimeZones).sort().forEach(region => {
-    flatTimeZones.push({
-      value: region,
-      label: region,
-      isGroupHeader: true
-    });
-    
-    flatTimeZones.push(...groupedTimeZones[region]);
-  });
-  
-  return flatTimeZones;
-};
 
-const timeZoneOptions = organizeTimeZones();
+const allTimeZones = moment.tz.names(); // ["Africa/Abidjan", "Africa/Accra", ...]
+const timeZoneOptions = allTimeZones.map((tz) => tz); // or an object { label, value }
 
-// Account tier information
-const tierInfo = {
-  1: { name: 'Basic', features: ['Limited access', '5 entries per day', 'Standard support'] },
-  2: { name: 'Standard', features: ['Full access', '15 entries per day', 'Priority email support'] },
-  3: { name: 'Premium', features: ['Full access', 'Unlimited entries', '24/7 support', 'Advanced analytics'] },
-  4: { name: 'Gold', features: ['Everything in Premium', 'API access', 'Dedicated account manager'] },
-  5: { name: 'Platinum', features: ['Everything in Gold', 'Custom integrations', 'Weekly strategy calls'] },
-  6: { name: 'Diamond', features: ['Everything in Platinum', 'White label options', 'Enterprise solutions'] },
-  7: { name: 'Ultimate', features: ['Everything in Diamond', 'Custom development', 'Board level reporting'] }
-};
+
+// // This is a new JavaScript API
+// const allTimeZones = Intl.supportedValuesOf('timeZone'); 
+// // => ["Africa/Abidjan", "Africa/Accra", "Africa/Algiers", ...]
+
+// const timeZones = allTimeZones.map((tz) => ({
+//   label: tz,
+//   value: tz,
+// }));
+
+// **Sample** time zones (expand as you wish)
+// const timeZones = [
+//   { label: '(UTC-05:00) Eastern Time (US & Canada)', value: 'America/New_York' },
+//   { label: '(UTC-06:00) Central Time (US & Canada)', value: 'America/Chicago' },
+//   { label: '(UTC-07:00) Mountain Time (US & Canada)', value: 'America/Denver' },
+//   { label: '(UTC-08:00) Pacific Time (US & Canada)', value: 'America/Los_Angeles' },
+//   { label: '(UTC+00:00) UTC', value: 'UTC' },
+// ];
 
 const AccountPage = () => {
   useAuthCheck(); // Checks token and redirects if necessary
@@ -115,7 +74,9 @@ const AccountPage = () => {
     profilePicture: '',
     account_id: '',
     bio: '',
+    // We'll store the server-provided avatar URL here
     profilePictureUrl: '',
+    // Store the user's time zone value here
     timeZone: '',
   });
 
@@ -125,8 +86,9 @@ const AccountPage = () => {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [openUpgradeDialog, setOpenUpgradeDialog] = useState(false);
+  const [selectedTimeZone, setSelectedTimeZone] = useState('');
 
+  const [tier, setTier] = useState(1);
   const navigate = useNavigate();
 
   // Save userData to localStorage whenever it changes
@@ -146,10 +108,12 @@ const AccountPage = () => {
           encryptionKey: profile.encryptionKey || '',
           bio: profile.bio || '',
           profilePictureUrl: profile.profilePictureUrl || '',
+          // Suppose the API returns userData.timeZone = "America/New_York"
           timeZone: profile.timeZone || '',
         };
 
         setUserData(updatedUserData);
+        setTier(parseInt(updatedUserData.accountTier));
       } catch (error) {
         console.error('AccountPG - Error fetching user profile:', error);
         setSnackbarMessage(
@@ -190,13 +154,28 @@ const AccountPage = () => {
     setUserData((prevData) => ({ ...prevData, [name]: value }));
   };
 
+  // Handle account tier changes
+  const handleTierInputChange = (event) => {
+    const { name, value } = event.target;
+    setUserData((prevData) => ({
+      ...prevData,
+      [name]: parseInt(value),
+    }));
+  };
+
   // Handle Time Zone input changes
+  // const handleTimeZoneInputChange = (event) => {
+  //   const { value } = event.target;
+  //   setUserData((prevData) => ({
+  //     ...prevData,
+  //     timeZone: value,
+  //   }));
+  // };
+
   const handleTimeZoneChange = (event, newValue) => {
-    if (!newValue || newValue.isGroupHeader) return;
-    
     setUserData((prev) => ({
       ...prev,
-      timeZone: newValue.value || '',
+      timeZone: newValue || '',
     }));
   };
 
@@ -241,35 +220,6 @@ const AccountPage = () => {
       } finally {
         setOpenSnackbar(true);
       }
-    }
-  };
-
-  // Handle upgrade/downgrade tier
-  const handleUpgradeTier = () => {
-    if (userData.accountTier < 7) {
-      navigate('/upgrade-account', { 
-        state: { 
-          currentTier: userData.accountTier,
-          nextTier: userData.accountTier + 1 
-        } 
-      });
-    } else {
-      setSnackbarMessage('You are already at the highest tier!');
-      setOpenSnackbar(true);
-    }
-  };
-
-  const handleDowngradeTier = () => {
-    if (userData.accountTier > 1) {
-      navigate('/downgrade-account', { 
-        state: { 
-          currentTier: userData.accountTier,
-          nextTier: userData.accountTier - 1 
-        } 
-      });
-    } else {
-      setSnackbarMessage('You are already at the lowest tier!');
-      setOpenSnackbar(true);
     }
   };
 
@@ -341,7 +291,7 @@ const AccountPage = () => {
         profilePicture: '',
         bio: '',
         profilePictureUrl: '',
-        timeZone: '',
+        timezone: '',
       });
     }, 500);
   };
@@ -366,27 +316,6 @@ const AccountPage = () => {
       setIsUpdating(false);
     }
   };
-
-  // Custom grouping for time zone options
-  const renderTimeZoneOption = (props, option) => {
-    if (option.isGroupHeader) {
-      return (
-        <Box component="li" {...props} sx={{ fontWeight: 'bold', backgroundColor: '#f5f5f5', pointerEvents: 'none' }}>
-          {option.label}
-        </Box>
-      );
-    }
-    return (
-      <Box component="li" {...props}>
-        {option.label}
-      </Box>
-    );
-  };
-
-  // Find the current time zone object from the options
-  const currentTimeZoneObj = timeZoneOptions.find(
-    option => !option.isGroupHeader && option.value === userData.timeZone
-  );
 
   return (
     <Box sx={{ maxWidth: 800, margin: 'auto', padding: 2 }}>
@@ -427,118 +356,6 @@ const AccountPage = () => {
               </Button>
             </label>
           </Box>
-
-          {/* Account Tier Section */}
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="h6" gutterBottom>
-              Account Tier: {tierInfo[userData.accountTier].name}
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<ArrowUpward />}
-                onClick={handleUpgradeTier}
-                disabled={userData.accountTier >= 7}
-              >
-                Upgrade Tier
-              </Button>
-              <Button
-                variant="outlined"
-                color="secondary"
-                startIcon={<ArrowDownward />}
-                onClick={handleDowngradeTier}
-                disabled={userData.accountTier <= 1}
-              >
-                Downgrade Tier
-              </Button>
-            </Box>
-          </Box>
-
-          {/* Tier Overview */}
-          {/* <Box sx={{ mb: 4 }}>
-            <Typography variant="h6" gutterBottom>
-              All Account Tiers
-            </Typography>
-            <Box sx={{ display: 'flex', overflowX: 'auto', py: 2, gap: 2 }}>
-              {Object.entries(tierInfo).map(([tierLevel, tier]) => {
-                const tierNum = parseInt(tierLevel);
-                const isCurrent = tierNum === userData.accountTier;
-                const isUpgrade = tierNum > userData.accountTier;
-                const isDowngrade = tierNum < userData.accountTier;
-                
-                return (
-                  <Card 
-                    key={tierLevel} 
-                    sx={{ 
-                      minWidth: 200,
-                      border: isCurrent ? '2px solid #1976d2' : '1px solid #e0e0e0',
-                      backgroundColor: isCurrent ? '#e3f2fd' : 'white'
-                    }}
-                  >
-                    <CardContent>
-                      <Typography variant="h6" gutterBottom>
-                        {tier.name}
-                        {isCurrent && (
-                          <Chip 
-                            label="Current" 
-                            size="small" 
-                            color="primary"
-                            sx={{ ml: 1 }}
-                          />
-                        )}
-                      </Typography>
-                      <Typography variant="subtitle1" color="text.secondary">
-                        {tier.price}
-                      </Typography>
-                      <Divider sx={{ my: 1 }} />
-                      <Typography variant="body2" sx={{ height: 80, overflow: 'auto' }}>
-                        {tier.features.slice(0, 2).join(', ')}
-                        {tier.features.length > 2 && '...'}
-                      </Typography>
-                    </CardContent>
-                    <CardActions>
-                      {isUpgrade && (
-                        <Button 
-                          size="small" 
-                          fullWidth
-                          variant="outlined"
-                          color="primary"
-                          onClick={() => navigate('/upgrade-account', { 
-                            state: { currentTier: userData.accountTier, nextTier: tierNum } 
-                          })}
-                        >
-                          Upgrade To
-                        </Button>
-                      )}
-                      {isDowngrade && (
-                        <Button 
-                          size="small" 
-                          fullWidth
-                          variant="outlined"
-                          color="secondary"
-                          onClick={() => navigate('/downgrade-account', { 
-                            state: { currentTier: userData.accountTier, nextTier: tierNum } 
-                          })}
-                        >
-                          Downgrade To
-                        </Button>
-                      )}
-                      {isCurrent && (
-                        <Button 
-                          size="small" 
-                          fullWidth
-                          disabled
-                        >
-                          Current Tier
-                        </Button>
-                      )}
-                    </CardActions>
-                  </Card>
-                );
-              })}
-            </Box>
-          </Box> */}
 
           {/* Update Profile Form */}
           <form onSubmit={handleUpdateAccount}>
@@ -645,31 +462,83 @@ const AccountPage = () => {
                   onChange={handleInputChange}
                 />
               </Grid>
-
-              {/* Improved Time Zone Selection */}
               <Grid item xs={12}>
-                <Autocomplete
-                  fullWidth
-                  options={timeZoneOptions}
-                  value={currentTimeZoneObj || null}
-                  onChange={handleTimeZoneChange}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="Time Zone"
-                      variant="outlined"
-                      margin="normal"
-                      helperText="Search by region, city, or UTC offset"
-                    />
-                  )}
-                  renderOption={renderTimeZoneOption}
-                  groupBy={(option) => option.isGroupHeader ? option.label : ''}
-                  getOptionLabel={(option) => option.label || ''}
-                  filterSelectedOptions
-                  autoHighlight
-                  disableListWrap
-                  isOptionEqualToValue={(option, value) => option.value === value.value}
-                />
+              {/* Time Zone Selection */}
+              <Autocomplete
+                fullWidth
+                options={timeZoneOptions}
+                // Optionally, you can format label vs. value:
+                // options={timeZoneOptions.map((tz) => ({ label: tz, value: tz }))}
+
+                value={userData.timeZone}
+                onChange={handleTimeZoneChange}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Search Time Zone"
+                    variant="outlined"
+                    margin="normal"
+                  />
+                )}
+
+                // value={selectedTimeZone}
+                // onChange={(event, newValue) => {
+                //   setSelectedTimeZone(newValue || '');
+                // }}
+
+                // // The text box for searching
+                // renderInput={(params) => (
+                //   <TextField
+                //     {...params}
+                //     label="Search Time Zone"
+                //     variant="outlined"
+                //   />
+                // )}
+
+                // This helps "type to search" among your array
+                filterSelectedOptions
+                autoHighlight
+              />
+              </Grid>
+              {/* <Grid item xs={12}>
+                <FormControl fullWidth margin="normal" disabled={isUpdating}>
+                  <InputLabel>Time Zone</InputLabel>
+                  <Select
+                    name="timeZone"
+                    value={userData.timeZone || ''}
+                    onChange={handleTimeZoneInputChange}
+                    label="Time Zone"
+                  >
+                    {timeZones.map((tz) => (
+                      <MenuItem key={tz.value} value={tz.value}>
+                        {tz.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid> */}
+
+              {/* Account Tier Selection */}
+              <Grid item xs={12}>
+                <FormControl fullWidth margin="normal" disabled={isUpdating}>
+                  <InputLabel>Account Tier</InputLabel>
+                  <Select
+                    name="accountTier"
+                    value={userData.accountTier}
+                    onChange={handleTierInputChange}
+                    label="Account Tier"
+                  >
+                    {/* Example of data (replace with your "tiers" array) */}
+                    {/* If you want to keep your existing tier structure, do so here */}
+                    <MenuItem value={1}>Basic</MenuItem>
+                    <MenuItem value={2}>Standard</MenuItem>
+                    <MenuItem value={3}>Premium</MenuItem>
+                    <MenuItem value={4}>Gold</MenuItem>
+                    <MenuItem value={5}>Platinum</MenuItem>
+                    <MenuItem value={6}>Diamond</MenuItem>
+                    <MenuItem value={7}>Ultimate</MenuItem>
+                  </Select>
+                </FormControl>
               </Grid>
             </Grid>
 
