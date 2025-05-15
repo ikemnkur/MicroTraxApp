@@ -269,9 +269,9 @@ export const getFavoritesList = async (favoritesList) => {
   }
 };
 
-export const updateFavoriteStatus = async (userId, isFavorite) => {
+export const updateFavoriteStatus = async (userId, isFavorite, user) => {
   try {
-    const response = await api.put(`/user/${userId}/favorite`, { isFavorite });
+    const response = await api.put(`/user/${userId}/favorite`, { userId, isFavorite, user });
     return response.data;
   } catch (error) {
     console.error('API - Error updating favorite status:', error);

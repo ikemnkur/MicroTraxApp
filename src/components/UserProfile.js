@@ -115,9 +115,12 @@ const UserProfile = () => {
   };
 
   const handleToggleFavorite = async () => {
+    
     try {
       const newFavoriteStatus = !isFavorite;
-      await updateFavoriteStatus(userId, newFavoriteStatus);
+      console.log("user-profile: User ID = ", userId)
+      console.log("user-profile-data: ", user)
+      await updateFavoriteStatus(userId, newFavoriteStatus, user);
       setIsFavorite(newFavoriteStatus);
       setSnackbarMessage(newFavoriteStatus ? 'User added to favorites' : 'User removed from favorites');
       setOpenSnackbar(true);
