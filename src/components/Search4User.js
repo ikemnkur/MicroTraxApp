@@ -37,23 +37,36 @@ const Search4User = () => {
     try {
       const userData = JSON.parse(localStorage.getItem('userdata'));
       if (userData && userData.favorites) {
-        setFavoritesList(userData.favorites);
-        setFilteredFavorites(userData.favorites);
+        console.log('Loaded favorites from localStorage:', userData.favorites);
+        // Ensure favorites is an array
+        const favoritesArray = Array.isArray(userData.favorites) ? userData.favorites : [];
+        setFavoritesList(favoritesArray);
+        setFilteredFavorites(favoritesArray);
       }
     } catch (err) {
       console.error('Error loading favorites from localStorage:', err);
+      // Initialize with empty arrays if there's an error
+      setFavoritesList([]);
+      setFilteredFavorites([]);
     }
   }, []);
 
   // Filter favorites based on search term
   useEffect(() => {
+    // Ensure favoritesList is an array
+    if (!Array.isArray(favoritesList)) {
+      console.error('favoritesList is not an array:', favoritesList);
+      setFilteredFavorites([]);
+      return;
+    }
+
     if (!favoritesSearchTerm.trim()) {
       setFilteredFavorites(favoritesList);
       return;
     }
 
-    const filtered = favoritesList.filter(fav =>
-      fav.favname.toLowerCase().includes(favoritesSearchTerm.toLowerCase())
+    const filtered = favoritesList.filter(fav => 
+      fav && fav.favname && fav.favname.toLowerCase().includes(favoritesSearchTerm.toLowerCase())
     );
     setFilteredFavorites(filtered);
   }, [favoritesSearchTerm, favoritesList]);
@@ -68,8 +81,15 @@ const Search4User = () => {
       // Search for users in the database
       if (searchTerm.length < 4) {
         setError('Enter more than 4 characters to start search.');
+        setSearchResults([]);
       } else {
         let results = await searchUsers(searchTerm);
+
+        // Ensure results is an array
+        if (!Array.isArray(results)) {
+          console.error('Search results is not an array:', results);
+          results = [];
+        }
 
         // Add avatars if needed
         const resultsWithAvatars = results.map((user) => ({
@@ -80,10 +100,10 @@ const Search4User = () => {
         setSearchResults(resultsWithAvatars);
         console.log('search results: ', resultsWithAvatars);
       }
-
     } catch (err) {
       console.error('Error searching users:', err);
       setError('An error occurred while searching. Please try again.');
+      setSearchResults([]);
     } finally {
       setIsLoading(false);
     }
@@ -149,7 +169,7 @@ const Search4User = () => {
           <List>
             {searchResults.length > 0 ? (
               searchResults.map((user) => (
-                <ListItem key={user.id} button onClick={() => gotoUserProfile(user)}>
+                <ListItem key={user.id || `search-${Math.random()}`} button onClick={() => gotoUserProfile(user)}>
                   <ListItemAvatar>
                     <Avatar src={user.profilePic || user.avatar} alt={user.username} />
                   </ListItemAvatar>
@@ -195,19 +215,19 @@ const Search4User = () => {
 
         <Paper sx={{ maxHeight: 300, overflow: 'auto' }}>
           <List>
-            {filteredFavorites.length > 0 ? (
+            {Array.isArray(filteredFavorites) && filteredFavorites.length > 0 ? (
               filteredFavorites.map((fav) => (
-                <ListItem key={fav.id || fav.user_id} button onClick={() => gotofavProfile(fav)}>
+                <ListItem key={fav.id || fav.user_id || `fav-${Math.random()}`} button onClick={() => gotofavProfile(fav)}>
                   <ListItemAvatar>
-                    <Avatar src={fav.profilePic || fav.avatar} alt={fav.favname} />
+                    <Avatar src={fav.profilePic || fav.avatar} alt={fav.favname || 'Favorite'} />
                   </ListItemAvatar>
-                  <ListItemText primary={fav.favname} />
+                  <ListItemText primary={fav.favname || 'Unnamed Favorite'} />
                 </ListItem>
               ))
             ) : (
               <ListItem>
                 <ListItemText primary={
-                  favoritesList.length > 0
+                  Array.isArray(favoritesList) && favoritesList.length > 0
                     ? "No favorites match your filter"
                     : "You haven't added any favorites yet"
                 } />

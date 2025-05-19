@@ -16,27 +16,27 @@ import {
   Grid,
   Rating
 } from '@mui/material';
-import { 
-  Send as SendIcon, 
-  Favorite as FavoriteIcon, 
-  Report as ReportIcon, 
-  Message as MessageIcon, 
-  Star as StarIcon, 
-  ThumbUpRounded, 
-  PictureInPicture 
+import {
+  Send as SendIcon,
+  Favorite as FavoriteIcon,
+  Report as ReportIcon,
+  Message as MessageIcon,
+  Star as StarIcon,
+  ThumbUpRounded,
+  PictureInPicture
 } from '@mui/icons-material';
-import { 
-  fetchOtherUserProfile, 
-  fetchOtherUserProfileId, 
-  updateFavoriteStatus, 
-  submitUserReport, 
-  submitUserMessage 
+import {
+  fetchOtherUserProfile,
+  fetchOtherUserProfileId,
+  updateFavoriteStatus,
+  submitUserReport,
+  submitUserMessage
 } from './api'; // Ensure submitUserMessage is implemented in your API file
 
 const UserProfile = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
-  
+
   const [user, setUser] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -83,6 +83,8 @@ const UserProfile = () => {
         try {
           const userData = await fetchOtherUserProfile(userId);
           setUser(userData);
+          console.log("user-profile: User ID = ", userId) 
+          console.log("user-profile-data: ", userData)
           setIsFavorite(userData.isFavorite);
         } catch (error) {
           console.error('Error fetching user profile:', error);
@@ -115,7 +117,7 @@ const UserProfile = () => {
   };
 
   const handleToggleFavorite = async () => {
-    
+
     try {
       const newFavoriteStatus = !isFavorite;
       console.log("user-profile: User ID = ", userId)
@@ -191,10 +193,10 @@ const UserProfile = () => {
     <Box sx={{ p: 2 }}>
       <Paper sx={{ p: 2, backgroundColor: '#EEEEFF', mb: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Avatar 
-            src={user.profilePic || user.avatar} 
-            alt={user.username} 
-            sx={{ width: 100, height: 100 }} 
+          <Avatar
+            src={user.profilePic || user.avatar}
+            alt={user.username}
+            sx={{ width: 100, height: 100 }}
           />
           <Typography variant="h3" sx={{ mt: 2 }}>
             {user.username}
@@ -215,39 +217,39 @@ const UserProfile = () => {
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'center', my: 2 }}>
-          <Button 
-            variant="contained" 
-            startIcon={<SendIcon />} 
+          <Button
+            variant="contained"
+            startIcon={<SendIcon />}
             onClick={handleSendMoney}
           >
             <Typography sx={{ mt: 1 }}>Send Coins</Typography>
           </Button>
-          <Button 
-            variant={isFavorite ? "contained" : "outlined"} 
-            startIcon={<FavoriteIcon />} 
+          <Button
+            variant={isFavorite ? "contained" : "outlined"}
+            startIcon={<FavoriteIcon />}
             onClick={handleToggleFavorite}
           >
             <Typography sx={{ mt: 1 }}>
               {isFavorite ? "Remove Favorite" : "Add Favorite"}
             </Typography>
           </Button>
-          <Button 
-            variant="outlined" 
-            startIcon={<ReportIcon />} 
+          <Button
+            variant="outlined"
+            startIcon={<ReportIcon />}
             onClick={handleReport}
           >
             <Typography sx={{ mt: 1 }}>Report</Typography>
           </Button>
-          <Button 
-            variant="outlined" 
-            startIcon={<MessageIcon />} 
+          <Button
+            variant="outlined"
+            startIcon={<MessageIcon />}
             onClick={handleMessage}
           >
             <Typography sx={{ mt: 1 }}>Message</Typography>
           </Button>
         </Box>
       </Paper>
-      
+
       <Snackbar
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         open={openSnackbar}
@@ -279,7 +281,19 @@ const UserProfile = () => {
       </Dialog>
 
       {/* Message Dialog */}
-      <Dialog open={openMessageDialog} onClose={() => setOpenMessageDialog(false)}>
+      {/* Message Dialog */}
+      <Dialog
+        open={openMessageDialog}
+        onClose={() => setOpenMessageDialog(false)}
+        sx={{
+          '& .MuiDialog-paper': {
+            width: '600px',
+            maxWidth: '90vw',
+            height: '300px',
+            maxHeight: '90vh'
+          }
+        }}
+      >
         <DialogTitle>Send a Message to {user.username}</DialogTitle>
         <DialogContent>
           <TextField
@@ -289,14 +303,14 @@ const UserProfile = () => {
             type="text"
             fullWidth
             multiline
-            rows={4}
+            rows={8}
             value={userMessage}
             onChange={(e) => setUserMessage(e.target.value)}
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenMessageDialog(false)}>Cancel</Button>
-          <Button onClick={handleSubmitMessage}>Submit Message</Button>
+          <Button variant="contained" color="primary">Send</Button>
         </DialogActions>
       </Dialog>
     </Box>

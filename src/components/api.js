@@ -396,6 +396,16 @@ export const searchUsers = async (searchTerm) => {
   }
 };
 
+export const searchFavorites = async (searchTerm) => {
+  try {
+    const response = await api.get(`/searchForUsers/favorites?term=${encodeURIComponent(searchTerm)}`);
+    return response.data;
+  } catch (error) {
+    console.error('API - Error searching for favorite users:', error);
+    throw error;
+  }
+};
+
 // ... (previous code remains the same)
 
 
