@@ -16,60 +16,22 @@ import {
 } from '@mui/material';
 import { Search as SearchIcon, FilterList } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { searchUsers } from './api';
+import { searchFavorites, searchUsers } from './api';
 
 const Search4User = () => {
   // Main search state
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingFavorites, setIsLoadingFavorites] = useState(false);
   const [error, setError] = useState(null);
+  const [favoritesError, setFavoritesError] = useState(null);
 
   // Favorites state
-  const [favoritesList, setFavoritesList] = useState([]);
   const [favoritesSearchTerm, setFavoritesSearchTerm] = useState('');
-  const [filteredFavorites, setFilteredFavorites] = useState([]);
-
+  const [favoritesSearchResults, setFavoritesSearchResults] = useState([]);
+  
   const navigate = useNavigate();
-
-  // Load favorites on component mount
-  useEffect(() => {
-    try {
-      const userData = JSON.parse(localStorage.getItem('userdata'));
-      if (userData && userData.favorites) {
-        console.log('Loaded favorites from localStorage:', userData.favorites);
-        // Ensure favorites is an array
-        const favoritesArray = Array.isArray(userData.favorites) ? userData.favorites : [];
-        setFavoritesList(favoritesArray);
-        setFilteredFavorites(favoritesArray);
-      }
-    } catch (err) {
-      console.error('Error loading favorites from localStorage:', err);
-      // Initialize with empty arrays if there's an error
-      setFavoritesList([]);
-      setFilteredFavorites([]);
-    }
-  }, []);
-
-  // Filter favorites based on search term
-  useEffect(() => {
-    // Ensure favoritesList is an array
-    if (!Array.isArray(favoritesList)) {
-      console.error('favoritesList is not an array:', favoritesList);
-      setFilteredFavorites([]);
-      return;
-    }
-
-    if (!favoritesSearchTerm.trim()) {
-      setFilteredFavorites(favoritesList);
-      return;
-    }
-
-    const filtered = favoritesList.filter(fav => 
-      fav && fav.favname && fav.favname.toLowerCase().includes(favoritesSearchTerm.toLowerCase())
-    );
-    setFilteredFavorites(filtered);
-  }, [favoritesSearchTerm, favoritesList]);
 
   // Handle main database user search
   const handleSearch = async (e) => {
@@ -110,9 +72,67 @@ const Search4User = () => {
   };
 
   // Handle favorites search input change
-  const handleFavoritesSearch = (e) => {
+  const handleFavoritesInputChange = (e) => {
     setFavoritesSearchTerm(e.target.value);
   };
+
+  // Handle favorites search request
+  const handleFavoritesSearch = async (e) => {
+    // Prevent form submission if this is triggered from a form
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    }
+    
+    setIsLoadingFavorites(true);
+    setFavoritesError(null);
+
+    try {
+      // Search for favorite users in the database
+      if (favoritesSearchTerm.length < 4) {
+        setFavoritesError('Enter more than 4 characters to start search.');
+        setFavoritesSearchResults([]);
+      } else {
+        let results = await searchFavorites(favoritesSearchTerm);
+
+        // Ensure results is an array
+        if (!Array.isArray(results)) {
+          console.error('Favorites search results is not an array:', results);
+          results = [];
+        }
+
+        // Add avatars if needed
+        const resultsWithAvatars = results.map((fav) => ({
+          ...fav,
+          avatar: fav.avatar || fav.profilePic || `https://mui.com/static/images/avatar/${randomIntFromInterval(1, 5)}.jpg`,
+        }));
+        
+        setFavoritesSearchResults(resultsWithAvatars);
+        console.log('favorites search results: ', resultsWithAvatars);
+      }
+    } catch (err) {
+      console.error('Error searching favorites:', err);
+      setFavoritesError('An error occurred while searching favorites. Please try again.');
+      setFavoritesSearchResults([]);
+    } finally {
+      setIsLoadingFavorites(false);
+    }
+  };
+
+  // Effect to handle favorites search when search term changes
+  useEffect(() => {
+    // If search term is empty, clear results
+    if (!favoritesSearchTerm || favoritesSearchTerm.length < 4) {
+      setFavoritesSearchResults([]);
+      return;
+    }
+
+    // Debounce search to reduce API calls
+    const delayDebounceFn = setTimeout(() => {
+      handleFavoritesSearch();
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [favoritesSearchTerm]);
 
   // Function to generate a random integer between min and max (inclusive)
   function randomIntFromInterval(min, max) {
@@ -198,10 +218,10 @@ const Search4User = () => {
         </Typography>
         <Paper sx={{ p: 2, mb: 2 }}>
           <TextField
-            label="Filter your favorites"
+            label="Search your favorites"
             fullWidth
             value={favoritesSearchTerm}
-            onChange={handleFavoritesSearch}
+            onChange={handleFavoritesInputChange}
             margin="normal"
             InputProps={{
               startAdornment: (
@@ -211,25 +231,33 @@ const Search4User = () => {
               ),
             }}
           />
+          <Typography variant="caption" color="text.secondary">
+            Enter at least 4 characters to search your favorites
+          </Typography>
         </Paper>
+        {isLoadingFavorites && <CircularProgress />}
+        {favoritesError && <Typography color="error">{favoritesError}</Typography>}
 
         <Paper sx={{ maxHeight: 300, overflow: 'auto' }}>
           <List>
-            {Array.isArray(filteredFavorites) && filteredFavorites.length > 0 ? (
-              filteredFavorites.map((fav) => (
+            {Array.isArray(favoritesSearchResults) && favoritesSearchResults.length > 0 ? (
+              favoritesSearchResults.map((fav) => (
                 <ListItem key={fav.id || fav.user_id || `fav-${Math.random()}`} button onClick={() => gotofavProfile(fav)}>
                   <ListItemAvatar>
-                    <Avatar src={fav.profilePic || fav.avatar} alt={fav.favname || 'Favorite'} />
+                    <Avatar src={fav.profilePic || fav.avatar} alt={fav.username || fav.favname || 'Favorite'} />
                   </ListItemAvatar>
-                  <ListItemText primary={fav.favname || 'Unnamed Favorite'} />
+                  <ListItemText 
+                    primary={fav.username || fav.favname || 'Unnamed Favorite'}
+                    secondary={fav.firstName && fav.lastName ? `${fav.firstName} ${fav.lastName}` : ""}
+                  />
                 </ListItem>
               ))
             ) : (
               <ListItem>
                 <ListItemText primary={
-                  Array.isArray(favoritesList) && favoritesList.length > 0
-                    ? "No favorites match your filter"
-                    : "You haven't added any favorites yet"
+                  favoritesSearchTerm && favoritesSearchTerm.length >= 4
+                    ? "No favorites match your search"
+                    : "Enter at least 4 characters to search your favorites"
                 } />
               </ListItem>
             )}
