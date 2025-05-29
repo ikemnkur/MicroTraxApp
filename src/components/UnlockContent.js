@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-  Typography, TextField, Button, Box, CircularProgress, Snackbar, Paper,
+  Typography, TextField, Button, Box, CircularProgress, Snackbar, Paper, Avatar,
   Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
   Modal, IconButton, Grid, Rating
 } from '@mui/material';
@@ -96,6 +96,7 @@ const UnlockContent = () => {
         // 1) Get content info
         const contentResponse = await axios.get(`${API_URL}/api/unlock/unlock-content/${itemid}`);
         const content = contentResponse.data;
+        console.log("HostUser Content Data: ", content);
         setContentData(content);
 
         setLikes(content.likes || 0);
@@ -187,12 +188,14 @@ const UnlockContent = () => {
       alert('You will need to confirm your login credentials. This helps reduce spam or abuse.');
       await axios.post(
         `${API_URL}/api/unlock/unlock-content`,
-        { contentId: contentData.id, message: message, user_id: userData.user_id, type: 'Unlock',
+        {
+          contentId: contentData.id, message: message, user_id: userData.user_id, type: 'Unlock',
           recipient_user_id: contentData.host_user_id, // The content owner's user ID
           recipient_username: contentData.host_username,
           Nmessage: `User "${userData.username}" unlocked your content "${contentData.title}" and you earned ₡${contentData.cost}.`,
           from_user: userData.user_id, // The current user's ID
-          date: new Date(), },
+          date: new Date(),
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setUnlocked(true);
@@ -340,7 +343,7 @@ const UnlockContent = () => {
 
   return (
     <Box sx={{ maxWidth: 800, margin: 'auto', padding: 2 }}>
-      <Typography variant="h4" gutterBottom>
+      <Typography variant="h3" gutterBottom>
         Unlock Content
       </Typography>
 
@@ -350,7 +353,10 @@ const UnlockContent = () => {
           Title: {contentData.title}
         </Typography>
         <Typography variant="h5" gutterBottom>
-          By: {contentData.host_username}
+
+          By: 
+           <Avatar src={contentData.profilePic || contentData.avatar} alt={contentData.host_username} />
+           {contentData.host_username}
         </Typography>
         <Typography variant="subtitle1" gutterBottom>
           Description: {contentData.description}
@@ -386,18 +392,34 @@ const UnlockContent = () => {
         </Grid>
       </Paper>
 
+       <Typography variant="h6" gutterBottom>
+        Comments about Content
+      </Typography>
+
       {/* Unlock Button or Unlocked Content */}
       {!unlocked ? (
         <>
           <div style={{ marginTop: '30px' }}>
             <Typography variant="subtitle1" gutterBottom>
-              Leave a Message:
+              Leave a message for the Creator:
             </Typography>
             <TextField
               label="Leave a Message"
               fullWidth
               margin="normal"
               placeholder={`Enjoy: ₡${contentData.cost}!`}
+              onChange={(e) => setMessage(e.target.value)}
+            />
+          </div>
+          <div style={{ marginTop: '30px' }}>
+            <Typography variant="subtitle1" gutterBottom>
+              Leave a public comment:
+            </Typography>
+            <TextField
+              label="Leave a public comment"
+              fullWidth
+              margin="normal"
+              placeholder={`I think that "${contentData.title}" is XXXX!`}
               onChange={(e) => setMessage(e.target.value)}
             />
           </div>

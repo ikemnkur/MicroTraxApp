@@ -104,7 +104,7 @@ export const fetchTransactionHistory = async (userId) => {
 
 export const fetchOtherUserProfile = async (username) => {
   try {
-    const response = await api.get(`/user/${username}/profile`);
+    const response = await api.get(`/user/id/${username}/profile`);
     console.log("Fetch Other UserP: ", response.data)
     return response.data;
   } catch (error) {

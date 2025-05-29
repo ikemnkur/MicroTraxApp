@@ -187,11 +187,11 @@ const UnlockContent = () => {
           Description: {contentData.description}
         </Typography>
         <Typography variant="body1" gutterBottom>
-          Cost: ₡{contentData.cost}
+          Content Cost: ₡{contentData.cost}
         </Typography>
         {isLoggedIn && (
           <Typography variant="body1" gutterBottom>
-            Balance: ₡{userBalance}
+            Your Balance: ₡{userBalance}
           </Typography>
         )}
       </Paper>
@@ -214,13 +214,25 @@ const UnlockContent = () => {
         <>
           <div style={{ marginTop: '30px' }}>
             <Typography variant="subtitle1" gutterBottom>
-              Leave a Message:
+              Leave a message for the Creator:
             </Typography>
             <TextField
               label="Leave a Message"
               fullWidth
               margin="normal"
               placeholder={`Enjoy: ₡${contentData.cost}!`}
+              onChange={(e) => setMessage(e.target.value)}
+            />
+          </div>
+           <div style={{ marginTop: '30px' }}>
+            <Typography variant="subtitle1" gutterBottom>
+              Leave a public comment:
+            </Typography>
+            <TextField
+              label="Leave a public comment"
+              fullWidth
+              margin="normal"
+              placeholder={`I think that "${contentData.title}" is XXXX!`}
               onChange={(e) => setMessage(e.target.value)}
             />
           </div>
