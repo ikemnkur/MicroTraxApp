@@ -3,9 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   Typography, TextField, Button, Box, CircularProgress, Snackbar, Paper, Avatar,
   Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
-  Modal, IconButton, Grid, Rating
+  Modal, IconButton, Grid, Rating, Divider, Card, CardContent
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import CommentIcon from '@mui/icons-material/Comment';
 import axios from 'axios';
 import Auth from './Auth';
 import {
@@ -29,6 +30,9 @@ const UnlockContent = () => {
   const [message, setMessage] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [openLoginModal, setOpenLoginModal] = useState(false);
+
+  // Comment state
+  const [commentText, setCommentText] = useState('');
 
   // Maintain user profile data (make sure you include user_id)
   const [userData, setUserData] = useState({
@@ -55,9 +59,53 @@ const UnlockContent = () => {
   // For building notification data before submission
   const [notificationData, setNotificationData] = useState(null);
 
+  // Comments state - now managed dynamically from DB
+  const [comments, setComments] = useState([]);
+  const [loadingComments, setLoadingComments] = useState(false);
+
   const API_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:5000';
 
-  // Create notification by sending notificationData to backend
+  // Load comments from database
+  const loadComments = async (contentId) => {
+    try {
+      setLoadingComments(true);
+      const response = await axios.get(`${API_URL}/api/content/comments/${contentId}`);
+      const commentsData = response.data.comments;
+      
+      // Parse comments JSON if it exists
+      if (commentsData) {
+        const parsedComments = typeof commentsData === 'string' 
+          ? JSON.parse(commentsData) 
+          : commentsData;
+        setComments(parsedComments || []);
+      } else {
+        setComments([]);
+      }
+    } catch (error) {
+      console.error('Error loading comments:', error);
+      setComments([]);
+    } finally {
+      setLoadingComments(false);
+    }
+  };
+
+  // Save comments to database
+  const saveCommentsToDb = async (contentId, updatedComments) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(
+        `${API_URL}/api/content/update-comments`,
+        { 
+          contentId: contentId,
+          comments: JSON.stringify(updatedComments)
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+    } catch (error) {
+      console.error('Error saving comments:', error);
+      setSnackbarMessage('Failed to save comment. Please try again.');
+    }
+  };
   const createNotification = async (notifBody) => {
     try {
       const token = localStorage.getItem('token');
@@ -103,6 +151,9 @@ const UnlockContent = () => {
         setDislikes(content.dislikes || 0);
         setViews(content.views || 0);
         setRating(content.rating || 0);
+
+        // Load comments for this content
+        await loadComments(content.id);
 
         // 2) Check if user is logged in
         try {
@@ -338,6 +389,173 @@ const UnlockContent = () => {
     }
   };
 
+  // Handle comment submission
+  const handleCommentSubmit = async () => {
+    if (!isLoggedIn) {
+      setSnackbarMessage('Please log in to submit comments.');
+      setOpenLoginModal(true);
+      return;
+    }
+    
+    if (!unlocked) {
+      setSnackbarMessage('You must unlock this content before commenting.');
+      return;
+    }
+    
+    if (!commentText.trim()) {
+      setSnackbarMessage('Please enter a comment before submitting.');
+      return;
+    }
+
+    try {
+      // Create new comment object
+      const newComment = {
+        id: Date.now(), // Simple ID generation - in production, use UUID or let DB generate
+        username: userData.username,
+        user_id: userData.user_id,
+        avatar: userData.profilePicture,
+        comment: commentText.trim(),
+        timestamp: new Date().toISOString(),
+        likes: 0,
+        dislikes: 0,
+        likedBy: [], // Array of user IDs who liked this comment
+        dislikedBy: [] // Array of user IDs who disliked this comment
+      };
+
+      // Update local state
+      const updatedComments = [...comments, newComment];
+      setComments(updatedComments);
+
+      // Save to database
+      await saveCommentsToDb(contentData.id, updatedComments);
+
+      setSnackbarMessage('Comment submitted!');
+      setCommentText(''); // Clear the comment field
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+      setSnackbarMessage('Failed to submit comment. Please try again.');
+    }
+  };
+
+  // Handle comment like/dislike
+  const handleCommentLike = async (commentId) => {
+    if (!isLoggedIn) {
+      setSnackbarMessage('Please log in to interact with comments.');
+      setOpenLoginModal(true);
+      return;
+    }
+
+    if (!unlocked) {
+      setSnackbarMessage('You must unlock this content before interacting with comments.');
+      return;
+    }
+
+    try {
+      const updatedComments = comments.map(comment => {
+        if (comment.id === commentId) {
+          const userAlreadyLiked = comment.likedBy?.includes(userData.user_id);
+          const userAlreadyDisliked = comment.dislikedBy?.includes(userData.user_id);
+          
+          let newLikedBy = comment.likedBy || [];
+          let newDislikedBy = comment.dislikedBy || [];
+          let newLikes = comment.likes || 0;
+          let newDislikes = comment.dislikes || 0;
+
+          if (userAlreadyLiked) {
+            // Remove like
+            newLikedBy = newLikedBy.filter(id => id !== userData.user_id);
+            newLikes = Math.max(0, newLikes - 1);
+          } else {
+            // Add like
+            newLikedBy = [...newLikedBy, userData.user_id];
+            newLikes = newLikes + 1;
+            
+            // Remove dislike if exists
+            if (userAlreadyDisliked) {
+              newDislikedBy = newDislikedBy.filter(id => id !== userData.user_id);
+              newDislikes = Math.max(0, newDislikes - 1);
+            }
+          }
+
+          return {
+            ...comment,
+            likes: newLikes,
+            dislikes: newDislikes,
+            likedBy: newLikedBy,
+            dislikedBy: newDislikedBy
+          };
+        }
+        return comment;
+      });
+
+      setComments(updatedComments);
+      await saveCommentsToDb(contentData.id, updatedComments);
+      setSnackbarMessage('Comment updated!');
+    } catch (error) {
+      console.error('Error updating comment:', error);
+      setSnackbarMessage('Failed to update comment. Please try again.');
+    }
+  };
+
+  const handleCommentDislike = async (commentId) => {
+    if (!isLoggedIn) {
+      setSnackbarMessage('Please log in to interact with comments.');
+      setOpenLoginModal(true);
+      return;
+    }
+
+    if (!unlocked) {
+      setSnackbarMessage('You must unlock this content before interacting with comments.');
+      return;
+    }
+
+    try {
+      const updatedComments = comments.map(comment => {
+        if (comment.id === commentId) {
+          const userAlreadyLiked = comment.likedBy?.includes(userData.user_id);
+          const userAlreadyDisliked = comment.dislikedBy?.includes(userData.user_id);
+          
+          let newLikedBy = comment.likedBy || [];
+          let newDislikedBy = comment.dislikedBy || [];
+          let newLikes = comment.likes || 0;
+          let newDislikes = comment.dislikes || 0;
+
+          if (userAlreadyDisliked) {
+            // Remove dislike
+            newDislikedBy = newDislikedBy.filter(id => id !== userData.user_id);
+            newDislikes = Math.max(0, newDislikes - 1);
+          } else {
+            // Add dislike
+            newDislikedBy = [...newDislikedBy, userData.user_id];
+            newDislikes = newDislikes + 1;
+            
+            // Remove like if exists
+            if (userAlreadyLiked) {
+              newLikedBy = newLikedBy.filter(id => id !== userData.user_id);
+              newLikes = Math.max(0, newLikes - 1);
+            }
+          }
+
+          return {
+            ...comment,
+            likes: newLikes,
+            dislikes: newDislikes,
+            likedBy: newLikedBy,
+            dislikedBy: newDislikedBy
+          };
+        }
+        return comment;
+      });
+
+      setComments(updatedComments);
+      await saveCommentsToDb(contentData.id, updatedComments);
+      setSnackbarMessage('Comment updated!');
+    } catch (error) {
+      console.error('Error updating comment:', error);
+      setSnackbarMessage('Failed to update comment. Please try again.');
+    }
+  };
+
   if (loading) return <CircularProgress />;
   if (error) return <Typography color="error">{error}</Typography>;
 
@@ -352,12 +570,24 @@ const UnlockContent = () => {
         <Typography variant="h5" gutterBottom>
           Title: {contentData.title}
         </Typography>
-        <Typography variant="h5" gutterBottom>
-
-          By: 
-           <Avatar src={contentData.profilePic || contentData.avatar} alt={contentData.host_username} />
-           {contentData.host_username}
-        </Typography>
+        
+        {/* Fixed: Linear, left-aligned layout for "By:" section */}
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'flex-start',
+          gap: 1,
+          mb: 2
+        }}>
+          <Typography variant="h5">By:</Typography>
+          <Avatar 
+            src={contentData.profilePic || contentData.avatar} 
+            alt={contentData.host_username}
+            sx={{ width: 32, height: 32 }}
+          />
+          <Typography variant="h5">{contentData.host_username}</Typography>
+        </Box>
+        
         <Typography variant="subtitle1" gutterBottom>
           Description: {contentData.description}
         </Typography>
@@ -374,31 +604,173 @@ const UnlockContent = () => {
       {/* Content stats */}
       <Paper style={{ backgroundColor: '#DEEFFF', padding: '10px', marginTop: '20px' }}>
         <Grid container spacing={2} alignItems="center" justifyContent="center">
+          {/* Fixed: Vertically aligned icons and numbers */}
           <Grid item>
-            <Visibility /> {views}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Visibility />
+              <Typography variant="body2">{views}</Typography>
+            </Box>
           </Grid>
           <Grid item>
-            <LockOpenRounded /> {contentData.unlocks || 0}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <LockOpenRounded />
+              <Typography variant="body2">{contentData.unlocks || 0}</Typography>
+            </Box>
           </Grid>
           <Grid item>
-            <ThumbUp /> {likes}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <ThumbUp />
+              <Typography variant="body2">{likes}</Typography>
+            </Box>
           </Grid>
           <Grid item>
-            <ThumbDownAlt /> {dislikes}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <ThumbDownAlt />
+              <Typography variant="body2">{dislikes}</Typography>
+            </Box>
           </Grid>
           <Grid item>
-            <Star /> {rating.toFixed(1)}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Star />
+              <Typography variant="body2">{rating.toFixed(1)}</Typography>
+            </Box>
+          </Grid>
+          {/* Added: Comments icon */}
+          <Grid item>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <CommentIcon />
+              <Typography variant="body2">{comments.length}</Typography>
+            </Box>
           </Grid>
         </Grid>
       </Paper>
 
-       <Typography variant="h6" gutterBottom>
-        Comments about Content
-      </Typography>
+      {/* Comments Section */}
+      <Paper style={{ backgroundColor: '#F0F0F0', padding: '10px', marginTop: '20px' }}>
+        <Typography variant="h4" gutterBottom>
+          Comments Section
+        </Typography>
+
+        {/* Display comments */}
+        <Box sx={{ mb: 3 }}>
+          {loadingComments ? (
+            <CircularProgress size={24} />
+          ) : comments.length > 0 ? (
+            comments.map((comment) => {
+              const userLiked = comment.likedBy?.includes(userData.user_id);
+              const userDisliked = comment.dislikedBy?.includes(userData.user_id);
+              
+              return (
+                <Card key={comment.id} sx={{ mb: 2 }}>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                      <Avatar src={comment.avatar} sx={{ width: 24, height: 24 }}>
+                        {comment.username.charAt(0)}
+                      </Avatar>
+                      <Typography variant="subtitle2" fontWeight="bold">
+                        {comment.username}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {new Date(comment.timestamp).toLocaleDateString()}
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" sx={{ mb: 1 }}>
+                      {comment.comment}
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <IconButton 
+                          size="small" 
+                          onClick={() => handleCommentLike(comment.id)}
+                          disabled={!isLoggedIn || !unlocked}
+                          color={userLiked ? "primary" : "default"}
+                        >
+                          {userLiked ? <ThumbUp fontSize="small" /> : <ThumbUpOutlined fontSize="small" />}
+                        </IconButton>
+                        <Typography variant="caption">{comment.likes || 0}</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <IconButton 
+                          size="small" 
+                          onClick={() => handleCommentDislike(comment.id)}
+                          disabled={!isLoggedIn || !unlocked}
+                          color={userDisliked ? "primary" : "default"}
+                        >
+                          {userDisliked ? <ThumbDownAlt fontSize="small" /> : <ThumbDownAltOutlined fontSize="small" />}
+                        </IconButton>
+                        <Typography variant="caption">{comment.dislikes || 0}</Typography>
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+              );
+            })
+          ) : (
+            <Typography variant="body2" color="text.secondary" align="center">
+              No comments yet. Be the first to comment!
+            </Typography>
+          )}
+        </Box>
+
+        <Divider sx={{ mb: 2 }} />
+
+        <div style={{ marginTop: '5px' }}>
+          <Typography variant="subtitle1" gutterBottom>
+            Leave a public comment:
+          </Typography>
+          {/* Fixed: Made comment text field wider and added proper state management */}
+          <TextField
+            label="Leave a public comment"
+            fullWidth
+            multiline
+            rows={3}
+            margin="normal"
+            placeholder={unlocked ? `I think that "${contentData.title}" is amazing!` : "Unlock content to leave comments"}
+            value={commentText}
+            onChange={(e) => setCommentText(e.target.value)}
+            disabled={!isLoggedIn || !unlocked}
+            helperText={
+              !isLoggedIn ? "Please log in to leave comments" : 
+              !unlocked ? "You must unlock this content to leave comments" : ""
+            }
+            sx={{ width: '100%' }}
+          />
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+            {/* Fixed: Made button light green */}
+            <Button 
+              variant="contained" 
+              onClick={handleCommentSubmit}
+              sx={{ 
+                backgroundColor: '#4CAF50',
+                '&:hover': {
+                  backgroundColor: '#45a049'
+                }
+              }}
+            >
+              Submit Comment
+            </Button>
+          </Box>
+        </div>
+      </Paper>
 
       {/* Unlock Button or Unlocked Content */}
       {!unlocked ? (
         <>
+          <Box sx={{ display: 'flex', variant: "h5", justifyContent: 'center', mt: 2 }}>
+            <Button variant="contained" color="primary" onClick={handleUnlock}>
+              Unlock Content
+            </Button>
+          </Box>
+        </>
+      ) : (
+        <>
+          <Paper elevation={3} sx={{ p: 5, mt: 2 }}>
+            <Typography variant="h5" gutterBottom align="center">
+              Unlocked Content
+            </Typography>
+            {renderContent()}
+          </Paper>
+
           <div style={{ marginTop: '30px' }}>
             <Typography variant="subtitle1" gutterBottom>
               Leave a message for the Creator:
@@ -411,32 +783,6 @@ const UnlockContent = () => {
               onChange={(e) => setMessage(e.target.value)}
             />
           </div>
-          <div style={{ marginTop: '30px' }}>
-            <Typography variant="subtitle1" gutterBottom>
-              Leave a public comment:
-            </Typography>
-            <TextField
-              label="Leave a public comment"
-              fullWidth
-              margin="normal"
-              placeholder={`I think that "${contentData.title}" is XXXX!`}
-              onChange={(e) => setMessage(e.target.value)}
-            />
-          </div>
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-            <Button variant="contained" color="primary" onClick={handleUnlock}>
-              Unlock Content
-            </Button>
-          </Box>
-        </>
-      ) : (
-        <>
-          <Paper elevation={3} sx={{ p: 2, mt: 2 }}>
-            <Typography variant="h6" gutterBottom align="center">
-              Unlocked Content
-            </Typography>
-            {renderContent()}
-          </Paper>
 
           <Paper style={{ backgroundColor: 'lightgray', padding: '10px', marginTop: '20px' }}>
             <Typography variant="h6" gutterBottom align="center">

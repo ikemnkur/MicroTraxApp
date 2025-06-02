@@ -23,12 +23,17 @@ import {
   TableHead,
   TableRow,
   IconButton,
+  Card,
+  CardContent,
+  CardMedia,
+  Link,
 } from '@mui/material';
 import {
   Delete as DeleteIcon,
   EditNote as EditNoteIcon,
   Share as ShareIcon,
   Visibility,
+  Close as CloseIcon,
 } from '@mui/icons-material';
 import {
   fetchUserContent,
@@ -72,6 +77,10 @@ const YourStuff = () => {
   const [sortBy, setSortBy] = useState('date');
   const [sortOrder, setSortOrder] = useState('asc');
   const [ud] = useState(JSON.parse(localStorage.getItem("userdata")));
+
+  // New state for view content modal
+  const [openViewDialog, setOpenViewDialog] = useState(false);
+  const [viewingContent, setViewingContent] = useState(null);
 
   const [newContent, setNewContent] = useState({
     title: '',
@@ -297,12 +306,111 @@ const YourStuff = () => {
     });
   };
 
-  const handleViewContent = () => {
-    // Implement view content functionality
+  const handleViewContent = (item) => {
+    setViewingContent(item);
+    setOpenViewDialog(true);
   };
 
-  const handleViewSub = () => {
-    // Implement view subscription functionality
+  const handleCloseViewDialog = () => {
+    setOpenViewDialog(false);
+    setViewingContent(null);
+  };
+
+  const handleDeleteFromView = async () => {
+    if (viewingContent) {
+      try {
+        await handleDeleteUserContent(viewingContent.id);
+        handleCloseViewDialog();
+        loadUserContent(); // Refresh the content list
+        setSnackbarMessage('Content deleted successfully');
+        setOpenSnackbar(true);
+      } catch (error) {
+        console.error('Failed to delete content:', error);
+        setSnackbarMessage('Failed to delete content');
+        setOpenSnackbar(true);
+      }
+    }
+  };
+
+  const renderContentPreview = (content) => {
+    if (!content) return null;
+
+    // Safely extract content data, handling nested content objects
+    let contentData;
+    if (typeof content.content === 'object' && content.content !== null) {
+      contentData = content.content.content || JSON.stringify(content.content);
+    } else {
+      contentData = content.content || content;
+    }
+
+    // Ensure we have a string to display
+    if (typeof contentData === 'object') {
+      contentData = JSON.stringify(contentData);
+    }
+    
+    switch (content.type) {
+      case 'image':
+        return (
+          <Card sx={{ maxWidth: '100%', mb: 2 }}>
+            <CardMedia
+              component="img"
+              height="300"
+              image={String(contentData)}
+              alt={content.title || 'Content image'}
+              sx={{ objectFit: 'contain' }}
+            />
+          </Card>
+        );
+      
+      case 'video':
+        return (
+          <Card sx={{ maxWidth: '100%', mb: 2 }}>
+            <CardMedia
+              component="video"
+              height="300"
+              src={String(contentData)}
+              controls
+              sx={{ objectFit: 'contain' }}
+            />
+          </Card>
+        );
+      
+      case 'url':
+        return (
+          <Card sx={{ maxWidth: '100%', mb: 2 }}>
+            <CardContent>
+              <Typography variant="body2" color="text.secondary">
+                URL Content:
+              </Typography>
+              <Link 
+                href={String(contentData)} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                sx={{ wordBreak: 'break-all' }}
+              >
+                <Typography variant="body1">
+                  {String(contentData)}
+                </Typography>
+              </Link>
+            </CardContent>
+          </Card>
+        );
+      
+      case 'text':
+      default:
+        return (
+          <Card sx={{ maxWidth: '100%', mb: 2 }}>
+            <CardContent>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Text Content:
+              </Typography>
+              <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+                {String(contentData)}
+              </Typography>
+            </CardContent>
+          </Card>
+        );
+    }
   };
 
   const contentToDisplay = sortContent(filteredContent);
@@ -323,19 +431,9 @@ const YourStuff = () => {
   return (
     <Box sx={{ p: 2 }}>
       <Paper sx={{ p: 2, mb: 2 }}>
-        {/* <Typography variant="h3" gutterBottom align="center">
-          Your Stuff
-        </Typography>
-        <Box sx={{ textAlign: 'center', my: 2 }}>
-          <Typography variant="h6">
-            Current Balance: ₡{walletData?.balance}
-          </Typography>
-          <Typography variant="body1">
-            Account Tier: {userData.accountTier}
-          </Typography>
-        </Box> */}
+      
         <Box sx={{ mt: 2 }}>
-          <TableContainer component={Paper} backgroundColor={lightBlue}>
+          <TableContainer component={Paper} sx={{ backgroundColor: lightBlue[90] }}>
             <Typography variant="h4" gutterBottom sx={{ p: 2 }}>
               Your Unlocked Content
             </Typography>
@@ -419,6 +517,119 @@ const YourStuff = () => {
           </TableContainer>
         </Box>
       </Paper>
+
+      {/* View Content Modal */}
+      <Dialog
+        open={openViewDialog}
+        onClose={handleCloseViewDialog}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            maxHeight: '90vh',
+            position: 'relative',
+          },
+        }}
+      >
+        <Box sx={{ 
+          position: 'absolute', 
+          top: 8, 
+          right: 8, 
+          zIndex: 1,
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          borderRadius: '50%',
+        }}>
+          <IconButton 
+            onClick={handleCloseViewDialog}
+            sx={{ 
+              color: 'red',
+              '&:hover': { backgroundColor: 'rgba(255, 0, 0, 0.1)' }
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </Box>
+        
+        <DialogTitle sx={{ pr: 6 }}>
+          {viewingContent?.title}
+        </DialogTitle>
+        
+        <DialogContent>
+          {/* Content Preview */}
+          <Box sx={{ mb: 3 }}>
+            {renderContentPreview(viewingContent)}
+          </Box>
+          
+          {/* Content Details */}
+          <Paper sx={{ p: 2, backgroundColor: '#f5f5f5' }}>
+            <Typography variant="h6" gutterBottom>
+              Content Details
+            </Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+              <Box>
+                <Typography variant="body2" color="text.secondary">
+                  Date:
+                </Typography>
+                <Typography variant="body1">
+                  {viewingContent?.created_at?.slice(0, 10)}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="body2" color="text.secondary">
+                  Type:
+                </Typography>
+                <Typography variant="body1">
+                  {viewingContent?.type}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="body2" color="text.secondary">
+                  Host User:
+                </Typography>
+                <Typography variant="body1">
+                  {viewingContent?.host_username}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="body2" color="text.secondary">
+                  Cost:
+                </Typography>
+                <Typography variant="body1">
+                  {viewingContent?.cost}
+                </Typography>
+              </Box>
+            </Box>
+            {viewingContent?.description && (
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Description:
+                </Typography>
+                <Typography variant="body1">
+                  {viewingContent.description}
+                </Typography>
+              </Box>
+            )}
+          </Paper>
+        </DialogContent>
+        
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button 
+            variant="outlined" 
+            onClick={() => handleShare(viewingContent, "content")}
+            startIcon={<ShareIcon />}
+          >
+            Share
+          </Button>
+          <Button 
+            variant="outlined" 
+            color="error"
+            onClick={handleDeleteFromView}
+            startIcon={<DeleteIcon />}
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Share Dialog */}
       <Dialog
