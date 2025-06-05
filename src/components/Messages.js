@@ -8,13 +8,14 @@ import {
 import {
   Send as SendIcon, Favorite as FavoriteIcon, FavoriteBorder as FavoriteBorderIcon,
   Reply as ReplyIcon, Close as CloseIcon, Search as SearchIcon, MoreVert as MoreVertIcon,
-  Block as BlockIcon, Delete as DeleteIcon, Schedule as ScheduleIcon
+  Block as BlockIcon, Delete as DeleteIcon, Schedule as ScheduleIcon, Clear as ClearIcon
 } from '@mui/icons-material';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 
 const Messages = () => {
   const [conversations, setConversations] = useState([]);
+  const [filteredConversations, setFilteredConversations] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [currentConversation, setCurrentConversation] = useState(null);
   const [messageText, setMessageText] = useState('');
@@ -22,6 +23,7 @@ const Messages = () => {
   const [currentUser, setCurrentUser] = useState('');
   const [replyingTo, setReplyingTo] = useState(null);
   const [searchUsername, setSearchUsername] = useState('');
+  const [conversationSearch, setConversationSearch] = useState('');
   const [openNewChat, setOpenNewChat] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
@@ -42,6 +44,19 @@ const Messages = () => {
   useEffect(() => {
     scrollToBottom();
   }, [currentConversation]);
+
+  // Filter conversations based on search
+  useEffect(() => {
+    if (conversationSearch.trim() === '') {
+      setFilteredConversations(conversations);
+    } else {
+      const filtered = conversations.filter(conv =>
+        conv.otherUser.toLowerCase().includes(conversationSearch.toLowerCase()) ||
+        (conv.lastMessage && conv.lastMessage.toLowerCase().includes(conversationSearch.toLowerCase()))
+      );
+      setFilteredConversations(filtered);
+    }
+  }, [conversations, conversationSearch]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -226,6 +241,10 @@ const Messages = () => {
     }
   };
 
+  const clearConversationSearch = () => {
+    setConversationSearch('');
+  };
+
   const formatTime = (timestamp) => {
     return new Date(timestamp).toLocaleTimeString('en-US', {
       hour: '2-digit',
@@ -391,58 +410,94 @@ const Messages = () => {
               >
                 New Chat
               </Button>
+              
+              {/* Search Bar */}
+              <TextField
+                fullWidth
+                size="small"
+                placeholder="Search conversations..."
+                value={conversationSearch}
+                onChange={(e) => setConversationSearch(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                  endAdornment: conversationSearch && (
+                    <InputAdornment position="end">
+                      <IconButton size="small" onClick={clearConversationSearch}>
+                        <ClearIcon />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ mb: 1 }}
+              />
             </Box>
             <Divider />
             <List sx={{ flexGrow: 1, overflow: 'auto' }}>
-              {conversations.map((conv) => (
-                <ListItem
-                  button
-                  key={conv.otherUser}
-                  selected={selectedUser === conv.otherUser}
-                  onClick={() => handleSelectUser(conv.otherUser)}
-                >
-                  <ListItemAvatar>
-                    <Avatar>{conv.otherUser.charAt(0).toUpperCase()}</Avatar>
-                  </ListItemAvatar>
+              {filteredConversations.length > 0 ? (
+                filteredConversations.map((conv) => (
+                  <ListItem
+                    button
+                    key={conv.otherUser}
+                    selected={selectedUser === conv.otherUser}
+                    onClick={() => handleSelectUser(conv.otherUser)}
+                  >
+                    <ListItemAvatar>
+                      <Avatar>{conv.otherUser.charAt(0).toUpperCase()}</Avatar>
+                    </ListItemAvatar>
+                    <ListItemText 
+                      primary={
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography variant="subtitle1">
+                            {conv.otherUser}
+                          </Typography>
+                          {conv.isBlocked && (
+                            <Chip label="Blocked" size="small" color="error" />
+                          )}
+                          {conv.pendingResponse && (
+                            <Chip label="Waiting" size="small" color="warning" />
+                          )}
+                        </Box>
+                      }
+                      secondary={
+                        <Box>
+                          <Typography variant="body2" color="text.secondary">
+                            {conv.lastMessage || 'No messages yet'}
+                          </Typography>
+                          {conv.autoDeleteAt && (
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
+                              <ScheduleIcon fontSize="small" color="action" />
+                              <Typography variant="caption" color="text.secondary">
+                                Auto-delete in {formatAutoDeleteTime(conv.autoDeleteAt)}
+                              </Typography>
+                            </Box>
+                          )}
+                        </Box>
+                      }
+                    />
+                    {conv.unreadCount > 0 && (
+                      <Chip 
+                        label={conv.unreadCount} 
+                        size="small" 
+                        color="primary"
+                      />
+                    )}
+                  </ListItem>
+                ))
+              ) : (
+                <ListItem>
                   <ListItemText 
                     primary={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography variant="subtitle1">
-                          {conv.otherUser}
-                        </Typography>
-                        {conv.isBlocked && (
-                          <Chip label="Blocked" size="small" color="error" />
-                        )}
-                        {conv.pendingResponse && (
-                          <Chip label="Waiting" size="small" color="warning" />
-                        )}
-                      </Box>
-                    }
-                    secondary={
-                      <Box>
-                        <Typography variant="body2" color="text.secondary">
-                          {conv.lastMessage || 'No messages yet'}
-                        </Typography>
-                        {conv.autoDeleteAt && (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
-                            <ScheduleIcon fontSize="small" color="action" />
-                            <Typography variant="caption" color="text.secondary">
-                              Auto-delete in {formatAutoDeleteTime(conv.autoDeleteAt)}
-                            </Typography>
-                          </Box>
-                        )}
-                      </Box>
+                      <Typography variant="body2" color="text.secondary" align="center">
+                        {conversationSearch ? 'No conversations found' : 'No conversations yet'}
+                      </Typography>
                     }
                   />
-                  {conv.unreadCount > 0 && (
-                    <Chip 
-                      label={conv.unreadCount} 
-                      size="small" 
-                      color="primary"
-                    />
-                  )}
                 </ListItem>
-              ))}
+              )}
             </List>
           </Paper>
         </Grid>

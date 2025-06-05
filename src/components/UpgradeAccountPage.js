@@ -40,38 +40,38 @@ import { updateUserProfile } from './api';
 const tierInfo = {
   1: { 
     name: 'Basic', 
-    features: ['Limited access', '5 entries per day', 'Standard support'],
+    features: ['Limited access', '5 transactions per day', 'No support'],
     price: 'Free'
   },
   2: { 
     name: 'Standard', 
-    features: ['Full access', '15 entries per day', 'Priority email support'],
-    price: '$4.99/month'
+    features: ['Standard speed access', '10 transactions per day', 'Simple in-app report support'],
+    price: '10 coins/day'
   },
   3: { 
     name: 'Premium', 
-    features: ['Full access', 'Unlimited entries', '24/7 support', 'Advanced analytics'],
-    price: '$9.99/month'
+    features: ['Full speed site access', '20 transactions per day', 'Advanced in-app support', 'Advanced analytics'],
+    price: '$20 coins/day'
   },
   4: { 
     name: 'Gold', 
-    features: ['Everything in Premium', 'API access', 'Dedicated account manager'],
-    price: '$29.99/month'
+    features: ['Everything in Premium', '30 Daily transactions', 'Higher transaction limits', 'Email support', "Increased withdraw limits"],
+    price: '$50 coins/day'
   },
   5: { 
     name: 'Platinum', 
-    features: ['Everything in Gold', 'Custom integrations', 'Weekly strategy calls'],
-    price: '$49.99/month'
+    features: ['Everything in Gold', 'No transaction size limits', 'Expedited withdrawls', "No Max Balance", 'Priority support'],
+    price: '$75 coins/day'
   },
   6: { 
     name: 'Diamond', 
-    features: ['Everything in Platinum', 'White label options', 'Enterprise solutions'],
-    price: '$99.99/month'
+    features: ['Everything in Platinum', 'No transaction count limits', "Advanced Rapid Support",'Special features'],
+    price: '100 coins/day'
   },
   7: { 
     name: 'Ultimate', 
-    features: ['Everything in Diamond', 'Custom development', 'Board level reporting'],
-    price: '$199.99/month'
+    features: ['Everything in Diamond', 'No transaction fees', 'No transaction limits', "Immediate withdrawals"],
+    price: '200 coins/day'
   }
 };
 
@@ -141,7 +141,7 @@ const UpgradeAccountPage = () => {
         return (
           <Box>
             <Typography variant="h6" gutterBottom>
-              Compare Plans
+              Compare Plans - (Prices in Coins/Subject to change)
             </Typography>
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>

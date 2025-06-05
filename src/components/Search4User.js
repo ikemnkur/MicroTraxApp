@@ -13,8 +13,9 @@ import {
   Box,
   Divider,
   InputAdornment,
+  Chip,
 } from '@mui/material';
-import { Search as SearchIcon, FilterList } from '@mui/icons-material';
+import { Search as SearchIcon, FilterList, Favorite as FavoriteIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { searchFavorites, searchUsers } from './api';
 
@@ -26,12 +27,91 @@ const Search4User = () => {
   const [isLoadingFavorites, setIsLoadingFavorites] = useState(false);
   const [error, setError] = useState(null);
   const [favoritesError, setFavoritesError] = useState(null);
+  
+  const [userData, setUserData] = useState(null);
 
   // Favorites state
   const [favoritesSearchTerm, setFavoritesSearchTerm] = useState('');
   const [favoritesSearchResults, setFavoritesSearchResults] = useState([]);
-  
+  const [favoriteUsers, setFavoriteUsers] = useState([]);
+  const [isLoadingFavoritesList, setIsLoadingFavoritesList] = useState(true);
+
   const navigate = useNavigate();
+
+  // Load user data and favorites on component mount
+  useEffect(() => {
+    const loadUserDataAndFavorites = async () => {
+      try {
+        const tempdata = localStorage.getItem('userdata');
+        if (tempdata) {
+          const tempuserdata = JSON.parse(tempdata);
+          setUserData(tempuserdata);
+          
+          // Now load favorites using the parsed user data
+          await loadFavoriteUsers(tempuserdata);
+          
+          console.log("tempdata: ", tempuserdata);
+          console.log('User Data:', tempuserdata);
+          console.log('User Data Favorites:', tempuserdata.favorites);
+        }
+      } catch (error) {
+        console.error('Error loading user data:', error);
+        setIsLoadingFavoritesList(false);
+      }
+    };
+
+    loadUserDataAndFavorites();
+  }, []);
+
+  // Function to load a sample of favorite users
+  const loadFavoriteUsers = async (userDataParam = null) => {
+    setIsLoadingFavoritesList(true);
+    try {
+      // Use the passed parameter or the state userData
+      const currentUserData = userDataParam || userData;
+      
+      if (!currentUserData) {
+        console.log('No user data available');
+        setFavoriteUsers([]);
+        return;
+      }
+
+      // Sample fallback data (in case userData.favorites is empty or undefined)
+      const sampleFavorites = [
+        {
+          user_id: 'sdafdscvrwd56cd6cf-897c-4d96-822c-118adfgs9c8',
+          username: 'userman',
+          profilePic: 'https://mui.com/static/images/avatar/3.jpg',
+          bio: 'Macho Money Maker'
+        },
+        {
+          user_id: '4566cd6cf-897c-4d96-822c-118adfgdfc8',
+          username: 'moneyman',
+          profilePic: 'https://mui.com/static/images/avatar/4.jpg',
+          bio: 'I am a super Rich Boy'
+        },
+        {
+          user_id: '123ds435-897c-4d96-822c-118a4cc899c8',
+          username: 'ikemnkur',
+          profilePic: 'http://res.cloudinary.com/dabegwb2z/image/upload/v1735277794/profile_pics/dpoxiavtti1lbie40df4.jpg',
+          bio: 'I keep making it rain'
+        }
+      ];
+
+      // Use userData.favorites if available, otherwise use sample data
+      const favoritesToSet = currentUserData.favorites && Array.isArray(currentUserData.favorites) && currentUserData.favorites.length > 0
+        ? currentUserData.favorites
+        : sampleFavorites;
+
+      setFavoriteUsers(favoritesToSet);
+      console.log('Favorites loaded:', favoritesToSet);
+    } catch (err) {
+      console.error('Error loading favorite users:', err);
+      setFavoriteUsers([]);
+    } finally {
+      setIsLoadingFavoritesList(false);
+    }
+  };
 
   // Handle main database user search
   const handleSearch = async (e) => {
@@ -82,7 +162,7 @@ const Search4User = () => {
     if (e && e.preventDefault) {
       e.preventDefault();
     }
-    
+
     setIsLoadingFavorites(true);
     setFavoritesError(null);
 
@@ -105,7 +185,7 @@ const Search4User = () => {
           ...fav,
           avatar: fav.avatar || fav.profilePic || `https://mui.com/static/images/avatar/${randomIntFromInterval(1, 5)}.jpg`,
         }));
-        
+
         setFavoritesSearchResults(resultsWithAvatars);
         console.log('favorites search results: ', resultsWithAvatars);
       }
@@ -213,10 +293,18 @@ const Search4User = () => {
 
       {/* Favorites Section */}
       <Box>
-        <Typography variant="h4" gutterBottom>
-          Your Favorites
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+          <Typography variant="h4">
+            Your Favorites
+          </Typography>
+          <FavoriteIcon color="error" />
+        </Box>
+
+        {/* Search Favorites */}
         <Paper sx={{ p: 2, mb: 2 }}>
+          <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
+            Search Favorites
+          </Typography>
           <TextField
             label="Search your favorites"
             fullWidth
@@ -235,10 +323,11 @@ const Search4User = () => {
             Enter at least 4 characters to search your favorites
           </Typography>
         </Paper>
+
         {isLoadingFavorites && <CircularProgress />}
         {favoritesError && <Typography color="error">{favoritesError}</Typography>}
 
-        <Paper sx={{ maxHeight: 300, overflow: 'auto' }}>
+        <Paper sx={{ p: 1, mb: 1, maxHeight: 300, overflow: 'auto' }}>
           <List>
             {Array.isArray(favoritesSearchResults) && favoritesSearchResults.length > 0 ? (
               favoritesSearchResults.map((fav) => (
@@ -246,7 +335,7 @@ const Search4User = () => {
                   <ListItemAvatar>
                     <Avatar src={fav.profilePic || fav.avatar} alt={fav.username || fav.favname || 'Favorite'} />
                   </ListItemAvatar>
-                  <ListItemText 
+                  <ListItemText
                     primary={fav.username || fav.favname || 'Unnamed Favorite'}
                     secondary={fav.firstName && fav.lastName ? `${fav.firstName} ${fav.lastName}` : ""}
                   />
@@ -262,6 +351,62 @@ const Search4User = () => {
               </ListItem>
             )}
           </List>
+        </Paper>
+
+        {/* Favorite Users List */}
+        <Paper sx={{ p: 2, mb: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+            <Typography variant="h6" color="text.secondary">
+              Favorite Users
+            </Typography>
+            <Chip
+              label={`${favoriteUsers.length} favorites`}
+              size="small"
+              color="primary"
+              variant="outlined"
+            />
+          </Box>
+
+          {isLoadingFavoritesList ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+              <CircularProgress size={24} />
+            </Box>
+          ) : (
+            <List sx={{ py: 0 }}>
+              {favoriteUsers.length > 0 ? (
+                favoriteUsers.map((fav) => (
+                  <ListItem
+                    key={fav.user_id}
+                    button
+                    onClick={() => gotofavProfile(fav)}
+                    sx={{
+                      borderRadius: 1,
+                      mb: 0.5,
+                      '&:hover': {
+                        backgroundColor: 'action.hover',
+                      }
+                    }}
+                  >
+                    <ListItemAvatar>
+                      <Avatar src={fav.profilePic} alt={fav.username} />
+                    </ListItemAvatar>
+                    <ListItemText
+                      primary={fav.username}
+                      secondary={fav.bio || "No bio available"}
+                    />
+                    <FavoriteIcon color="error" fontSize="small" />
+                  </ListItem>
+                ))
+              ) : (
+                <ListItem>
+                  <ListItemText
+                    primary="No favorite users yet"
+                    secondary="Users you favorite will appear here"
+                  />
+                </ListItem>
+              )}
+            </List>
+          )}
         </Paper>
       </Box>
     </>

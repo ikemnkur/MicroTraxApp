@@ -47,7 +47,7 @@ const NavBar = ({ children }) => {
     { text: 'Your Wallet', icon: <AccountBalance />, path: '/wallet' },
     { text: 'Send Coins', icon: <Send />, path: '/send' },
     { text: 'Look for Users', icon: <Search />, path: '/search' },
-    { text: 'Look for Users', icon: <Search />, path: '/search' },
+    // { text: 'Look for Users', icon: <Search />, path: '/search' },
     { text: 'Messages', icon: <Message />, path: '/messages' },
     { text: 'Transaction History', icon: <History />, path: '/transactions' },
     { text: 'Published Content', icon: <LockOutlined />, path: '/manage-content' },

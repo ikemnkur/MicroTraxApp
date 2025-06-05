@@ -77,13 +77,14 @@ const UserProfile = () => {
         if (userData.created_at) {
           userData.created_at = convertTimestamp(userData.created_at);
         }
+        console.log("user-profile-data: ", userData)
         setUser(userData);
         setIsFavorite(userData.isFavorite);
       } catch (error) {
         try {
           const userData = await fetchOtherUserProfile(userId);
           setUser(userData);
-          console.log("user-profile: User ID = ", userId) 
+          console.log("user-profile: User ID = ", userId)
           console.log("user-profile-data: ", userData)
           setIsFavorite(userData.isFavorite);
         } catch (error) {
@@ -170,7 +171,8 @@ const UserProfile = () => {
   };
 
   const handleMessage = () => {
-    setOpenMessageDialog(true);
+    navigate(`/messages/${user.username}`);
+    // setOpenMessageDialog(true);
   };
 
   const handleSubmitMessage = async () => {
@@ -201,7 +203,14 @@ const UserProfile = () => {
           <Typography variant="h3" sx={{ mt: 2 }}>
             {user.username}
           </Typography>
+
         </Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', my: 2 }}>
+          <div style={{ padding: 5, margin: "10px" }}>
+            <Typography variant="h4">Bio: {user.bio}</Typography>
+          </div>
+        </Box>
+
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'center', my: 2 }}>
           <Typography variant="h5">
             Rating: {user.avgRating} <StarIcon sx={{ ml: 1 }} />
