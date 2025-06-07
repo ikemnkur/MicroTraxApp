@@ -11,7 +11,8 @@ import axios from 'axios';
 import Auth from './Auth';
 import {
   LockOpenRounded, Star, ThumbDownAlt, ThumbUp, ThumbUpOutlined,
-  ThumbDownAltOutlined, Visibility
+  ThumbDownAltOutlined, Visibility,
+  SendOutlined
 } from '@mui/icons-material';
 import { fetchUserProfile } from './api';
 
@@ -23,6 +24,10 @@ const UnlockContent = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [unlocked, setUnlocked] = useState(false);
+
+  // Rating prevention states
+  const [hasUserRated, setHasUserRated] = useState(false);
+  const [isSubmittingRating, setIsSubmittingRating] = useState(false);
 
   // Notification & Dialog states
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -71,11 +76,11 @@ const UnlockContent = () => {
       setLoadingComments(true);
       const response = await axios.get(`${API_URL}/api/content/comments/${contentId}`);
       const commentsData = response.data.comments;
-      
+
       // Parse comments JSON if it exists
       if (commentsData) {
-        const parsedComments = typeof commentsData === 'string' 
-          ? JSON.parse(commentsData) 
+        const parsedComments = typeof commentsData === 'string'
+          ? JSON.parse(commentsData)
           : commentsData;
         setComments(parsedComments || []);
       } else {
@@ -95,7 +100,7 @@ const UnlockContent = () => {
       const token = localStorage.getItem('token');
       await axios.post(
         `${API_URL}/api/content/update-comments`,
-        { 
+        {
           contentId: contentId,
           comments: JSON.stringify(updatedComments)
         },
@@ -106,6 +111,7 @@ const UnlockContent = () => {
       setSnackbarMessage('Failed to save comment. Please try again.');
     }
   };
+
   const createNotification = async (notifBody) => {
     try {
       const token = localStorage.getItem('token');
@@ -136,88 +142,6 @@ const UnlockContent = () => {
       }
     }
   };
-
-  // Fetch content data and handle initial logic
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // 1) Get content info
-        const contentResponse = await axios.get(`${API_URL}/api/unlock/unlock-content/${itemid}`);
-        const content = contentResponse.data;
-        console.log("HostUser Content Data: ", content);
-        setContentData(content);
-
-        setLikes(content.likes || 0);
-        setDislikes(content.dislikes || 0);
-        setViews(content.views || 0);
-        setRating(content.rating || 0);
-
-        // Load comments for this content
-        await loadComments(content.id);
-
-        // 2) Check if user is logged in
-        try {
-          const token = localStorage.getItem('token');
-          if (token) {
-            const balanceResponse = await axios.get(`${API_URL}/api/wallet`, {
-              headers: { Authorization: `Bearer ${token}` },
-            });
-            setUserBalance(balanceResponse.data.balance);
-            setIsLoggedIn(true);
-          }
-        } catch {
-          setIsLoggedIn(false);
-        }
-
-        // 3) If logged in, load user profile & user rating
-        if (isLoggedIn) {
-          await loadUserProfile();
-          try {
-            const token = localStorage.getItem('token');
-            const ratingResp = await axios.get(
-              `${API_URL}/api/unlock/user-rating/${content.id}`,
-              { headers: { Authorization: `Bearer ${token}` } }
-            );
-            setUserLikeStatus(ratingResp.data.like_status || 0);
-            setUserRating(ratingResp.data.rating || 0);
-          } catch (error) {
-            console.error('Failed to fetch user rating:', error);
-          }
-        }
-
-        // 4) Increment view count
-        await axios.post(
-          `${API_URL}/api/unlock/add-view`,
-          { contentId: content.id },
-          { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
-        );
-        setViews((prev) => prev + 1);
-      } catch (err) {
-        if (err.response && err.response.status === 401) {
-          setIsLoggedIn(false);
-        } else {
-          setError('Failed to load data.');
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-
-    // Warn user if they leave after unlocking
-    const handleBeforeUnload = (e) => {
-      if (unlocked) {
-        e.preventDefault();
-        e.returnValue = 'Go to the unlocked content section in your Stuff Tab';
-      }
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [itemid, unlocked, isLoggedIn, API_URL]);
 
   // User initiates unlock
   const handleUnlock = () => {
@@ -316,58 +240,54 @@ const UnlockContent = () => {
     setUserBalance(balanceResponse.data.balance);
   };
 
-  // Like and dislike handlers
+  // Updated like/dislike handlers to work with the backend
   const handleLike = async () => {
     if (!isLoggedIn) {
       setOpenLoginModal(true);
-      alert('Please log in again to prevent spam/abuse.');
       return;
     }
-    try {
-      const response = await axios.post(
-        `${API_URL}/api/unlock/add-like`,
-        { contentId: contentData.id },
-        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
-      );
-      if (response.data.message === 'Content liked successfully') {
-        setLikes((prev) => prev + 1);
-        if (userLikeStatus === -1) {
-          setDislikes((prev) => prev - 1);
-        }
-        setUserLikeStatus(1);
-      } else if (response.data.message === 'Like removed') {
-        setLikes((prev) => prev - 1);
-        setUserLikeStatus(0);
+
+    // Don't allow like/dislike changes after rating submission
+    if (hasUserRated) {
+      setSnackbarMessage('You have already submitted your rating for this content.');
+      return;
+    }
+
+    // Update local state immediately for better UX
+    if (userLikeStatus !== 1) {
+      setLikes((prev) => prev + 1);
+      if (userLikeStatus === -1) {
+        setDislikes((prev) => Math.max(0, prev - 1));
       }
-    } catch (error) {
-      setSnackbarMessage('Failed to like content.');
+      setUserLikeStatus(1);
+    } else {
+      setLikes((prev) => Math.max(0, prev - 1));
+      setUserLikeStatus(0);
     }
   };
 
   const handleDislike = async () => {
     if (!isLoggedIn) {
       setOpenLoginModal(true);
-      alert('Please log in again to prevent spam/abuse.');
       return;
     }
-    try {
-      const response = await axios.post(
-        `${API_URL}/api/unlock/add-dislike`,
-        { contentId: contentData.id },
-        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
-      );
-      if (response.data.message === 'Content disliked successfully') {
-        setDislikes((prev) => prev + 1);
-        if (userLikeStatus === 1) {
-          setLikes((prev) => prev - 1);
-        }
-        setUserLikeStatus(-1);
-      } else if (response.data.message === 'Dislike removed') {
-        setDislikes((prev) => prev - 1);
-        setUserLikeStatus(0);
+
+    // Don't allow like/dislike changes after rating submission
+    if (hasUserRated) {
+      setSnackbarMessage('You have already submitted your rating for this content.');
+      return;
+    }
+
+    // Update local state immediately for better UX
+    if (userLikeStatus !== -1) {
+      setDislikes((prev) => prev + 1);
+      if (userLikeStatus === 1) {
+        setLikes((prev) => Math.max(0, prev - 1));
       }
-    } catch (error) {
-      setSnackbarMessage('Failed to dislike content.');
+      setUserLikeStatus(-1);
+    } else {
+      setDislikes((prev) => Math.max(0, prev - 1));
+      setUserLikeStatus(0);
     }
   };
 
@@ -377,15 +297,75 @@ const UnlockContent = () => {
       alert('Please log in again to prevent spam/abuse.');
       return;
     }
+
+    if (hasUserRated) {
+      setSnackbarMessage('You have already submitted your rating for this content.');
+      return;
+    }
+
+    setUserRating(newValue);
+  };
+
+  // Updated submitRating function
+  const submitRating = async (event) => {
+    if (!isLoggedIn) {
+      setOpenLoginModal(true);
+      setSnackbarMessage('Please log in to submit ratings.');
+      return;
+    }
+
+    if (hasUserRated) {
+      setSnackbarMessage('You have already rated this content.');
+      return;
+    }
+
+    if (isSubmittingRating) {
+      setSnackbarMessage('Rating submission in progress...');
+      return;
+    }
+
+    // Validation: Check if user has made any rating choice
+    if (userRating === 0 && userLikeStatus === 0) {
+      setSnackbarMessage('Please provide a star rating or like/dislike before submitting.');
+      return;
+    }
+
     try {
-      await axios.post(
+      setIsSubmittingRating(true);
+
+      const ratingResponse = await axios.post(
         `${API_URL}/api/unlock/add-rating`,
-        { contentId: contentData.id, rating: newValue },
+        {
+          contentId: contentData.id,
+          rating: userRating,
+          likeStatus: userLikeStatus
+        },
         { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );
-      setUserRating(newValue);
+
+      console.log("Rating response:", ratingResponse.data);
+
+      // Mark as rated to prevent future submissions
+      setHasUserRated(true);
+
+      // Update the overall content rating if provided
+      if (ratingResponse.data.avgRating) {
+        setRating(ratingResponse.data.avgRating);
+      }
+
+      setSnackbarMessage('Rating submitted successfully!');
+
     } catch (error) {
-      setSnackbarMessage('Failed to submit rating.');
+      console.error('Error submitting rating:', error);
+
+      if (error.response?.data?.error === 'ALREADY_RATED') {
+        setHasUserRated(true);
+        setSnackbarMessage('You have already rated this content.');
+      } else {
+        setSnackbarMessage(error.response?.data?.message || 'Failed to submit rating. Please try again.');
+      }
+    } finally {
+      setIsSubmittingRating(false);
     }
   };
 
@@ -396,12 +376,12 @@ const UnlockContent = () => {
       setOpenLoginModal(true);
       return;
     }
-    
+
     if (!unlocked) {
       setSnackbarMessage('You must unlock this content before commenting.');
       return;
     }
-    
+
     if (!commentText.trim()) {
       setSnackbarMessage('Please enter a comment before submitting.');
       return;
@@ -455,7 +435,7 @@ const UnlockContent = () => {
         if (comment.id === commentId) {
           const userAlreadyLiked = comment.likedBy?.includes(userData.user_id);
           const userAlreadyDisliked = comment.dislikedBy?.includes(userData.user_id);
-          
+
           let newLikedBy = comment.likedBy || [];
           let newDislikedBy = comment.dislikedBy || [];
           let newLikes = comment.likes || 0;
@@ -469,7 +449,7 @@ const UnlockContent = () => {
             // Add like
             newLikedBy = [...newLikedBy, userData.user_id];
             newLikes = newLikes + 1;
-            
+
             // Remove dislike if exists
             if (userAlreadyDisliked) {
               newDislikedBy = newDislikedBy.filter(id => id !== userData.user_id);
@@ -514,7 +494,7 @@ const UnlockContent = () => {
         if (comment.id === commentId) {
           const userAlreadyLiked = comment.likedBy?.includes(userData.user_id);
           const userAlreadyDisliked = comment.dislikedBy?.includes(userData.user_id);
-          
+
           let newLikedBy = comment.likedBy || [];
           let newDislikedBy = comment.dislikedBy || [];
           let newLikes = comment.likes || 0;
@@ -528,7 +508,7 @@ const UnlockContent = () => {
             // Add dislike
             newDislikedBy = [...newDislikedBy, userData.user_id];
             newDislikes = newDislikes + 1;
-            
+
             // Remove like if exists
             if (userAlreadyLiked) {
               newLikedBy = newLikedBy.filter(id => id !== userData.user_id);
@@ -556,6 +536,90 @@ const UnlockContent = () => {
     }
   };
 
+  // Fetch content data and handle initial logic
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // 1) Get content info
+        const contentResponse = await axios.get(`${API_URL}/api/unlock/unlock-content/${itemid}`);
+        const content = contentResponse.data;
+        console.log("HostUser Content Data: ", content);
+        setContentData(content);
+
+        setLikes(content.likes || 0);
+        setDislikes(content.dislikes || 0);
+        setViews(content.views || 0);
+        setRating(content.rating || 0);
+
+        // Load comments for this content
+        await loadComments(content.id);
+
+        // 2) Check if user is logged in
+        try {
+          const token = localStorage.getItem('token');
+          if (token) {
+            const balanceResponse = await axios.get(`${API_URL}/api/wallet`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            setUserBalance(balanceResponse.data.balance);
+            setIsLoggedIn(true);
+          }
+        } catch {
+          setIsLoggedIn(false);
+        }
+
+        // 3) If logged in, load user profile & user rating
+        if (isLoggedIn) {
+          await loadUserProfile();
+          try {
+            const token = localStorage.getItem('token');
+            const ratingResp = await axios.get(
+              `${API_URL}/api/unlock/content-rating/${content.id}`,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            setUserLikeStatus(ratingResp.data.like_status || 0);
+            setUserRating(ratingResp.data.rating || 0);
+            setHasUserRated(ratingResp.data.has_rated || false);
+          } catch (error) {
+            console.error('Failed to fetch user rating:', error);
+          }
+        }
+
+        // 4) Increment view count
+        await axios.post(
+          `${API_URL}/api/unlock/add-view`,
+          { contentId: content.id },
+          { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+        );
+        setViews((prev) => prev + 1);
+      } catch (err) {
+        if (err.response && err.response.status === 401) {
+          setIsLoggedIn(false);
+        } else {
+          setError('Failed to load data.');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+
+    // Warn user if they leave after unlocking
+    const handleBeforeUnload = (e) => {
+      if (unlocked) {
+        e.preventDefault();
+        e.returnValue = 'Go to the unlocked content section in your Stuff Tab';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [itemid, unlocked, isLoggedIn, API_URL]);
+
   if (loading) return <CircularProgress />;
   if (error) return <Typography color="error">{error}</Typography>;
 
@@ -568,31 +632,37 @@ const UnlockContent = () => {
       {/* Basic info about the content */}
       <Paper style={{ backgroundColor: 'lightblue', padding: '10px' }}>
         <Typography variant="h5" gutterBottom>
-          Title: {contentData.title}
+          Title: {contentData?.title}
         </Typography>
-        
+
         {/* Fixed: Linear, left-aligned layout for "By:" section */}
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
+        <Box sx={{
+          display: 'flex',
+          alignItems: 'center',
           justifyContent: 'flex-start',
           gap: 1,
           mb: 2
         }}>
           <Typography variant="h5">By:</Typography>
-          <Avatar 
-            src={contentData.profilePic || contentData.avatar} 
-            alt={contentData.host_username}
+          <Avatar
+            src={contentData?.profilePic || contentData?.avatar}
+            alt={contentData?.host_username}
             sx={{ width: 32, height: 32 }}
           />
-          <Typography variant="h5">{contentData.host_username}</Typography>
+          <Typography variant="h5">{contentData?.host_username}</Typography>
+
         </Box>
-        
+        <Button
+          onClick={() => navigate(`/user/${contentData?.host_user_id}`)}
+        >
+          <SendOutlined></SendOutlined>
+          Visit Profile
+        </Button>
         <Typography variant="subtitle1" gutterBottom>
-          Description: {contentData.description}
+          Description: {contentData?.description}
         </Typography>
         <Typography variant="body1" gutterBottom>
-          Cost: ₡{contentData.cost}
+          Cost: ₡{contentData?.cost}
         </Typography>
         {isLoggedIn && (
           <Typography variant="body1" gutterBottom>
@@ -614,7 +684,7 @@ const UnlockContent = () => {
           <Grid item>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
               <LockOpenRounded />
-              <Typography variant="body2">{contentData.unlocks || 0}</Typography>
+              <Typography variant="body2">{contentData?.unlocks || 0}</Typography>
             </Box>
           </Grid>
           <Grid item>
@@ -645,6 +715,123 @@ const UnlockContent = () => {
         </Grid>
       </Paper>
 
+      {/* Unlock Button or Unlocked Content */}
+      {!unlocked ? (
+        <>
+          <Box sx={{ display: 'flex', variant: "h5", justifyContent: 'center', mt: 2 }}>
+            <Button variant="contained" color="primary" onClick={handleUnlock}>
+              Unlock Content
+            </Button>
+          </Box>
+        </>
+      ) : (
+        <>
+          <Paper elevation={3} sx={{ p: 2, mt: 2 }}>
+            <Typography variant="h5" gutterBottom align="center">
+              Unlocked Content
+            </Typography>
+            <div style={{ marginBottom: '10px', alignContent: 'center' }}>
+              <Typography variant="subtitle1" gutterBottom>
+                Type: {contentData?.type}
+              </Typography>
+              {renderContent()}
+            </div>
+
+            <Paper style={{ backgroundColor: '#DDDDED', padding: '10px', marginTop: '20px' }}>
+              <Typography variant="h6" gutterBottom align="center">
+                {hasUserRated ? 'Your Rating (Submitted)' : 'Rate This Content'}
+              </Typography>
+              <Grid container spacing={2} alignItems="center" justifyContent="center">
+                <Grid item>
+                  <Button
+                    variant={userLikeStatus === 1 ? 'contained' : 'outlined'}
+                    startIcon={userLikeStatus === 1 ? <ThumbUp /> : <ThumbUpOutlined />}
+                    onClick={handleLike}
+                    disabled={hasUserRated}
+                    color={hasUserRated && userLikeStatus === 1 ? 'success' : 'primary'}
+                  >
+                    {likes}
+                  </Button>
+                </Grid>
+                <Grid item>
+                  <Button
+                    variant={userLikeStatus === -1 ? 'contained' : 'outlined'}
+                    startIcon={userLikeStatus === -1 ? <ThumbDownAlt /> : <ThumbDownAltOutlined />}
+                    onClick={handleDislike}
+                    disabled={hasUserRated}
+                    color={hasUserRated && userLikeStatus === -1 ? 'error' : 'primary'}
+                  >
+                    {dislikes}
+                  </Button>
+                </Grid>
+                <Grid item>
+                  <Typography component="legend">Star Rating:</Typography>
+                  <Rating
+                    name="content-rating"
+                    value={userRating}
+                    onChange={handleRatingChange}
+                    disabled={hasUserRated}
+                  />
+                </Grid>
+              </Grid>
+
+              {hasUserRated && (
+                <Typography
+                  variant="body2"
+                  color="success.main"
+                  align="center"
+                  sx={{ mt: 1, fontWeight: 'bold' }}
+                >
+                  ✓ Thank you for rating this content!
+                </Typography>
+              )}
+            </Paper>
+
+            <div style={{ marginTop: '15px' }}>
+              <Typography variant="subtitle1" gutterBottom>
+                Leave a message for the Creator:
+              </Typography>
+              <div style={{ display: "flex", fontSize: '0.8em', color: 'gray', marginBottom: '5px', gap: '5px' }}>
+                <TextField
+                  label="Leave a Message"
+                  fullWidth
+                  margin="normal"
+                  placeholder={`Enjoy: ₡${contentData?.cost}!`}
+                  onChange={(e) => setMessage(e.target.value)}
+                  disabled={hasUserRated}
+                />
+                <Button
+                  variant={hasUserRated ? 'contained' : 'outlined'}
+                  onClick={submitRating}
+                  disabled={hasUserRated || isSubmittingRating}
+                  color={hasUserRated ? 'success' : 'primary'}
+                  sx={{ minWidth: 120 }}
+                >
+                  {isSubmittingRating ? (
+                    <CircularProgress size={20} />
+                  ) : hasUserRated ? (
+                    'Sent ✓'
+                  ) : (
+                    'Send Rating'
+                  )}
+                </Button>
+              </div>
+              {!hasUserRated && (
+                <Typography variant="caption" color="text.secondary">
+                  Note: You can only rate content once. Set your star rating and like/dislike before submitting.
+                </Typography>
+              )}
+
+              {hasUserRated && (
+                <Typography variant="caption" color="success.main">
+                  Your rating has been submitted successfully!
+                </Typography>
+              )}
+            </div>
+          </Paper>
+        </>
+      )}
+
       {/* Comments Section */}
       <Paper style={{ backgroundColor: '#F0F0F0', padding: '10px', marginTop: '20px' }}>
         <Typography variant="h4" gutterBottom>
@@ -659,7 +846,7 @@ const UnlockContent = () => {
             comments.map((comment) => {
               const userLiked = comment.likedBy?.includes(userData.user_id);
               const userDisliked = comment.dislikedBy?.includes(userData.user_id);
-              
+
               return (
                 <Card key={comment.id} sx={{ mb: 2 }}>
                   <CardContent>
@@ -679,8 +866,8 @@ const UnlockContent = () => {
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <IconButton 
-                          size="small" 
+                        <IconButton
+                          size="small"
                           onClick={() => handleCommentLike(comment.id)}
                           disabled={!isLoggedIn || !unlocked}
                           color={userLiked ? "primary" : "default"}
@@ -690,8 +877,8 @@ const UnlockContent = () => {
                         <Typography variant="caption">{comment.likes || 0}</Typography>
                       </Box>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <IconButton 
-                          size="small" 
+                        <IconButton
+                          size="small"
                           onClick={() => handleCommentDislike(comment.id)}
                           disabled={!isLoggedIn || !unlocked}
                           color={userDisliked ? "primary" : "default"}
@@ -725,22 +912,22 @@ const UnlockContent = () => {
             multiline
             rows={3}
             margin="normal"
-            placeholder={unlocked ? `I think that "${contentData.title}" is amazing!` : "Unlock content to leave comments"}
+            placeholder={unlocked ? `I think that "${contentData?.title}" is amazing!` : "Unlock content to leave comments"}
             value={commentText}
             onChange={(e) => setCommentText(e.target.value)}
             disabled={!isLoggedIn || !unlocked}
             helperText={
-              !isLoggedIn ? "Please log in to leave comments" : 
-              !unlocked ? "You must unlock this content to leave comments" : ""
+              !isLoggedIn ? "Please log in to leave comments" :
+                !unlocked ? "You must unlock this content to leave comments" : ""
             }
             sx={{ width: '100%' }}
           />
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
             {/* Fixed: Made button light green */}
-            <Button 
-              variant="contained" 
+            <Button
+              variant="contained"
               onClick={handleCommentSubmit}
-              sx={{ 
+              sx={{
                 backgroundColor: '#4CAF50',
                 '&:hover': {
                   backgroundColor: '#45a049'
@@ -753,79 +940,12 @@ const UnlockContent = () => {
         </div>
       </Paper>
 
-      {/* Unlock Button or Unlocked Content */}
-      {!unlocked ? (
-        <>
-          <Box sx={{ display: 'flex', variant: "h5", justifyContent: 'center', mt: 2 }}>
-            <Button variant="contained" color="primary" onClick={handleUnlock}>
-              Unlock Content
-            </Button>
-          </Box>
-        </>
-      ) : (
-        <>
-          <Paper elevation={3} sx={{ p: 5, mt: 2 }}>
-            <Typography variant="h5" gutterBottom align="center">
-              Unlocked Content
-            </Typography>
-            {renderContent()}
-          </Paper>
-
-          <div style={{ marginTop: '30px' }}>
-            <Typography variant="subtitle1" gutterBottom>
-              Leave a message for the Creator:
-            </Typography>
-            <TextField
-              label="Leave a Message"
-              fullWidth
-              margin="normal"
-              placeholder={`Enjoy: ₡${contentData.cost}!`}
-              onChange={(e) => setMessage(e.target.value)}
-            />
-          </div>
-
-          <Paper style={{ backgroundColor: 'lightgray', padding: '10px', marginTop: '20px' }}>
-            <Typography variant="h6" gutterBottom align="center">
-              Like and Rate Content
-            </Typography>
-            <Grid container spacing={2} alignItems="center" justifyContent="center">
-              <Grid item>
-                <Button
-                  variant={userLikeStatus === 1 ? 'contained' : 'outlined'}
-                  startIcon={userLikeStatus === 1 ? <ThumbUp /> : <ThumbUpOutlined />}
-                  onClick={handleLike}
-                >
-                  {likes}
-                </Button>
-              </Grid>
-              <Grid item>
-                <Button
-                  variant={userLikeStatus === -1 ? 'contained' : 'outlined'}
-                  startIcon={userLikeStatus === -1 ? <ThumbDownAlt /> : <ThumbDownAltOutlined />}
-                  onClick={handleDislike}
-                >
-                  {dislikes}
-                </Button>
-              </Grid>
-              <Grid item>
-                <Typography component="legend">Rate:</Typography>
-                <Rating
-                  name="content-rating"
-                  value={userRating}
-                  onChange={handleRatingChange}
-                />
-              </Grid>
-            </Grid>
-          </Paper>
-        </>
-      )}
-
       {/* Unlock Confirmation Dialog */}
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
         <DialogTitle>Confirm Unlock</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to unlock this content for ₡{contentData.cost}?
+            Are you sure you want to unlock this content for ₡{contentData?.cost}?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -846,7 +966,7 @@ const UnlockContent = () => {
         <Box
           sx={{
             position: 'absolute', top: '50%', left: '50%',
-            transform: 'translate(-50%, -50%)', width: 400,
+            transform: 'translate(-50%, -50%)', width: 400, height: 600,
             bgcolor: 'background.paper', boxShadow: 24, p: 4, outline: 'none',
           }}
         >

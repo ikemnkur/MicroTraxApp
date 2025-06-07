@@ -1,11 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
+// import { ArrowForward } from '@mui/material'; // Add this to your imports
+import { useNavigate } from 'react-router-dom'; // Add this if not already imported
+
+
 import {
-  Typography, TextField, Button, List, ListItem, ListItemText, ListItemAvatar, 
+  Typography, TextField, Button, List, ListItem, ListItemText, ListItemAvatar,
   Avatar, Paper, Box, Grid, CircularProgress, IconButton, Chip, Dialog,
   DialogTitle, DialogContent, DialogActions, InputAdornment, Divider,
   Menu, MenuItem, Alert, Snackbar
 } from '@mui/material';
 import {
+  ArrowBack as ArrowBackIcon, ArrowForward as ArrowForwardIcon,
   Send as SendIcon, Favorite as FavoriteIcon, FavoriteBorder as FavoriteBorderIcon,
   Reply as ReplyIcon, Close as CloseIcon, Search as SearchIcon, MoreVert as MoreVertIcon,
   Block as BlockIcon, Delete as DeleteIcon, Schedule as ScheduleIcon, Clear as ClearIcon
@@ -31,6 +36,15 @@ const Messages = () => {
   const { username } = useParams();
 
   const API_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:5000';
+
+  // Add this inside your component (before the return statement):
+  const navigate = useNavigate();
+
+  const handleProfileNavigation = (username, event) => {
+    event.stopPropagation(); // Prevent the ListItem onClick from firing
+    navigate(`/user/${username}`);
+  };
+
 
   useEffect(() => {
     fetchCurrentUser();
@@ -92,7 +106,7 @@ const Messages = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setCurrentConversation(response.data);
-      
+
       // Mark messages as read
       await markMessagesAsRead(otherUser);
     } catch (error) {
@@ -130,7 +144,7 @@ const Messages = () => {
     if (messageText.trim() && selectedUser) {
       try {
         const token = localStorage.getItem('token');
-        
+
         await axios.post(`${API_URL}/api/messages/send`, {
           toUser: selectedUser,
           messageText: messageText.trim(),
@@ -272,7 +286,7 @@ const Messages = () => {
     const now = new Date();
     const diffTime = deleteDate - now;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays <= 0) return 'Soon';
     if (diffDays === 1) return '1 day';
     return `${diffDays} days`;
@@ -280,18 +294,18 @@ const Messages = () => {
 
   const renderMessage = (msg, index) => {
     if (!currentConversation?.messages) return null;
-    
+
     const isOwnMessage = msg.sender === currentUser;
     const isSystemMessage = msg.type === 'system';
-    const showDate = index === 0 || 
+    const showDate = index === 0 ||
       formatDate(msg.timestamp) !== formatDate(currentConversation.messages[index - 1]?.timestamp || msg.timestamp);
 
     if (isSystemMessage) {
       return (
         <Box key={msg.id} sx={{ textAlign: 'center', my: 2 }}>
-          <Chip 
-            label={msg.text} 
-            size="small" 
+          <Chip
+            label={msg.text}
+            size="small"
             color={msg.text.includes('blocked') ? 'error' : 'success'}
             variant="outlined"
           />
@@ -306,31 +320,31 @@ const Messages = () => {
             <Chip label={formatDate(msg.timestamp)} size="small" />
           </Box>
         )}
-        <Box sx={{ 
-          mb: 1, 
+        <Box sx={{
+          mb: 1,
           display: 'flex',
           justifyContent: isOwnMessage ? 'flex-end' : 'flex-start',
           alignItems: 'flex-end'
         }}>
-          <Box sx={{ 
+          <Box sx={{
             maxWidth: '70%',
             display: 'flex',
             flexDirection: 'column',
             alignItems: isOwnMessage ? 'flex-end' : 'flex-start'
           }}>
             {msg.replyTo && (
-              <Paper sx={{ 
-                p: 1, 
-                mb: 0.5, 
-                bgcolor: 'grey.100', 
-                borderLeft: 3, 
+              <Paper sx={{
+                p: 1,
+                mb: 0.5,
+                bgcolor: 'grey.100',
+                borderLeft: 3,
                 borderColor: 'primary.main',
                 maxWidth: '100%'
               }}>
                 <Typography variant="caption" color="primary">
                   Replying to {msg.replyTo.sender}:
                 </Typography>
-                <Typography variant="body2" sx={{ 
+                <Typography variant="body2" sx={{
                   fontStyle: 'italic',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -340,21 +354,21 @@ const Messages = () => {
                 </Typography>
               </Paper>
             )}
-            <Paper sx={{ 
-              p: 1.5, 
+            <Paper sx={{
+              p: 1.5,
               bgcolor: isOwnMessage ? 'primary.main' : 'grey.200',
               color: isOwnMessage ? 'white' : 'text.primary',
               borderRadius: 2,
               position: 'relative'
             }}>
               <Typography variant="body1">{msg.text}</Typography>
-              <Box sx={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
+              <Box sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
                 alignItems: 'center',
                 mt: 0.5
               }}>
-                <Typography variant="caption" sx={{ 
+                <Typography variant="caption" sx={{
                   opacity: 0.7,
                   color: isOwnMessage ? 'inherit' : 'text.secondary'
                 }}>
@@ -362,15 +376,15 @@ const Messages = () => {
                   {msg.read && isOwnMessage && ' • Read'}
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <IconButton 
-                    size="small" 
+                  <IconButton
+                    size="small"
                     onClick={() => handleLikeMessage(msg.id, msg.liked)}
                     sx={{ color: isOwnMessage ? 'inherit' : 'text.secondary' }}
                   >
                     {msg.liked ? <FavoriteIcon fontSize="small" /> : <FavoriteBorderIcon fontSize="small" />}
                   </IconButton>
-                  <IconButton 
-                    size="small" 
+                  <IconButton
+                    size="small"
                     onClick={() => handleReply(msg)}
                     sx={{ color: isOwnMessage ? 'inherit' : 'text.secondary' }}
                   >
@@ -396,21 +410,21 @@ const Messages = () => {
   return (
     <Box sx={{ maxWidth: 1200, margin: 'auto', p: 2 }}>
       <Typography variant="h4" gutterBottom>Messages</Typography>
-      
+
       <Grid container spacing={2} sx={{ height: '80vh' }}>
         {/* Conversations List */}
         <Grid item xs={12} md={4}>
           <Paper sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <Box sx={{ p: 2 }}>
-              <Button 
-                variant="contained" 
-                fullWidth 
+              <Button
+                variant="contained"
+                fullWidth
                 onClick={() => setOpenNewChat(true)}
                 sx={{ mb: 2 }}
               >
                 New Chat
               </Button>
-              
+
               {/* Search Bar */}
               <TextField
                 fullWidth
@@ -436,7 +450,97 @@ const Messages = () => {
               />
             </Box>
             <Divider />
+            {/* // Modified List component: */}
             <List sx={{ flexGrow: 1, overflow: 'auto' }}>
+              {filteredConversations.length > 0 ? (
+                filteredConversations.map((conv) => (
+                  <ListItem
+                    button
+                    key={conv.otherUser}
+                    selected={selectedUser === conv.otherUser}
+                    onClick={() => handleSelectUser(conv.otherUser)}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      '&:hover .profile-arrow': {
+                        opacity: 1,
+                      }
+                    }}
+                  >
+                    <ListItemAvatar>
+                      {/* <Avatar>{conv.otherUser.charAt(0).toUpperCase()}</Avatar> */}
+                      <Avatar src={conv.otherUser.profilePic || conv.otherUser.avatar} alt={conv.otherUser.username} />
+                    </ListItemAvatar>
+                    <ListItemText
+                      primary={
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography variant="subtitle1">
+                            {conv.otherUser}
+                          </Typography>
+                          {conv.isBlocked && (
+                            <Chip label="Blocked" size="small" color="error" />
+                          )}
+                          {conv.pendingResponse && (
+                            <Chip label="Waiting" size="small" color="warning" />
+                          )}
+                        </Box>
+                      }
+                      secondary={
+                        <Box>
+                          <Typography variant="body2" color="text.secondary">
+                            {conv.lastMessage || 'No messages yet'}
+                          </Typography>
+                          {conv.autoDeleteAt && (
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
+                              <ScheduleIcon fontSize="small" color="action" />
+                              <Typography variant="caption" color="text.secondary">
+                                Auto-delete in {formatAutoDeleteTime(conv.autoDeleteAt)}
+                              </Typography>
+                            </Box>
+                          )}
+                        </Box>
+                      }
+                    />
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      {conv.unreadCount > 0 && (
+                        <Chip
+                          label={conv.unreadCount}
+                          size="small"
+                          color="primary"
+                        />
+                      )}
+                      <IconButton
+                        className="profile-arrow"
+                        size="small"
+                        onClick={(event) => handleProfileNavigation(conv.otherUser, event)}
+                        sx={{
+                          opacity: 0.7,
+                          transition: 'opacity 0.2s ease',
+                          '&:hover': {
+                            opacity: 1,
+                            backgroundColor: 'action.hover'
+                          }
+                        }}
+                        title={`View ${conv.otherUser}'s profile`}
+                      >
+                        <ArrowForwardIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  </ListItem>
+                ))
+              ) : (
+                <ListItem>
+                  <ListItemText
+                    primary={
+                      <Typography variant="body2" color="text.secondary" align="center">
+                        {conversationSearch ? 'No conversations found' : 'No conversations yet'}
+                      </Typography>
+                    }
+                  />
+                </ListItem>
+              )}
+            </List>
+            {/* <List sx={{ flexGrow: 1, overflow: 'auto' }}>
               {filteredConversations.length > 0 ? (
                 filteredConversations.map((conv) => (
                   <ListItem
@@ -448,7 +552,7 @@ const Messages = () => {
                     <ListItemAvatar>
                       <Avatar>{conv.otherUser.charAt(0).toUpperCase()}</Avatar>
                     </ListItemAvatar>
-                    <ListItemText 
+                    <ListItemText
                       primary={
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <Typography variant="subtitle1">
@@ -479,9 +583,9 @@ const Messages = () => {
                       }
                     />
                     {conv.unreadCount > 0 && (
-                      <Chip 
-                        label={conv.unreadCount} 
-                        size="small" 
+                      <Chip
+                        label={conv.unreadCount}
+                        size="small"
                         color="primary"
                       />
                     )}
@@ -489,7 +593,7 @@ const Messages = () => {
                 ))
               ) : (
                 <ListItem>
-                  <ListItemText 
+                  <ListItemText
                     primary={
                       <Typography variant="body2" color="text.secondary" align="center">
                         {conversationSearch ? 'No conversations found' : 'No conversations yet'}
@@ -498,7 +602,7 @@ const Messages = () => {
                   />
                 </ListItem>
               )}
-            </List>
+            </List> */}
           </Paper>
         </Grid>
 
@@ -508,9 +612,9 @@ const Messages = () => {
             {selectedUser ? (
               <>
                 {/* Header */}
-                <Box sx={{ 
-                  p: 2, 
-                  borderBottom: 1, 
+                <Box sx={{
+                  p: 2,
+                  borderBottom: 1,
                   borderColor: 'divider',
                   display: 'flex',
                   justifyContent: 'space-between',
@@ -535,30 +639,30 @@ const Messages = () => {
                 </Box>
 
                 {/* Messages */}
-                <Box sx={{ 
-                  flexGrow: 1, 
-                  overflowY: 'auto', 
+                <Box sx={{
+                  flexGrow: 1,
+                  overflowY: 'auto',
                   p: 2,
                   display: 'flex',
                   flexDirection: 'column'
                 }}>
                   {currentConversation?.status?.includes('blocked') && (
                     <Alert severity="warning" sx={{ mb: 2 }}>
-                      This conversation is blocked by {currentConversation.status === 'blocked_by_user1' ? 
+                      This conversation is blocked by {currentConversation.status === 'blocked_by_user1' ?
                         (currentConversation.user1 === currentUser ? 'you' : currentConversation.user1) :
                         (currentConversation.user2 === currentUser ? 'you' : currentConversation.user2)
                       }
                     </Alert>
                   )}
-                  
+
                   {currentConversation?.messages?.length > 0 ? (
                     currentConversation.messages.map((msg, index) => renderMessage(msg, index))
                   ) : (
-                    <Box sx={{ 
-                      display: 'flex', 
-                      justifyContent: 'center', 
-                      alignItems: 'center', 
-                      height: '100%' 
+                    <Box sx={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      height: '100%'
                     }}>
                       <Typography color="text.secondary">
                         No messages yet. Start the conversation!
@@ -595,7 +699,7 @@ const Messages = () => {
                         fullWidth
                         value={messageText}
                         onChange={(e) => setMessageText(e.target.value)}
-                        placeholder={currentConversation?.pendingResponse ? 
+                        placeholder={currentConversation?.pendingResponse ?
                           "Wait for response..." : "Type your message..."
                         }
                         variant="outlined"
@@ -604,9 +708,9 @@ const Messages = () => {
                         maxRows={4}
                         disabled={currentConversation?.pendingResponse}
                       />
-                      <Button 
-                        type="submit" 
-                        variant="contained" 
+                      <Button
+                        type="submit"
+                        variant="contained"
                         endIcon={<SendIcon />}
                         disabled={!messageText.trim() || currentConversation?.pendingResponse}
                       >
@@ -617,11 +721,11 @@ const Messages = () => {
                 )}
               </>
             ) : (
-              <Box sx={{ 
-                display: 'flex', 
-                justifyContent: 'center', 
-                alignItems: 'center', 
-                height: '100%' 
+              <Box sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: '100%'
               }}>
                 <Typography variant="h6" color="text.secondary">
                   Select a conversation to start messaging
@@ -687,8 +791,8 @@ const Messages = () => {
         autoHideDuration={6000}
         onClose={() => setSnackbar({ ...snackbar, open: false })}
       >
-        <Alert 
-          onClose={() => setSnackbar({ ...snackbar, open: false })} 
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
           severity={snackbar.severity}
         >
           {snackbar.message}

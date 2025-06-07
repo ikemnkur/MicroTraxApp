@@ -221,12 +221,14 @@ const Search4User = () => {
 
   function gotoUserProfile(user) {
     console.log('User: ', user);
-    navigate(`/user/${user.user_id}`);
+    // navigate(`/user/${user.user_id}`);
+    navigate(`/user/${user.username}`);
   }
 
   function gotofavProfile(fav) {
     console.log('Favorite: ', fav);
-    navigate(`/user/${fav.user_id}`);
+    // navigate(`/user/${fav.user_id}`);
+    navigate(`/user/${fav.username}`);
   }
 
   return (

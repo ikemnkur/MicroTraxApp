@@ -18,6 +18,7 @@ import {
 } from '@mui/material';
 import {
   Send as SendIcon,
+  PictureAsPdfOutlined as PictureIcon,
   Favorite as FavoriteIcon,
   Report as ReportIcon,
   Message as MessageIcon,
@@ -77,14 +78,17 @@ const UserProfile = () => {
         if (userData.created_at) {
           userData.created_at = convertTimestamp(userData.created_at);
         }
+        console.log("user-profile: User ID = ", userId)
         console.log("user-profile-data: ", userData)
         setUser(userData);
         setIsFavorite(userData.isFavorite);
       } catch (error) {
         try {
-          const userData = await fetchOtherUserProfile(userId);
+          let username = userId;
+          console.log("user-profile: UserName = ", username)
+          const userData = await fetchOtherUserProfile(username);
           setUser(userData);
-          console.log("user-profile: User ID = ", userId)
+          // console.log("user-profile: User ID = ", userId)
           console.log("user-profile-data: ", userData)
           setIsFavorite(userData.isFavorite);
         } catch (error) {
@@ -115,6 +119,10 @@ const UserProfile = () => {
 
   const handleSendMoney = () => {
     navigate(`/send?recipient=${user.username}`);
+  };
+
+  const handleViewingUserPosts = () => {
+    navigate(`/user-posts/${user.username}`);
   };
 
   const handleToggleFavorite = async () => {
@@ -226,6 +234,13 @@ const UserProfile = () => {
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'center', my: 2 }}>
+          <Button
+            variant="contained"
+            startIcon={<PictureIcon />}
+            onClick={handleViewingUserPosts}
+          >
+            <Typography sx={{ mt: 1 }}>View Posts</Typography>
+          </Button>
           <Button
             variant="contained"
             startIcon={<SendIcon />}

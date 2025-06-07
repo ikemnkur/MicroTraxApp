@@ -29,6 +29,7 @@ import Subscriptions from './components/ManageSubscriptions';
 import ManageContent from './components/ManageContent';
 import AddToWallet from './components/AddToWallet';
 import YourStuff from './components/YourStuff';
+import OtherUserStuff from './components/OtherUserStuff';
 import AdminDashboard from './components/AdminDashboard';
 import AdminPurchasesPage from './components/adminPurchases';
 import AdminWithdrawsPage from './components/adminWithdraws';
@@ -81,7 +82,7 @@ function App() {
               <ProtectedRoute> <AdminDashboard /> </ProtectedRoute>} />
             <Route path="/dashboard" element={
               <ProtectedRoute> <Dashboard /> </ProtectedRoute>} />
-              <Route path="/" element={
+            <Route path="/" element={
               <ProtectedRoute> <Info /> </ProtectedRoute>} />
             <Route path="/transactions" element={
               <ProtectedRoute> <TransactionHistory /> </ProtectedRoute>} />
@@ -104,9 +105,9 @@ function App() {
             <Route path="/messages/:username" element={
               <ProtectedRoute> <Messages /> </ProtectedRoute>} />
             <Route path="/upgrade-account" element={
-              <ProtectedRoute> < UpgradeAccountPage/> </ProtectedRoute>} />
+              <ProtectedRoute> < UpgradeAccountPage /> </ProtectedRoute>} />
             <Route path="/downgrade-account" element={
-              <ProtectedRoute> < DowngradeAccountPage/> </ProtectedRoute>} />
+              <ProtectedRoute> < DowngradeAccountPage /> </ProtectedRoute>} />
             <Route path="/account" element={
               <ProtectedRoute> <Account /> </ProtectedRoute>} />
             <Route path="/settings" element={
@@ -123,6 +124,8 @@ function App() {
               <ProtectedRoute> <AddToWallet /> </ProtectedRoute>} />
             <Route path="/your-stuff" element={
               <ProtectedRoute> <YourStuff /> </ProtectedRoute>} />
+            <Route path="/user-posts/:user" element={
+              <ProtectedRoute> <OtherUserStuff /> </ProtectedRoute>} />
             <Route path="/Admin" element={
               <ProtectedRoute> <AdminDashboard /> </ProtectedRoute>} />
             {/* <Route path="/admin-purchases" element={
