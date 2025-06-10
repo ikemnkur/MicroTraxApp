@@ -121,7 +121,11 @@ export const CryptoCheckoutForm = ({ setCoins }) => {
       }
     } catch (error) {
       console.error('Error submitting order:', error);
+      if (error.message.includes("last 3 hours")) {
+        setErrorMessage(error.message);
+      }
       setErrorMessage('An error occurred. Please try again.');
+      alert(error.message)
     }
   };
 
@@ -151,7 +155,7 @@ export const CryptoCheckoutForm = ({ setCoins }) => {
       <div id="checkout" style={styles.container}>
         <h2>Order Logged!</h2>
         <p>
-          Please send <strong>{cryptoAmount} {currency}</strong> to the following wallet address:
+          Please make sure that you send <strong>{cryptoAmount} {currency}</strong> to the following wallet address:
         </p>
         <div style={styles.walletAddressContainer}>
           <p style={styles.walletAddress}>{walletAddress}</p>
@@ -167,6 +171,15 @@ export const CryptoCheckoutForm = ({ setCoins }) => {
           You will receive your coins once the transaction is confirmed.
           You check back on this order in a few hours.
         </p>
+        <div style={{alignItems: "center"}}>
+
+        </div>
+          <button style={styles.button} onClick={() => navigate('/dashboard')}>
+            Go to Dashboard
+          </button>
+           <button style={styles.button} onClick={() => navigate('/transactions')}>
+            See orders status
+          </button>
       </div>
     );
   }
@@ -194,6 +207,11 @@ export const CryptoCheckoutForm = ({ setCoins }) => {
       <br></br>
       <form onSubmit={handleOrderSubmit} style={styles.form}>
         <div style={styles.formGroup}>
+        <p>
+          After sending <strong>{cryptoAmount} {currency}</strong> to the following wallet address: {walletAddress} 
+          <br></br>
+          Fill out the form below to log your order.
+        </p>
           <label>
             Name:<span style={styles.required}>*</span>
           </label>
@@ -280,6 +298,23 @@ export const CryptoCheckoutForm = ({ setCoins }) => {
             style={styles.input}
           />
           <small>For reference, please format like (HH:MM + AM/PM), e.g., 12:15 PM</small>
+          {/* <br></br> */}
+           <button type="button" style={{float: "right", margin: 2, padding: 2}} onClick={() => {
+            const currentTime = new Date();
+            let hours = currentTime.getHours();
+            const minutes = currentTime.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12; // the hour '0' should be '12'
+            const strTime = hours + ':' + (minutes < 10 ? '0' + minutes : minutes) + ' ' + ampm;
+            setUserDetails((prev) => ({
+              ...prev,
+              time: strTime,
+            }));
+          }}> 
+            Get Current Time
+          </button>
+          
         </div>
 
         <div style={styles.formGroup}>

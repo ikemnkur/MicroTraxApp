@@ -283,7 +283,15 @@ const UserProfile = () => {
       />
 
       {/* Report Dialog */}
-      <Dialog open={openReportDialog} onClose={() => setOpenReportDialog(false)}>
+      <Dialog open={openReportDialog} onClose={() => setOpenReportDialog(false)}
+        sx={{
+          '& .MuiDialog-paper': {
+            width: '500px',
+            maxWidth: '90vw',
+            height: '270px',
+            maxHeight: '90vh'
+          }
+        }}>
         <DialogTitle>Report User</DialogTitle>
         <DialogContent>
           <TextField
@@ -293,7 +301,7 @@ const UserProfile = () => {
             type="text"
             fullWidth
             multiline
-            rows={4}
+            rows={6}
             value={reportMessage}
             onChange={(e) => setReportMessage(e.target.value)}
           />

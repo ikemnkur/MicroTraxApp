@@ -115,7 +115,7 @@ const OtherUserStuff = () => {
 
   // For now, using walletData username or default
   // const thisUser = { username: walletData?.username || 'CurrentUser' };
-  
+
   const otherUsername = useParams().user;  // Changed from .username to .user
   console.log("Other Username: ", otherUsername);
 
@@ -150,7 +150,7 @@ const OtherUserStuff = () => {
   const loadOtherUserContent = async (otherUsername) => {
     setIsLoading(true); // Set loading to true when starting
     setError(null); // Clear any previous errors
-    
+
     console.log("Loading content for user:", otherUsername);
 
     try {
@@ -225,6 +225,11 @@ const OtherUserStuff = () => {
   const handleSearchContent = () => {
     searchContent();
   };
+
+  const goToUserProfile = (e) => {
+    // e.preventDefault();
+    navigate(`/user/${otherUsername}`)
+  }
 
   const sortSubscriptions = (subscriptionsToSort) => {
     return [...subscriptionsToSort].sort((a, b) => {
@@ -397,13 +402,17 @@ const OtherUserStuff = () => {
 
   return (
     <Box sx={{ p: 2 }}>
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <Box sx={{ mt: 2 }}>
+      <Paper sx={{ p: 2, mb: 2,  }}>
+        <Box sx={{ mt: 2, backgroundColor: "#FFFFF8", border: "3px solid lightgrey", borderRadius:2, }}>
           <TableContainer component={Paper} sx={{ backgroundColor: lightBlue[90] }}>
             <Typography variant="h4" gutterBottom sx={{ p: 2 }}>
               {otherUsername ? `${otherUsername}'s Content` : 'User Content'}
+             <Button style={{ float: 'right', marginLeft: "50px", marginTop: "-3px" }} onClick={goToUserProfile} variant="contained" color="primary" sx={{ mt: 2 }}>
+              View Profile
+            </Button>
             </Typography>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2, alignItems: 'center', px: 2 }}>
+           
+            <Box sx={{ display: 'flex',  flexWrap: 'wrap', gap: 2, mb: 2, alignItems: 'center', px: 2 }}>
               <TextField
                 label="Search"
                 variant="outlined"
@@ -476,7 +485,7 @@ const OtherUserStuff = () => {
         </Box>
       </Paper>
 
-   
+
       {/* Share Dialog */}
       <Dialog
         open={openShareDialog}

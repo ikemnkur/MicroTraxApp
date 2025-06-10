@@ -40,11 +40,11 @@ const Messages = () => {
   // Add this inside your component (before the return statement):
   const navigate = useNavigate();
 
+  // Also update your handleProfileNavigation function:
   const handleProfileNavigation = (username, event) => {
-    event.stopPropagation(); // Prevent the ListItem onClick from firing
+    event.stopPropagation();
     navigate(`/user/${username}`);
   };
-
 
   useEffect(() => {
     fetchCurrentUser();
@@ -451,14 +451,15 @@ const Messages = () => {
             </Box>
             <Divider />
             {/* // Modified List component: */}
+            {/* // Updated List component with profile pictures: */}
             <List sx={{ flexGrow: 1, overflow: 'auto' }}>
               {filteredConversations.length > 0 ? (
                 filteredConversations.map((conv) => (
                   <ListItem
                     button
-                    key={conv.otherUser}
-                    selected={selectedUser === conv.otherUser}
-                    onClick={() => handleSelectUser(conv.otherUser)}
+                    key={conv.otherUser.username}
+                    selected={selectedUser === conv.otherUser.username}
+                    onClick={() => handleSelectUser(conv.otherUser.username)}
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
@@ -468,14 +469,18 @@ const Messages = () => {
                     }}
                   >
                     <ListItemAvatar>
-                      {/* <Avatar>{conv.otherUser.charAt(0).toUpperCase()}</Avatar> */}
-                      <Avatar src={conv.otherUser.profilePic || conv.otherUser.avatar} alt={conv.otherUser.username} />
+                      <Avatar
+                        src={conv.otherUser.profilePic}
+                        alt={conv.otherUser.username}
+                      >
+                        {conv.otherUser.username.charAt(0).toUpperCase()}
+                      </Avatar>
                     </ListItemAvatar>
                     <ListItemText
                       primary={
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <Typography variant="subtitle1">
-                            {conv.otherUser}
+                            {conv.otherUser.username}
                           </Typography>
                           {conv.isBlocked && (
                             <Chip label="Blocked" size="small" color="error" />
@@ -512,7 +517,7 @@ const Messages = () => {
                       <IconButton
                         className="profile-arrow"
                         size="small"
-                        onClick={(event) => handleProfileNavigation(conv.otherUser, event)}
+                        onClick={(event) => handleProfileNavigation(conv.otherUser.username, event)}
                         sx={{
                           opacity: 0.7,
                           transition: 'opacity 0.2s ease',
@@ -521,7 +526,7 @@ const Messages = () => {
                             backgroundColor: 'action.hover'
                           }
                         }}
-                        title={`View ${conv.otherUser}'s profile`}
+                        title={`View ${conv.otherUser.username}'s profile`}
                       >
                         <ArrowForwardIcon fontSize="small" />
                       </IconButton>
