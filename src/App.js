@@ -35,6 +35,7 @@ import AdminPurchasesPage from './components/adminPurchases';
 import AdminWithdrawsPage from './components/adminWithdraws';
 import ProtectedRoute from './components/ProtectedRoute';
 import SubscribeToContent from "./components/SubscribeToContent";
+import UserManagement from "./components/UserManagement";
 
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
@@ -142,6 +143,9 @@ function App() {
               <ProtectedRoute> <CoinBaseCheckoutForm setCoins={setCoins} /> </ProtectedRoute>} />
             <Route path="/return" element={
               <ProtectedRoute> <Return /> </ProtectedRoute>} />
+            <Route path="/test" element={
+              <ProtectedRoute> <UserManagement /> </ProtectedRoute>} />
+         
           </Routes>
         </NavBar>
       </Router>

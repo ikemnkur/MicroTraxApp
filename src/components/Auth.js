@@ -88,7 +88,8 @@ const Auth = ({ isLogin, onLoginSuccess }) => {
     if (token) {
       // Validate the token with the backend
       axios
-        .get(`${API_URL}/api/auth/validate-token`, {
+        // .get(`${API_URL}/api/auth/validate-token`, {
+        .get(`${API_URL}/api/user/validate/${username}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then(() => {

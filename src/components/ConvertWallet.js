@@ -43,6 +43,16 @@ const ConvertWallet = () => {
     }
   };
 
+  // Calculate fee whenever amount or convertMethod changes
+  useEffect(() => {
+    if (convertMethod === "spend") {
+      setFee(Math.floor(amount * 0.05));
+    }
+    if (convertMethod === "redeem") {
+      setFee(Math.floor(amount * 0.1));
+    }
+  }, [amount, convertMethod]);
+
   // Prepare conversion data
   const conversionData = {
     username: userData.username,
@@ -74,13 +84,7 @@ const ConvertWallet = () => {
       alert("Minimum conversion amount is 250 Coins");
       return;
     }
-    if (convertMethod === "spend") {
-      setFee(Math.floor(amount * 0.05));
-    }
-    if (convertMethod === "redeem") {
-      setFee(Math.floor(amount * 0.1));
-    }
-
+    
     convertCoins();
     // Optionally reset amount if you want:
     setAmount('');
@@ -160,7 +164,7 @@ const ConvertWallet = () => {
           <Box sx={{ mb: 3 }}>
             <FormLabel>
               <Typography variant="subtitle1">
-                Amount of {otherMethod} coins to convert to {convertMethod} coins:
+                Amount of {otherMethod}able coins to convert to {convertMethod}able coins:
               </Typography>
             </FormLabel>
             <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>

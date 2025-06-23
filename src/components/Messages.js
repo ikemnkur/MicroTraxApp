@@ -32,6 +32,13 @@ const Messages = () => {
   const [openNewChat, setOpenNewChat] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
+  
+  // New states for user search functionality
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState('');
+  const [selectedSearchUser, setSelectedSearchUser] = useState(null);
+  
   const messagesEndRef = useRef(null);
   const { username } = useParams();
 
@@ -71,6 +78,35 @@ const Messages = () => {
       setFilteredConversations(filtered);
     }
   }, [conversations, conversationSearch]);
+
+  // New useEffect for user search
+  useEffect(() => {
+    const searchUsers = async () => {
+      if (searchUsername.length >= 3) {
+        setSearchLoading(true);
+        setSearchError('');
+        try {
+          const token = localStorage.getItem('token');
+          const response = await axios.get(`${API_URL}/api/user/search?q=${encodeURIComponent(searchUsername)}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          setSearchResults(response.data.users || []);
+        } catch (error) {
+          console.error('Error searching users:', error);
+          setSearchError('Failed to search users. Please try again.');
+          setSearchResults([]);
+        } finally {
+          setSearchLoading(false);
+        }
+      } else {
+        setSearchResults([]);
+        setSearchError('');
+      }
+    };
+
+    const debounceTimer = setTimeout(searchUsers, 300);
+    return () => clearTimeout(debounceTimer);
+  }, [searchUsername]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -246,13 +282,55 @@ const Messages = () => {
     setReplyingTo(message);
   };
 
-  const startNewConversation = async () => {
-    if (searchUsername.trim()) {
-      setSelectedUser(searchUsername.trim());
-      setCurrentConversation({ messages: [], pendingResponse: false });
-      setOpenNewChat(false);
-      setSearchUsername('');
+  // Updated function to validate user existence
+  const validateAndStartConversation = async (username) => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Check if user exists
+      const response = await axios.get(`${API_URL}/api/user/exists/${username}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (response.data.exists) {
+        setSelectedUser(username);
+        setCurrentConversation({ messages: [], pendingResponse: false });
+        setOpenNewChat(false);
+        setSearchUsername('');
+        setSearchResults([]);
+        setSelectedSearchUser(null);
+        setSearchError('');
+      } else {
+        setSearchError('User does not exist');
+      }
+    } catch (error) {
+      console.error('Error validating user:', error);
+      if (error.response?.status === 404) {
+        setSearchError('User does not exist');
+      } else {
+        setSearchError('Failed to validate user. Please try again.');
+      }
     }
+  };
+
+  const startNewConversation = async () => {
+    const username = selectedSearchUser || searchUsername.trim();
+    if (username) {
+      await validateAndStartConversation(username);
+    }
+  };
+
+  const handleSelectSearchUser = (user) => {
+    setSelectedSearchUser(user.username);
+    setSearchUsername(user.username);
+  };
+
+  const handleCloseNewChat = () => {
+    setOpenNewChat(false);
+    setSearchUsername('');
+    setSearchResults([]);
+    setSelectedSearchUser(null);
+    setSearchError('');
   };
 
   const clearConversationSearch = () => {
@@ -545,69 +623,6 @@ const Messages = () => {
                 </ListItem>
               )}
             </List>
-            {/* <List sx={{ flexGrow: 1, overflow: 'auto' }}>
-              {filteredConversations.length > 0 ? (
-                filteredConversations.map((conv) => (
-                  <ListItem
-                    button
-                    key={conv.otherUser}
-                    selected={selectedUser === conv.otherUser}
-                    onClick={() => handleSelectUser(conv.otherUser)}
-                  >
-                    <ListItemAvatar>
-                      <Avatar>{conv.otherUser.charAt(0).toUpperCase()}</Avatar>
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary={
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Typography variant="subtitle1">
-                            {conv.otherUser}
-                          </Typography>
-                          {conv.isBlocked && (
-                            <Chip label="Blocked" size="small" color="error" />
-                          )}
-                          {conv.pendingResponse && (
-                            <Chip label="Waiting" size="small" color="warning" />
-                          )}
-                        </Box>
-                      }
-                      secondary={
-                        <Box>
-                          <Typography variant="body2" color="text.secondary">
-                            {conv.lastMessage || 'No messages yet'}
-                          </Typography>
-                          {conv.autoDeleteAt && (
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
-                              <ScheduleIcon fontSize="small" color="action" />
-                              <Typography variant="caption" color="text.secondary">
-                                Auto-delete in {formatAutoDeleteTime(conv.autoDeleteAt)}
-                              </Typography>
-                            </Box>
-                          )}
-                        </Box>
-                      }
-                    />
-                    {conv.unreadCount > 0 && (
-                      <Chip
-                        label={conv.unreadCount}
-                        size="small"
-                        color="primary"
-                      />
-                    )}
-                  </ListItem>
-                ))
-              ) : (
-                <ListItem>
-                  <ListItemText
-                    primary={
-                      <Typography variant="body2" color="text.secondary" align="center">
-                        {conversationSearch ? 'No conversations found' : 'No conversations yet'}
-                      </Typography>
-                    }
-                  />
-                </ListItem>
-              )}
-            </List> */}
           </Paper>
         </Grid>
 
@@ -761,31 +776,162 @@ const Messages = () => {
         </MenuItem>
       </Menu>
 
-      {/* New Chat Dialog */}
-      <Dialog open={openNewChat} onClose={() => setOpenNewChat(false)}>
+      {/* Enhanced New Chat Dialog */}
+      <Dialog 
+        open={openNewChat} 
+        onClose={handleCloseNewChat}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: { minHeight: '60vh', maxHeight: '80vh' }
+        }}
+      >
         <DialogTitle>Start New Conversation</DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column' }}>
           <TextField
             autoFocus
             margin="dense"
-            label="Username"
+            label="Search Users"
             fullWidth
             variant="outlined"
             value={searchUsername}
             onChange={(e) => setSearchUsername(e.target.value)}
+            placeholder="Type at least 3 characters to search..."
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
                   <SearchIcon />
                 </InputAdornment>
               ),
+              endAdornment: searchLoading && (
+                <InputAdornment position="end">
+                  <CircularProgress size={20} />
+                </InputAdornment>
+              ),
             }}
+            error={!!searchError}
+            helperText={searchError || (searchUsername.length > 0 && searchUsername.length < 3 ? 'Type at least 3 characters' : '')}
+            sx={{ mb: 2 }}
           />
+
+          {/* Search Results */}
+          {searchResults.length > 0 && (
+            <Box sx={{ flexGrow: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
+                Search Results ({searchResults.length})
+              </Typography>
+              <Paper 
+                variant="outlined" 
+                sx={{ 
+                  flexGrow: 1, 
+                  overflow: 'auto',
+                  maxHeight: '300px'
+                }}
+              >
+                <List dense>
+                  {searchResults.map((user) => (
+                    <ListItem
+                      key={user.username}
+                      button
+                      selected={selectedSearchUser === user.username}
+                      onClick={() => handleSelectSearchUser(user)}
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: 'action.hover',
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: 'primary.light',
+                          '&:hover': {
+                            backgroundColor: 'primary.light',
+                          },
+                        },
+                      }}
+                    >
+                      <ListItemAvatar>
+                        <Avatar
+                          src={user.profilePic}
+                          alt={user.username}
+                          sx={{ width: 40, height: 40 }}
+                        >
+                          {user.username.charAt(0).toUpperCase()}
+                        </Avatar>
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={
+                          <Typography variant="subtitle1" fontWeight="medium">
+                            {user.username}
+                          </Typography>
+                        }
+                        secondary={
+                          <Box>
+                            {user.firstName && user.lastName && (
+                              <Typography variant="body2" color="text.secondary">
+                                {user.firstName} {user.lastName}
+                              </Typography>
+                            )}
+                            {user.bio && (
+                              <Typography 
+                                variant="caption" 
+                                color="text.secondary"
+                                sx={{
+                                  display: '-webkit-box',
+                                  WebkitLineClamp: 1,
+                                  WebkitBoxOrient: 'vertical',
+                                  overflow: 'hidden',
+                                }}
+                              >
+                                {user.bio}
+                              </Typography>
+                            )}
+                          </Box>
+                        }
+                      />
+                      {user.isOnline && (
+                        <Box
+                          sx={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: '50%',
+                            backgroundColor: 'success.main',
+                            ml: 1,
+                          }}
+                        />
+                      )}
+                    </ListItem>
+                  ))}
+                </List>
+              </Paper>
+            </Box>
+          )}
+
+          {/* No Results Message */}
+          {searchUsername.length >= 3 && !searchLoading && searchResults.length === 0 && !searchError && (
+            <Box sx={{ textAlign: 'center', py: 3 }}>
+              <Typography variant="body2" color="text.secondary">
+                No users found matching "{searchUsername}"
+              </Typography>
+            </Box>
+          )}
+
+          {/* Help Text */}
+          {searchUsername.length === 0 && (
+            <Box sx={{ textAlign: 'center', py: 3 }}>
+              <Typography variant="body2" color="text.secondary">
+                Search for users to start a new conversation
+              </Typography>
+            </Box>
+          )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenNewChat(false)}>Cancel</Button>
-          <Button onClick={startNewConversation} variant="contained">
-            Start Chat
+        <DialogActions sx={{ px: 3, pb: 3 }}>
+          <Button onClick={handleCloseNewChat}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={startNewConversation} 
+            variant="contained"
+            disabled={!searchUsername.trim() || searchLoading}
+          >
+            {selectedSearchUser ? `Start Chat with ${selectedSearchUser}` : 'Start Chat'}
           </Button>
         </DialogActions>
       </Dialog>
