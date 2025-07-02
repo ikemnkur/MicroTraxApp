@@ -14,6 +14,7 @@ import {
 import { Add, Remove } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { fetchWalletData, walletConvertAction } from './api';
+import Dashboard from './Dashboard';
 
 const ConvertWallet = () => {
   const [amount, setAmount] = useState(1000);
@@ -64,6 +65,7 @@ const ConvertWallet = () => {
     fees: fee,
     balance: walletData?.balance,
     method: convertMethod,
+    dashboardData: JSON.parse(localStorage.getItem('dashboardData')) || {},
   };
 
   async function convertCoins() {

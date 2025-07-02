@@ -266,6 +266,7 @@ const Dashboard = () => {
     const loadDashboardData = async () => {
       try {
         const data = await fetchDashboardData();
+        localStorage.setItem('dashboardData', JSON.stringify(data)); // Store dashboard data in localStorage
         console.log('Fetched dashboard data:', data); // Debug log
         setDashboardData(data);
       } catch (err) {
