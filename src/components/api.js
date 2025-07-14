@@ -124,6 +124,17 @@ export const fetchOtherUserProfileId = async (userId) => {
   }
 };
 
+
+export const updateAccountTier = async (tierData) => {
+  try {
+    const response = await api.put('/user/account-tier', tierData);
+    return response.data;
+  } catch (error) {
+    console.error('API - Error updating account tier:', tierData);
+    throw error;
+  }
+};
+
 export const updateUserProfile = async (userData) => {
   try {
     const response = await api.put('/user/profile', userData);
@@ -269,9 +280,9 @@ export const getFavoritesList = async (favoritesList) => {
   }
 };
 
-export const updateFavoriteStatus = async (userId, isFavorite, user) => {
+export const updateFavoriteStatus = async (username, isFavorite, user) => {
   try {
-    const response = await api.put(`/user/${userId}/favorite`, { userId, isFavorite, user });
+    const response = await api.put(`/user/${username}/favorite`, { username, username: username, isFavorite, user });
     return response.data;
   } catch (error) {
     console.error('API - Error updating favorite status:', error);
@@ -298,79 +309,6 @@ export const submitUserMessage = async (userId, userMessage, messagedUser, messa
     throw error;
   }
 };
-
-
-// // api.js (or whichever file has fetchUploadProfilePicture)
-// export async function fetchUploadProfilePicture({ file, username, id, date }) {
-//   // 1) Create FormData
-//   const formData = new FormData();
-//   // 2) Append the actual file; the key must match the multer field name ("profilePicture")
-//   formData.append('profilePicture', file);
-//   // 3) Append extra data
-//   formData.append('username', username);
-//   formData.append('id', id);
-//   formData.append('date', date);
-
-//   // 4) Make the request with "multipart/form-data"
-//   const response = await api.post('/api/upload-profile-picture', {
-//     method: 'POST',
-//     body: formData,
-//     // Do NOT set `Content-Type`; fetch will do it for you
-//   });
-
-//   // 5) Return response (or handle errors)
-//   return response;
-// }
-
-
-
-// export const fetchUploadProfilePicture = async (data) => {
-//   console.log("data: ", data)
-
-//    // 1) Create FormData
-//    const formData = new FormData();
-//    // 2) Append the actual file; the key must match the multer field name ("profilePicture")
-//    formData.append('profilePicture', data.file);
-//    // 3) Append extra data
-//    formData.append('username', data.username);
-//    formData.append('id', data.id);
-//    formData.append('date', data.date);
- 
-//    try {
-//     const response = await api.post(`/upload-profile-picture`, { formData });
-//     return response;
-//   } catch (error) {
-//     console.error('API - Error submitting user profile image:');
-//     throw error;
-//   }
-// }; 
-
-// export const fetchUploadProfilePicture = async (formData) => {
-//   try {
-//    const response = await api.post(`/uploadImage/upload-profile-picture`, { formData });
-//    return response.data;
-//  } catch (error) {
-//    console.error('API - Error submitting user profile image:', error);
-//    throw error;
-//  }
-// };
-
-// By the HTTP specification, GET requests typically don’t include a body. Instead, data is usually passed as query parameters. If your intention is to send the user_id associated with ud alongside the GET request, you can include it as params in the Axios configuration object. For example:
-
-// export const fetchWalletData = async (ud) => {
-//   try {
-//     console.log("UD: ", ud);
-//     const response = await api.get('/wallet', {
-//       params: {
-//         user_id: ud.user_id
-//       }
-//     });
-//     return response.data;
-//   } catch (error) {
-//     console.error('API - Error fetching wallet data:', error);
-//     throw error;
-//   }
-// };
 
 
 export const fetchWalletData = async (ud) => {

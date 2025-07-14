@@ -36,6 +36,7 @@ import AdminWithdrawsPage from './components/adminWithdraws';
 import ProtectedRoute from './components/ProtectedRoute';
 import SubscribeToContent from "./components/SubscribeToContent";
 import UserManagement from "./components/UserManagement";
+import HelpPage from "./components/HelpPage";
 
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
@@ -77,6 +78,7 @@ function App() {
             {/* <Route path="/" element={<Auth isLogin={true} />} /> */}
             <Route path="/register" element={<Auth isLogin={false} />} />
             <Route path="/unlock/:itemid" element={<UnlockContent />} />
+            <Route path="/help" element={<HelpPage />} />
 
             {/* Protected Routes */}
             <Route path="/adminx" element={
@@ -84,6 +86,8 @@ function App() {
             <Route path="/dashboard" element={
               <ProtectedRoute> <Dashboard /> </ProtectedRoute>} />
             <Route path="/" element={
+              <ProtectedRoute> <Info /> </ProtectedRoute>} />
+            <Route path="/info" element={
               <ProtectedRoute> <Info /> </ProtectedRoute>} />
             <Route path="/transactions" element={
               <ProtectedRoute> <TransactionHistory /> </ProtectedRoute>} />
@@ -145,7 +149,8 @@ function App() {
               <ProtectedRoute> <Return /> </ProtectedRoute>} />
             <Route path="/test" element={
               <ProtectedRoute> <UserManagement /> </ProtectedRoute>} />
-         
+            
+
           </Routes>
         </NavBar>
       </Router>

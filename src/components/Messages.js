@@ -26,19 +26,21 @@ const Messages = () => {
   const [messageText, setMessageText] = useState('');
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState('');
+  const [currentUserPic, setCurrentUserPic] = useState('');
   const [replyingTo, setReplyingTo] = useState(null);
   const [searchUsername, setSearchUsername] = useState('');
   const [conversationSearch, setConversationSearch] = useState('');
   const [openNewChat, setOpenNewChat] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
-  
+
+
   // New states for user search functionality
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState('');
   const [selectedSearchUser, setSelectedSearchUser] = useState(null);
-  
+
   const messagesEndRef = useRef(null);
   const { username } = useParams();
 
@@ -71,10 +73,12 @@ const Messages = () => {
     if (conversationSearch.trim() === '') {
       setFilteredConversations(conversations);
     } else {
-      const filtered = conversations.filter(conv =>
-        conv.otherUser.toLowerCase().includes(conversationSearch.toLowerCase()) ||
-        (conv.lastMessage && conv.lastMessage.toLowerCase().includes(conversationSearch.toLowerCase()))
-      );
+      const filtered = conversations.filter(conv => {
+        // console.log('Filtering conversation (otherUser):', conv.otherUser);
+        let temp = conv.otherUser.username || conv.otherUser.toLowerCase();
+        return temp.includes(conversationSearch.toLowerCase()) ||
+          (conv.lastMessage && conv.lastMessage.toLowerCase().includes(conversationSearch.toLowerCase()));
+      });
       setFilteredConversations(filtered);
     }
   }, [conversations, conversationSearch]);
@@ -170,7 +174,10 @@ const Messages = () => {
   };
 
   const handleSelectUser = (username) => {
+    // get profile picture of the selected user
+    const selectedConversation = conversations.find(conv => conv.otherUser.username === username);
     setSelectedUser(username);
+    setCurrentUserPic(selectedConversation?.otherUser.profilePic || '');
     fetchConversation(username);
     setReplyingTo(null);
   };
@@ -286,12 +293,12 @@ const Messages = () => {
   const validateAndStartConversation = async (username) => {
     try {
       const token = localStorage.getItem('token');
-      
+
       // Check if user exists
       const response = await axios.get(`${API_URL}/api/user/exists/${username}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       if (response.data.exists) {
         setSelectedUser(username);
         setCurrentConversation({ messages: [], pendingResponse: false });
@@ -639,8 +646,16 @@ const Messages = () => {
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center'
-                }}>
+                }}> {/* <ListItemAvatar> */}
+                  <Avatar style={{ marginRight: '-65%' }}
+                    src={currentUserPic}
+                    alt={selectedUser}
+                  >
+                    {selectedUser.charAt(0).toUpperCase()}
+                  </Avatar>
+                  {/* </ListItemAvatar> */}
                   <Box>
+
                     <Typography variant="h6">{selectedUser}</Typography>
                     {currentConversation?.pendingResponse && (
                       <Typography variant="caption" color="warning.main">
@@ -777,8 +792,8 @@ const Messages = () => {
       </Menu>
 
       {/* Enhanced New Chat Dialog */}
-      <Dialog 
-        open={openNewChat} 
+      <Dialog
+        open={openNewChat}
         onClose={handleCloseNewChat}
         maxWidth="sm"
         fullWidth
@@ -820,10 +835,10 @@ const Messages = () => {
               <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
                 Search Results ({searchResults.length})
               </Typography>
-              <Paper 
-                variant="outlined" 
-                sx={{ 
-                  flexGrow: 1, 
+              <Paper
+                variant="outlined"
+                sx={{
+                  flexGrow: 1,
                   overflow: 'auto',
                   maxHeight: '300px'
                 }}
@@ -870,8 +885,8 @@ const Messages = () => {
                               </Typography>
                             )}
                             {user.bio && (
-                              <Typography 
-                                variant="caption" 
+                              <Typography
+                                variant="caption"
                                 color="text.secondary"
                                 sx={{
                                   display: '-webkit-box',
@@ -926,8 +941,8 @@ const Messages = () => {
           <Button onClick={handleCloseNewChat}>
             Cancel
           </Button>
-          <Button 
-            onClick={startNewConversation} 
+          <Button
+            onClick={startNewConversation}
             variant="contained"
             disabled={!searchUsername.trim() || searchLoading}
           >

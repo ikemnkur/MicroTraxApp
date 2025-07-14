@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   Typography, TextField, Button, Box, CircularProgress, Snackbar, Paper, Avatar,
   Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
-  Modal, IconButton, Grid, Rating, Divider, Card, CardContent
+  Modal, IconButton, Grid, Rating, Divider, Card, CardContent, Stack, 
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import CommentIcon from '@mui/icons-material/Comment';
@@ -14,6 +14,7 @@ import {
   ThumbDownAltOutlined, Visibility,
   SendOutlined
 } from '@mui/icons-material';
+
 import { fetchUserProfile } from './api';
 
 const UnlockContent = () => {
@@ -625,51 +626,193 @@ const UnlockContent = () => {
 
   return (
     <Box sx={{ maxWidth: 800, margin: 'auto', padding: 2 }}>
-      <Typography variant="h3" gutterBottom>
+      {/* create a component to display a banner ad above the content info section  */}
+      <Paper elevation={0} sx={{ p: 2, mt: 2, textAlign: 'center' }}>
+        <Typography variant="body2" color="text.secondary">
+          Advertisement
+        </Typography>
+        <img src="https://via.placeholder.com/728x90.png?text=Banner+Ad" alt="Advertisement" />
+      </Paper>
+
+      <Typography variant="h3" gutterBottom sx={{ textAlign: 'center', marginTop: '20px' }}>
         Unlock Content
       </Typography>
 
       {/* Basic info about the content */}
-      <Paper style={{ backgroundColor: 'lightblue', padding: '10px' }}>
-        <Typography variant="h5" gutterBottom>
-          Title: {contentData?.title}
-        </Typography>
 
-        {/* Fixed: Linear, left-aligned layout for "By:" section */}
+      <Paper 
+      elevation={3}
+      sx={{
+        backgroundColor: '#e3f2fd', // Better light blue shade
+        padding: 3,
+        borderRadius: 2,
+        border: '1px solid #bbdefb'
+      }}
+    >
+      {/* Title Section */}
+      <Typography 
+        variant="h4" 
+        gutterBottom
+        sx={{ 
+          fontWeight: 600,
+          color: '#1565c0',
+          mb: 2
+        }}
+      >
+        {contentData?.title}
+      </Typography>
+
+      <Divider sx={{ mb: 2 }} />
+
+      {/* Author/Host Section */}
+      <Box sx={{ mb: 3 }}>
+        <Typography 
+          variant="h6" 
+          sx={{ 
+            mb: 1.5,
+            fontWeight: 500,
+            color: '#1976d2'
+          }}
+        >
+          Created by:
+        </Typography>
+        
         <Box sx={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'flex-start',
-          gap: 1,
-          mb: 2
+          gap: 2,
+          flexWrap: 'wrap'
         }}>
-          <Typography variant="h5">By:</Typography>
-          <Avatar
-            src={contentData?.profilePic || contentData?.avatar}
-            alt={contentData?.host_username}
-            sx={{ width: 32, height: 32 }}
-          />
-          <Typography variant="h5">{contentData?.host_username}</Typography>
-
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+            flex: 1,
+            minWidth: 'fit-content'
+          }}>
+            <Avatar
+              src={contentData?.profilePic || contentData?.avatar}
+              alt={contentData?.host_username}
+              sx={{ 
+                width: 40, 
+                height: 40,
+                border: '2px solid #1976d2'
+              }}
+            />
+            <Typography 
+              variant="h6"
+              sx={{ 
+                fontWeight: 500,
+                color: '#1565c0'
+              }}
+            >
+              {contentData?.host_username}
+            </Typography>
+          </Box>
+          
+          <Button
+            variant="contained"
+            onClick={() => navigate(`/user/${contentData?.host_user_id}`)}
+            endIcon={<SendOutlined />}
+            sx={{
+              backgroundColor: '#1976d2',
+              '&:hover': {
+                backgroundColor: '#1565c0',
+              },
+              borderRadius: 2,
+              px: 2,
+              py: 1,
+              textTransform: 'none',
+              fontWeight: 500
+            }}
+          >
+            Visit Profile
+          </Button>
         </Box>
-        <Button
-          onClick={() => navigate(`/user/${contentData?.host_user_id}`)}
-        >
-          <SendOutlined></SendOutlined>
-          Visit Profile
-        </Button>
-        <Typography variant="subtitle1" gutterBottom>
-          Description: {contentData?.description}
-        </Typography>
-        <Typography variant="body1" gutterBottom>
-          Cost: ₡{contentData?.cost}
-        </Typography>
-        {isLoggedIn && (
-          <Typography variant="body1" gutterBottom>
-            Balance: ₡{userBalance}
+      </Box>
+
+      <Divider sx={{ mb: 2 }} />
+
+      {/* Content Details */}
+      <Stack spacing={2}>
+        <Box>
+          <Typography 
+            variant="subtitle1" 
+            sx={{ 
+              fontWeight: 600,
+              color: '#1565c0',
+              mb: 0.5
+            }}
+          >
+            Description:
           </Typography>
-        )}
-      </Paper>
+          <Typography 
+            variant="body1"
+            sx={{ 
+              color: '#424242',
+              lineHeight: 1.6
+            }}
+          >
+            {contentData?.description}
+          </Typography>
+        </Box>
+
+        <Box sx={{
+          display: 'flex',
+          gap: 4,
+          flexWrap: 'wrap',
+          alignItems: 'center'
+        }}>
+          <Box>
+            <Typography 
+              variant="subtitle1" 
+              sx={{ 
+                fontWeight: 600,
+                color: '#1565c0',
+                mb: 0.5
+              }}
+            >
+              Cost:
+            </Typography>
+            <Typography 
+              variant="h6"
+              sx={{ 
+                color: '#2e7d32',
+                fontWeight: 600
+              }}
+            >
+              ₡{contentData?.cost}
+            </Typography>
+          </Box>
+
+          {isLoggedIn && (
+            <Box>
+              <Typography 
+                variant="subtitle1" 
+                sx={{ 
+                  fontWeight: 600,
+                  color: '#1565c0',
+                  mb: 0.5
+                }}
+              >
+                Your Balance:
+              </Typography>
+              <Typography 
+                variant="h6"
+                sx={{ 
+                  color: '#2e7d32',
+                  fontWeight: 600
+                }}
+              >
+                ₡{userBalance}
+              </Typography>
+            </Box>
+          )}
+        </Box>
+      </Stack>
+    </Paper>
+
+     
 
       {/* Content stats */}
       <Paper style={{ backgroundColor: '#DEEFFF', padding: '10px', marginTop: '20px' }}>
@@ -938,6 +1081,13 @@ const UnlockContent = () => {
             </Button>
           </Box>
         </div>
+      </Paper>
+
+      {/* create a component to display a banner ad beneath the comment section */}
+      <Paper elevation={0} sx={{ p: 2, mt: 2, textAlign: 'center' }}>
+        <Typography variant="body2" color="text.secondary">
+          Advertisement
+        </Typography>
       </Paper>
 
       {/* Unlock Confirmation Dialog */}

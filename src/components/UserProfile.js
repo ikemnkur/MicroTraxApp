@@ -29,6 +29,7 @@ import {
 import {
   fetchOtherUserProfile,
   fetchOtherUserProfileId,
+  fetchUserProfile,
   updateFavoriteStatus,
   submitUserReport,
   submitUserMessage
@@ -131,10 +132,23 @@ const UserProfile = () => {
       const newFavoriteStatus = !isFavorite;
       console.log("user-profile: User ID = ", userId)
       console.log("user-profile-data: ", user)
-      await updateFavoriteStatus(userId, newFavoriteStatus, user);
+      let username = userId;
+      await updateFavoriteStatus(username, newFavoriteStatus, user);
       setIsFavorite(newFavoriteStatus);
       setSnackbarMessage(newFavoriteStatus ? 'User added to favorites' : 'User removed from favorites');
       setOpenSnackbar(true);
+      const profile = await fetchUserProfile();
+
+        const updatedUserData = {
+          ...profile,
+          birthDate: profile.birthDate ? profile.birthDate.split('T')[0] : '',
+          accountTier: profile.accountTier || 1,
+          encryptionKey: profile.encryptionKey || '',
+        };
+
+        // setUserData(updatedUserData);
+        localStorage.setItem('userdata', JSON.stringify(updatedUserData));
+      // await fetchUserProfile(); // Refresh user profile after updating favorite status
     } catch (error) {
       console.error('Error updating favorite status:', error);
       setSnackbarMessage('Failed to update favorite status');

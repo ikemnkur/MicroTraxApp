@@ -54,6 +54,9 @@ const NavBar = ({ children }) => {
     // { text: 'Public Subscriptions', icon: <BookmarkAdd />, path: '/manage-subscriptions' },
     { text: 'Your Stuff', icon: <CategoryIcon />, path: '/your-stuff' },
     { text: 'Account', icon: <AccountCircle />, path: '/account' },
+    { text: "Info", icon: <BookmarkAdd />, path: '/' },
+    { text: "Help & FAQs", icon: <BookmarkAdd />, path: '/help' },
+    { text: "Ads", icon: <BookmarkAdd />, path: '/ads' },
   ];
 
   const unlockPage = location.pathname.startsWith('/unlock');

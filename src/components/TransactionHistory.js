@@ -56,11 +56,16 @@ const TransactionHistory = () => {
 
   const searchTransactions = () => {
     const filtered = transactions.filter(t => {
+      // Helper function to safely handle null/undefined values
+      const safeString = (value) => {
+        return value ? value.toString().toLowerCase() : '';
+      };
+
       return (
-        t.receiving_user.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        t.sending_user.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        t.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        t.amount.toString().includes(searchTerm)
+        safeString(t.receiving_user).includes(searchTerm.toLowerCase()) ||
+        safeString(t.sending_user).includes(searchTerm.toLowerCase()) ||
+        safeString(t.message).includes(searchTerm.toLowerCase()) ||
+        safeString(t.amount).includes(searchTerm.toLowerCase())
       );
     });
     setFilteredTransactions(filtered);

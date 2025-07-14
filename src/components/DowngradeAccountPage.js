@@ -112,8 +112,8 @@ const DowngradeAccountPage = () => {
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       // Update user profile with new tier
-      await updateUserProfile({ accountTier: nextTier });
-      
+      await updateAccountTier({ accountTier: nextTier });
+
       setSuccess(true);
       setTimeout(() => {
         navigate('/account');

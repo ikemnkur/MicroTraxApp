@@ -94,8 +94,8 @@ const Wallet = () => {
     <Box>
       <Typography variant="h4" gutterBottom>Wallet</Typography>
       <Paper sx={{ p: 2, mb: 2 }}>
-        <Typography variant="h6" gutterBottom>Current Balance: ₡{walletData?.balance}</Typography>
-        <Typography variant="body1" gutterBottom>Account Tier: {thisUser?.accountTier}</Typography>
+        <Typography variant="h6" gutterBottom>Current Balance: ₡{walletData?.redeemable + walletData?.spendable}</Typography>
+        <Typography variant="body1" gutterBottom>Account Tier: {tiers[thisUser?.accountTier - 1]?.name}</Typography>
         {/* <Typography variant="body1" gutterBottom>Daily Transaction Limit: ₡{walletData?.daily_transaction_limit}</Typography> */}
         <Typography variant="body1" gutterBottom>Coins You can Redeem: ₡{walletData?.redeemable}</Typography>
         <Typography variant="body1" gutterBottom>Coins You Can Spend: ₡{walletData?.spendable}</Typography>

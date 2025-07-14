@@ -34,7 +34,7 @@ import {
   CreditCard as CreditCardIcon
 } from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { updateUserProfile } from './api';
+import { updateAccountTier, updateUserProfile } from './api';
 
 // Account tier information
 const tierInfo = {
@@ -116,7 +116,7 @@ const UpgradeAccountPage = () => {
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       // Update user profile with new tier
-      await updateUserProfile({ accountTier: nextTier });
+      await updateAccountTier({ accountTier: nextTier });
       
       setSuccess(true);
       setTimeout(() => {
@@ -211,7 +211,7 @@ const UpgradeAccountPage = () => {
             </Typography>
             
             <Grid container spacing={2}>
-              <Grid item xs={12}>
+              {/* <Grid item xs={12}>
                 <TextField
                   fullWidth
                   label="Card Number"
@@ -260,7 +260,7 @@ const UpgradeAccountPage = () => {
                   disabled={processing}
                 />
               </Grid>
-              
+               */}
               {error && (
                 <Grid item xs={12}>
                   <Alert severity="error">{error}</Alert>
@@ -280,7 +280,7 @@ const UpgradeAccountPage = () => {
                     variant="contained" 
                     color="primary"
                     onClick={handleUpgrade}
-                    disabled={!validatePaymentDetails() || processing}
+                    // disabled={!validatePaymentDetails() || processing}
                     startIcon={<CreditCardIcon />}
                   >
                     {processing ? 'Processing...' : `Upgrade to ${tierInfo[nextTier].name}`}
