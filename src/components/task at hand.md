@@ -35,3 +35,13 @@ Format: 4 Mulitple Choice or a Short answer question (not case sensitive &  incl
 one question will be choosen to reward the user if they answer correctly
 
 Maybe a simple analytics page that list the actives ads for each user and the cost and views/impressions
+
+there should be 4 pages in total and 2 components for displaying the ad and the reward modal
+* create ad page (edit)
+* preview page
+* insights/analytics/history page (view a list a host user's ads)
+* Help page for explaining how the ad system works
+* the insertable ad react component
+* reward modal react component
+
+Then i would a need a backend service to handle this front end logic and a plan to mysql as a db

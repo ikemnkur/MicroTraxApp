@@ -37,6 +37,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import SubscribeToContent from "./components/SubscribeToContent";
 import UserManagement from "./components/UserManagement";
 import HelpPage from "./components/HelpPage";
+import AdComponent from "./components/AdComponent";
 
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
@@ -79,6 +80,8 @@ function App() {
             <Route path="/register" element={<Auth isLogin={false} />} />
             <Route path="/unlock/:itemid" element={<UnlockContent />} />
             <Route path="/help" element={<HelpPage />} />
+
+            {/* <Route path="/ads" element={<AdComponent />} /> */}
 
             {/* Protected Routes */}
             <Route path="/adminx" element={
@@ -149,7 +152,8 @@ function App() {
               <ProtectedRoute> <Return /> </ProtectedRoute>} />
             <Route path="/test" element={
               <ProtectedRoute> <UserManagement /> </ProtectedRoute>} />
-            
+            <Route path="/ads" element={
+              <ProtectedRoute> <AdComponent /> </ProtectedRoute>} />
 
           </Routes>
         </NavBar>
