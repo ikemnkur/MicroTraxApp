@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const AdServiceActivationPage = ({ authToken, onActivationComplete,  }) => {
+  const navigate = useNavigate();
   const [userStatus, setUserStatus] = useState({
     isEnrolled: false,
     isLoading: true,
@@ -13,7 +15,7 @@ const AdServiceActivationPage = ({ authToken, onActivationComplete,  }) => {
 
   // Get auth token from localStorage if not provided as prop
   const token = authToken || localStorage.getItem('authToken');
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+  const API_BASE_URL = process.env.REACT_APP_API_SERVER_URL + "/api" || 'http://localhost:5001/api';
 
   useEffect(() => {
     checkUserEnrollment();
@@ -31,7 +33,7 @@ const AdServiceActivationPage = ({ authToken, onActivationComplete,  }) => {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/user/profile`, {
+      const response = await fetch(`${API_BASE_URL}/ads/user/profile`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -69,26 +71,30 @@ const AdServiceActivationPage = ({ authToken, onActivationComplete,  }) => {
   const handleActivateService = async () => {
     setIsActivating(true);
 
+    
     try {
-      // If user doesn't exist in ad system, we might need to create/update their profile
-      const response = await fetch(`${API_BASE_URL}/api/user/credits`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          operation: 'add',
-          amount: 0 // Just to initialize if needed
-        })
-      });
 
-      if (!response.ok) {
-        throw new Error('Failed to activate ad service');
-      }
+      // navigate('/ads-join'); // or '/ads-service'
 
-      // Refresh user status
-      await checkUserEnrollment();
+      // // If user doesn't exist in ad system, we might need to create/update their profile
+      // const response = await fetch(`${API_BASE_URL}/ads/user/credits`, {
+      //   method: 'PUT',
+      //   headers: {
+      //     'Authorization': `Bearer ${token}`,
+      //     'Content-Type': 'application/json'
+      //   },
+      //   body: JSON.stringify({
+      //     operation: 'add',
+      //     amount: 0 // Just to initialize if needed
+      //   })
+      // });
+
+      // if (!response.ok) {
+      //   throw new Error('Failed to activate ad service');
+      // }
+
+      // // Refresh user status
+      // await checkUserEnrollment();
 
       setNotification({
         show: true,
@@ -96,10 +102,15 @@ const AdServiceActivationPage = ({ authToken, onActivationComplete,  }) => {
         type: 'success'
       });
 
-      // Call parent callback if provided
-      if (onActivationComplete) {
-        setTimeout(() => onActivationComplete(), 2000);
-      }
+      setTimeout(() => {
+        if (onActivationComplete) {
+          onActivationComplete();
+           navigate('/ads-join'); // or '/ads-service'
+        } else {
+          // Navigate to ads dashboard or join page
+          navigate('/ads-join'); // or '/ads-service'
+        }
+      }, 2000);
 
     } catch (error) {
       console.error('Activation error:', error);

@@ -53,7 +53,7 @@ import CreateAdPage from "./pages/CreateAdPage";
 import AdPreviewPage from "./pages/AdPreviewPage";
 import AdHomepage from "./pages/AdHomepage.jsx";
 import JoinAdProgram from "./pages/JoinAdProgram";
-import LoginToAdProgram from "./pages/LoginToAdProgram";
+import LoginToAdProgram from "./pages/LoginToAdProgram.jsx";
 
 // import Ads from "./components/Ads";
 import Ads from "../src/components/Ads.js";
@@ -62,11 +62,13 @@ import Ads from "../src/components/Ads.js";
 
 require('dotenv').config();
 const { v4: uuidv4 } = require('uuid');
+// import { useNavigate } from "react-router-dom";
 
 const stripePromise = loadStripe('pk_test_51OPgiOEViYxfJNd2ZA0pYlZ3MKdsIHDEhE9vzihdcj6CUW99q7ULSgR44nWfNVwhKvEHJ1JQCaf1NcXGhTROu8Dh008XrwD0Hv');
 
 function App() {
 
+  // const navigate = useNavigate();
   const [coins, setCoins] = useState();
   const [userData, setUserData] = useState({
     username: '',
@@ -183,6 +185,47 @@ function App() {
               <ProtectedRoute> <LoginToAdProgram /> </ProtectedRoute>} />
             <Route path="/ads-service" element={
               <ProtectedRoute> <Ads /> </ProtectedRoute>} />
+            {/* <Route
+              path="/ads-register"
+              element={
+                <JoinAdProgram
+                  onRegistrationSuccess={(userData) => {
+                    console.log('Registration successful:', userData);
+                    navigate('/ads-activate'); // Navigate after registration
+                  }}
+                  onNavigateToLogin={() => {
+                    navigate('/ads-login');
+                  }}
+                />
+              }
+            />
+
+            <Route
+              path="/ads-login"
+              element={
+                <LoginToAdProgram
+                  onSignInSuccess={(userData) => {
+                    console.log('Sign in successful:', userData);
+                    navigate('/ads-service'); // Navigate after login
+                  }}
+                  onNavigateToRegister={() => {
+                    navigate('/register');
+                  }}
+                />
+              }
+            />
+
+            <Route
+              path="/ads-activate"
+              element={
+                <AdHomepage
+                  onActivationComplete={() => {
+                    navigate('/ads-service'); // Navigate after activation
+                  }}
+                />
+              }
+            /> */}
+
           </Routes>
         </NavBar>
       </Router>

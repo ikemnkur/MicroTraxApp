@@ -3,6 +3,9 @@ import React, { useState } from 'react';
 const AdHelpPage = () => {
   const [activeSection, setActiveSection] = useState('overview');
 
+  const API_BASE_URL = process.env.REACT_APP_API_SERVER_URL + "/api" || 'http://localhost:5001/api';
+  const navigate = useNavigate();
+
   const sections = {
     overview: {
       title: 'Overview',

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const RegistrationPage = ({ onRegistrationSuccess, onNavigateToLogin }) => {
   const [formData, setFormData] = useState({
@@ -7,14 +8,17 @@ const RegistrationPage = ({ onRegistrationSuccess, onNavigateToLogin }) => {
     password: '',
     confirmPassword: ''
   });
-  
+
+  const navigate = useNavigate();
+
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const API_BASE_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:5001';
+  const API_BASE_URL = process.env.REACT_APP_API_SERVER_URL + "/api" || 'http://localhost:5001/api';
+
 
   const features = [
     {
@@ -132,11 +136,16 @@ const RegistrationPage = ({ onRegistrationSuccess, onNavigateToLogin }) => {
         type: 'success'
       });
 
-      // Call success callback if provided
+      // FIXED: Call success callback if provided, otherwise navigate directly
       if (onRegistrationSuccess) {
         setTimeout(() => {
           onRegistrationSuccess(data);
-        }, 2000);
+        }, 1000);
+      } else {
+        // Navigate directly if no callback provided
+        setTimeout(() => {
+          navigate('/ads-login'); // or wherever you want to redirect
+        }, 1000);
       }
 
     } catch (error) {
@@ -170,13 +179,31 @@ const RegistrationPage = ({ onRegistrationSuccess, onNavigateToLogin }) => {
   const passwordStrength = getPasswordStrength(formData.password);
 
   return (
-    <div style={{ 
+    <div 
+    // onSignInSuccess={(userData) => {
+    //     // Custom logic after sign in
+    //     console.log('User signed in:', userData);
+        
+    //     // Redirect based on user role or preference
+    //     if (userData.user.role === 'admin') {
+    //       navigate('/admin-dashboard');
+    //     } else {
+    //       navigate('/dashboard');
+    //     }
+    //   }}
+
+    //  onNavigateToLogin={() => {
+    //     navigate('/ads-login');
+    //   }}
+
+    style={{ 
       minHeight: '100vh', 
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       padding: '24px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center'
+      
     }}>
       <div style={{ 
         maxWidth: '1200px', 
@@ -649,7 +676,13 @@ const RegistrationPage = ({ onRegistrationSuccess, onNavigateToLogin }) => {
                 </p>
                 <button
                   type="button"
-                  onClick={onNavigateToLogin}
+                  onClick={() => {
+                    if (onNavigateToLogin) {
+                        onNavigateToLogin();
+                    } else {
+                        navigate('/ads-login'); // Direct navigation
+                    }
+                }}
                   style={{
                     background: 'none',
                     border: 'none',

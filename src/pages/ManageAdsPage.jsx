@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const ManageAdsPage = ({ ads = [], onEditAd, onDeleteAd, onToggleAdStatus, onDuplicateAd }) => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterFormat, setFilterFormat] = useState('all');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+
+  const API_BASE_URL = process.env.REACT_APP_API_SERVER_URL + "/api" || 'http://localhost:5001/api';
+
 
   const filteredAds = ads.filter(ad => {
     const matchesSearch = ad.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
