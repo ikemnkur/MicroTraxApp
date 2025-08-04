@@ -74,9 +74,9 @@ const Info = () => {
             'Failed to load user profile, please refresh or login again'
         );
         setOpenSnackbar(true);
-        if (err.response?.status === 401) {
-          setTimeout(() => navigate('/login'), 500);
-        }
+        // if (err.response?.status === 401) {
+          // setTimeout(() => navigate('/login'), 500);
+        // }
       }
     };
     loadUserProfile();

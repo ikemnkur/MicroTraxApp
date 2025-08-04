@@ -9,7 +9,7 @@ export const useAuthCheck = () => {
 
   useEffect(() => {
     // List of paths where we don't want to redirect even if the user is not authenticated
-    const exemptedPaths = ['/unlock'];
+    const exemptedPaths = ["/info", "/help", "/ads", "/unlock", "/sub", '/', '/login', '/register'];
 
     // Check if current path starts with '/unlock', to handle dynamic unlock paths like '/unlock/:itemid'
     const isExempted = exemptedPaths.some(path => location.pathname.startsWith(path));

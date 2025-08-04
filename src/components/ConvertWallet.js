@@ -69,7 +69,8 @@ const ConvertWallet = () => {
   };
 
   async function convertCoins() {
-    await walletConvertAction(conversionData);
+    const response = await walletConvertAction(conversionData);
+    console.log('Conversion response:', response);
     console.log(`${amount} coins have been converted to ${convertMethod}!`);
     setOpenSnackbar(true);
     setTimeout(() => navigate('/dashboard'), 2000);

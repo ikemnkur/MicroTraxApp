@@ -39,24 +39,36 @@ const collapsedDrawerWidth = 40;
 
 const NavBar = ({ children }) => {
   const [open, setOpen] = useState(true);
+  const [userData, setUserData] = useState(JSON.parse(localStorage.getItem('userdata')) || {});
   const navigate = useNavigate();
   const location = useLocation();
 
-  const menuItems = [
+  // Calculate ads path based on current user data
+  const getAdsPath = () => {
+    console.log('User Data.Advertising:', userData.advertising);
+    if (userData.advertising === "active") {
+      console.log('Ads Path: /ads-service');
+      return '/ads-service';
+    } else {
+      console.log('Ads Path: /ads');
+      return '/ads';
+    }
+  };
+
+  // Create menu items dynamically based on current user data
+  const getMenuItems = () => [
     { text: 'Dashboard', icon: <Dashboard />, path: '/Dashboard' },
     { text: 'Your Wallet', icon: <AccountBalance />, path: '/wallet' },
     { text: 'Send Coins', icon: <Send />, path: '/send' },
     { text: 'Look for Users', icon: <Search />, path: '/search' },
-    // { text: 'Look for Users', icon: <Search />, path: '/search' },
     { text: 'Messages', icon: <Message />, path: '/messages' },
     { text: 'Transaction History', icon: <History />, path: '/transactions' },
     { text: 'Published Content', icon: <LockOutlined />, path: '/manage-content' },
-    // { text: 'Public Subscriptions', icon: <BookmarkAdd />, path: '/manage-subscriptions' },
     { text: 'Your Stuff', icon: <CategoryIcon />, path: '/your-stuff' },
     { text: 'Account', icon: <AccountCircle />, path: '/account' },
     { text: "Info", icon: <BookmarkAdd />, path: '/' },
     { text: "Help & FAQs", icon: <BookmarkAdd />, path: '/help' },
-    { text: "Ads", icon: <BookmarkAdd />, path: '/ads' },
+    { text: "Ads", icon: <BookmarkAdd />, path: getAdsPath() },
   ];
 
   const unlockPage = location.pathname.startsWith('/unlock');
@@ -67,9 +79,27 @@ const NavBar = ({ children }) => {
     window.location.reload(false);
   }
 
+  // Listen for localStorage changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const updatedUserData = JSON.parse(localStorage.getItem('userdata')) || {};
+      setUserData(updatedUserData);
+    };
+
+    // Listen for storage events (when localStorage is changed in another tab)
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Listen for custom events (when localStorage is changed in the same tab)
+    window.addEventListener('localStorageChange', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('localStorageChange', handleStorageChange);
+    };
+  }, []);
+
   useEffect(() => {
     if (hideNavBar || unlockPage || subPage) {
-      // Do nothing if NavBar is hidden
       return;
     }
 
@@ -82,7 +112,16 @@ const NavBar = ({ children }) => {
           accountTier: profile.accountTier || 1,
           encryptionKey: profile.encryptionKey || '',
         };
+        
+        // Update local state
+        setUserData(updatedUserData);
+        
+        // Update localStorage
         localStorage.setItem('userdata', JSON.stringify(updatedUserData));
+        
+        // Dispatch custom event to notify other components
+        window.dispatchEvent(new Event('localStorageChange'));
+        
       } catch (err) {
         console.log('Error: ', err);
         setTimeout(() => {
@@ -98,6 +137,9 @@ const NavBar = ({ children }) => {
   if (hideNavBar || unlockPage || subPage) {
     return children;
   }
+
+  // Get current menu items (will be recalculated when userData changes)
+  const menuItems = getMenuItems();
 
   return (
     <Box sx={{ display: 'flex' }}>
@@ -157,14 +199,12 @@ const NavBar = ({ children }) => {
                   to={item.path}
                   sx={{
                     justifyContent: open ? 'initial' : 'center',
-                    // Change horizontal padding to 5px
                     px: '5px',
                   }}
                 >
                   <ListItemIcon
                     sx={{
                       minWidth: 0,
-                      // Change icon margin to 5px
                       mr: open ? '5px' : 'auto',
                       justifyContent: 'center',
                       px: '5px',
@@ -174,10 +214,11 @@ const NavBar = ({ children }) => {
                   </ListItemIcon>
                   <ListItemText
                     primary={open ? item.text : ''}
-                    sx={{ opacity: open ? 1 : 0,
+                    sx={{
+                      opacity: open ? 1 : 0,
                       px: '05px 10px 10px 0px',
-                     }}
-                     style={{paddingTop: 5}}
+                    }}
+                    style={{ paddingTop: 5 }}
                   />
                 </ListItem>
               </Tooltip>

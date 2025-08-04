@@ -37,13 +37,19 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     // Check if the current path starts with '/unlock'
-    const unlockPage = window.location.pathname.startsWith('/unlock');
-    const subPage = window.location.pathname.startsWith('/sub');
+    // const unlockPage = window.location.pathname.startsWith('/unlock');
+    // const subPage = window.location.pathname.startsWith('/sub');
 
-    if (unlockPage || subPage) {
-      // User is on the unlock page; do not redirect to login
+    // Check if the current path is the info page
+    let paths = ["/info", "/help", "/ads", "/unlock", "/sub"];
+
+    if (paths.includes(window.location.pathname)) {
+      // User is on one of the specified pages; do not redirect to login
       // Allow the error to be handled by the component
+      console.log("No redirect to login, current path is: ", window.location.pathname);
       return Promise.reject(error);
+    } else{
+      console.log("Redirecting to login, current path is: ", window.location.pathname);
     }
 
     if (error.response && error.response.status === 401) {
@@ -473,6 +479,16 @@ export const handleDeleteUserSubscription = async (contentId) => {
   }
 };
 
+
+export const createAdroute = async (adData) => {
+  try {
+    const response = await api.post(`/ads/ad/`, adData);
+    return response.data;
+  } catch (error) {
+    console.error('API - Error creating ad:', error);
+    throw error;
+  }
+};
 
 
 export default api;

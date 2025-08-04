@@ -9,6 +9,7 @@
     "@mui/material": "^5.16.13",
     "@stripe/react-stripe-js": "^2.8.0",
     "@stripe/stripe-js": "^4.4.0",
+    "autoprefixer": "^10.4.21",
     "axios": "^1.7.4",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.522.0",
@@ -41,6 +42,7 @@
     ]
   },
   "devDependencies": {
-    "eslint-plugin-react-hooks": "^4.6.2"
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "tailwindcss": "^4.1.11"
   }
 }

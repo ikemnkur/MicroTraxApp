@@ -51,14 +51,20 @@ import AdAnalyticsPage from "./pages/AdAnalyticsPage";
 import ManageAdsPage from "./pages/ManageAdsPage";
 import CreateAdPage from "./pages/CreateAdPage";
 import AdPreviewPage from "./pages/AdPreviewPage";
-import AdHomepage from "./pages/AdHomepage.jsx";
-import JoinAdProgram from "./pages/JoinAdProgram";
-import LoginToAdProgram from "./pages/LoginToAdProgram";
 
-// import Ads from "./components/Ads";
-import Ads from "../src/components/Ads.js";
+// Import Components
+import Header from './components/common/Header';
+import {
+  CreateAdPage,
+  AdPreviewPage,
+  AdAnalyticsPage,
+  ManageAdsPage,
+  AdHelpPage
+} from './pages';
 
 
+// Import Mock Data
+import { mockUser, mockAds as initialAds } from './data/mockData';
 
 require('dotenv').config();
 const { v4: uuidv4 } = require('uuid');
@@ -80,6 +86,20 @@ function App() {
     profilePicture: null,
     coins: 0,
   });
+
+  const [currentPage, setCurrentPage] = useState('create');
+  const [ads, setAds] = useState(initialAds);
+  const [editingAd, setEditingAd] = useState(null);
+  const [user, setUser] = useState(mockUser);
+
+  // Navigation items
+  const navigationItems = [
+    { id: 'create', label: 'Create Ad', icon: Plus },
+    { id: 'preview', label: 'Preview', icon: Eye },
+    { id: 'analytics', label: 'Analytics', icon: TrendingUp },
+    { id: 'manage', label: 'Manage Ads', icon: Layout },
+    { id: 'help', label: 'Help', icon: HelpCircle }
+  ];
 
   return (
     <ThemeProvider theme={theme}>
@@ -175,14 +195,7 @@ function App() {
               <ProtectedRoute> <ManageAdsPage /> </ProtectedRoute>} />
             <Route path="/preview-ad" element={
               <ProtectedRoute> <AdPreviewPage /> </ProtectedRoute>} />
-            <Route path="/ads" element={
-              <ProtectedRoute> <AdHomepage /> </ProtectedRoute>} />
-            <Route path="/ads-join" element={
-              <ProtectedRoute> <JoinAdProgram /> </ProtectedRoute>} />
-            <Route path="/ads-login" element={
-              <ProtectedRoute> <LoginToAdProgram /> </ProtectedRoute>} />
-            <Route path="/ads-service" element={
-              <ProtectedRoute> <Ads /> </ProtectedRoute>} />
+
           </Routes>
         </NavBar>
       </Router>
