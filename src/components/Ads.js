@@ -16,6 +16,8 @@ const mockUser = {
   profileImage: null
 };
 
+
+
 const mockAds = [
   {
     id: 1,
@@ -65,6 +67,8 @@ const mockAds = [
   }
 ];
 
+const API_BASE_URL = process.env.REACT_APP_API_SERVER_URL + "/api" || 'http://localhost:5001/api';
+
 const Ads = () => {
   const [currentPage, setCurrentPage] = useState('create');
   const [ads, setAds] = useState(mockAds);
@@ -80,12 +84,71 @@ const Ads = () => {
     { id: 'help', label: 'Help', icon: '❓' }
   ];
 
+
+  const fetchAdvertiserProfile = async () => {
+    const response = await fetch(`${API_BASE_URL}/ads/advertiser/profile`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${user.token}`
+      }
+    });
+    const data = await response.json();
+    if (response.ok) {
+      setUser(data);
+    } else {
+      console.error('Failed to fetch advertiser profile:', data);
+    }
+  }
+
+// // Get user's ads
+// app.get('/ad', authenticateToken, async (req, res) => {
+//   try {
+//     const ads = await executeQuery(
+//       `SELECT a.*, 
+//        COUNT(DISTINCT ai_view.id) as views,
+//        COUNT(DISTINCT ai_completion.id) as completions,
+//        COALESCE(SUM(ai_reward.credits_earned), 0) as total_rewards_paid
+//        FROM ads a
+//        LEFT JOIN ad_interactions ai_view ON a.id = ai_view.ad_id AND ai_view.interaction_type = 'view'
+//        LEFT JOIN ad_interactions ai_completion ON a.id = ai_completion.ad_id AND ai_completion.interaction_type = 'completion'
+//        LEFT JOIN ad_interactions ai_reward ON a.id = ai_reward.ad_id AND ai_reward.interaction_type = 'reward_claimed'
+//        WHERE a.user_id = ?
+//        GROUP BY a.id
+//        ORDER BY a.created_at DESC`,
+//       [req.user.user_id]
+//     );
+
+//     res.json({ ads });
+//   } catch (error) {
+//     console.error('Get ads error:', error);
+//     res.status(500).json({ error: 'Internal server error' });
+//   }
+// });
+
+  // Fetch ads from the server
+  const fetchAds = async () => {
+    const response = await fetch(`${API_BASE_URL}/ads`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${user.token}`
+      }
+    });
+    const data = await response.json();
+    if (response.ok) {
+      setAds(data.ads);
+    } else {
+      console.error('Failed to fetch ads:', data);
+    }
+  };
+
   // Handle saving an ad (create or update)
   const handleSaveAd = (adData) => {
     if (editingAd) {
       // Update existing ad
-      setAds(prev => prev.map(ad => 
-        ad.id === editingAd.id 
+      setAds(prev => prev.map(ad =>
+        ad.id === editingAd.id
           ? { ...ad, ...adData, id: editingAd.id }
           : ad
       ));
@@ -120,8 +183,8 @@ const Ads = () => {
 
   // Handle toggling ad status
   const handleToggleAdStatus = (adId) => {
-    setAds(prev => prev.map(ad => 
-      ad.id === adId 
+    setAds(prev => prev.map(ad =>
+      ad.id === adId
         ? { ...ad, active: !ad.active }
         : ad
     ));
@@ -154,27 +217,27 @@ const Ads = () => {
     return ads.length > 0 ? ads[ads.length - 1] : null;
   };
 
- 
+
   // Render the current page
   const renderPage = () => {
     switch (currentPage) {
       case 'create':
         return (
-          <CreateAdPage 
-            onSave={handleSaveAd} 
-            editingAd={editingAd} 
+          <CreateAdPage
+            onSave={handleSaveAd}
+            editingAd={editingAd}
           />
         );
       case 'preview':
         return (
-          <AdPreviewPage 
-            ad={getPreviewAd()} 
+          <AdPreviewPage
+            ad={getPreviewAd()}
           />
         );
       case 'analytics':
         return (
-          <AdAnalyticsPage 
-            ads={ads} 
+          <AdAnalyticsPage
+            ads={ads}
             onEditAd={handleEditAd}
           />
         );
@@ -192,17 +255,17 @@ const Ads = () => {
         return <AdHelpPage />;
       default:
         return (
-          <CreateAdPage 
-            onSave={handleSaveAd} 
-            editingAd={editingAd} 
+          <CreateAdPage
+            onSave={handleSaveAd}
+            editingAd={editingAd}
           />
         );
     }
   };
 
   return (
-    <div style={{ 
-      minHeight: '100vh', 
+    <div style={{
+      minHeight: '100vh',
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
     }}>
       {/* Header */}
@@ -213,9 +276,9 @@ const Ads = () => {
         padding: '16px 0'
       }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 24px' }}>
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
             alignItems: 'center'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -234,9 +297,9 @@ const Ads = () => {
                 📢
               </div>
               <div>
-                <h1 style={{ 
-                  fontSize: '1.5rem', 
-                  fontWeight: 'bold', 
+                <h1 style={{
+                  fontSize: '1.5rem',
+                  fontWeight: 'bold',
                   margin: 0,
                   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                   WebkitBackgroundClip: 'text',
@@ -245,10 +308,10 @@ const Ads = () => {
                 }}>
                   Ad Management System
                 </h1>
-                <p style={{ 
-                  margin: 0, 
-                  fontSize: '14px', 
-                  color: 'rgba(0, 0, 0, 0.6)' 
+                <p style={{
+                  margin: 0,
+                  fontSize: '14px',
+                  color: 'rgba(0, 0, 0, 0.6)'
                 }}>
                   Create, manage, and optimize your advertising campaigns
                 </p>
@@ -270,7 +333,7 @@ const Ads = () => {
                 <span style={{ fontSize: '16px' }}>💰</span>
                 <span>{user.credits.toLocaleString()} Credits</span>
               </div>
-              
+
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{
                   width: '40px',
@@ -286,16 +349,16 @@ const Ads = () => {
                   👤
                 </div>
                 <div>
-                  <div style={{ 
-                    fontSize: '14px', 
-                    fontWeight: 600, 
-                    color: 'rgba(0, 0, 0, 0.8)' 
+                  <div style={{
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: 'rgba(0, 0, 0, 0.8)'
                   }}>
                     {user.name}
                   </div>
-                  <div style={{ 
-                    fontSize: '12px', 
-                    color: 'rgba(0, 0, 0, 0.5)' 
+                  <div style={{
+                    fontSize: '12px',
+                    color: 'rgba(0, 0, 0, 0.5)'
                   }}>
                     {user.email}
                   </div>
