@@ -143,6 +143,12 @@ const Ads = () => {
     }
   };
 
+  // reload ui to display the ads
+  useEffect(() => {
+    fetchAds();
+    fetchAdvertiserProfile();
+  }, [user.token]);
+
   // Handle saving an ad (create or update)
   const handleSaveAd = (adData) => {
     if (editingAd) {
@@ -216,6 +222,8 @@ const Ads = () => {
   const getPreviewAd = () => {
     return ads.length > 0 ? ads[ads.length - 1] : null;
   };
+
+
 
 
   // Render the current page
