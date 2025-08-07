@@ -48,7 +48,7 @@ api.interceptors.response.use(
       // Allow the error to be handled by the component
       console.log("No redirect to login, current path is: ", window.location.pathname);
       return Promise.reject(error);
-    } else{
+    } else {
       console.log("Redirecting to login, current path is: ", window.location.pathname);
     }
 
@@ -298,7 +298,7 @@ export const updateFavoriteStatus = async (username, isFavorite, user) => {
 
 export const submitUserReport = async (userId, reportMessage, reportedUser, reportingUser) => {
   try {
-    const response = await api.post(`/user/${userId}/report`, { reportMessage: reportMessage, reportedUser:  reportedUser , reportingUser: reportingUser });
+    const response = await api.post(`/user/${userId}/report`, { reportMessage: reportMessage, reportedUser: reportedUser, reportingUser: reportingUser });
     return response.data;
   } catch (error) {
     console.error('API - Error submitting user report:', error);
@@ -489,6 +489,122 @@ export const createAdroute = async (adData) => {
     throw error;
   }
 };
+
+export const fetchAdvertiserProfile = async (user) => {
+  try {
+    const response = await api.get('/ads/advertiser/profile', { headers: { 'Authorization': `Bearer ${user.token}` } });
+    return response.data;
+  } catch (error) {
+    console.error('API - Error fetching advertiser profile:', error);
+    throw error;
+  }
+};
+
+
+
+export const fetchAds = async (user) => {
+  try {
+    const response = await api.get('/ads/ad', { headers: { 'Authorization': `Bearer ${user.token}` } });
+    return response.data;
+  } catch (error) {
+    console.error('API - Error fetching ads:', error);
+    throw error;
+  }
+};
+
+// export const fetchAdvertiserProfile = async (user) => {
+//   try {
+//     const response = await api.get('/ads/advertiser/profile', { headers: { 'Authorization': `Bearer ${user.token}` } });
+//     return response.data;
+//   } catch (error) {
+//     console.error('API - Error fetching advertiser profile:', error);
+//     throw error;
+//   }
+// };
+
+// export const fetchAdvertiserProfile = async (user) => {
+//   // if (!user.token) {
+//   //   setLoading(false);
+//   //   setError('No authentication token found');
+//   //   return;
+//   // }
+//   const API_BASE_URL = process.env.REACT_APP_API_SERVER_URL + "/api" || 'http://localhost:5001/api';
+
+//   try {
+//     // const response = await api.get(`${API_BASE_URL}/ads/advertiser/profile`, {
+//     //   headers: {
+//     //     'Content-Type': 'application/json',
+//     //     'Authorization': `Bearer ${user.token}`
+//     //   }
+//     // });
+
+//     const response = await api.get('/ads/advertiser/profile', { user: user, headers: { 'Authorization': `Bearer ${user.token}` } });
+
+//     const data = await response.json();
+
+//     if (response.ok) {
+//       // Based on the commented API, the response structure is { user: userData }
+//       setUser(prevUser => ({
+//         ...prevUser,
+//         ...data.user,
+//         token: prevUser.token // Keep the token
+//       }));
+//     } else {
+//       console.error('Failed to fetch advertiser profile:', data);
+//       setError('Failed to fetch user profile');
+//     }
+//   } catch (error) {
+//     console.error('Error fetching advertiser profile:', error);
+//     setError('Network error while fetching profile');
+//   }
+// };
+
+// // Fetch ads from the server
+// export const fetchAds = async (user) => {
+//   // if (!user.token) {
+//   //   return;
+//   // }
+//   // const API_BASE_URL = process.env.REACT_APP_API_SERVER_URL + "/api" || 'http://localhost:5001/api';
+
+//   // try {
+//   //   const response = await api.get(`${API_BASE_URL}/ads/ad`, {
+//   //     method: 'GET',
+//   //     headers: {
+//   //       'Content-Type': 'application/json',
+//   //       'Authorization': `Bearer ${user.token}`
+//   //     }
+//   //   });
+
+//   try {
+//     const response = await api.get('/ads/ad', { headers: { 'Authorization': `Bearer ${user.token}` } });
+
+//     const data = await response.json();
+
+//     if (response.ok) {
+//       // Transform server data to match expected format
+//       const transformedAds = data.ads.map(ad => ({
+//         ...ad,
+//         views: parseInt(ad.views) || 0,
+//         completions: parseInt(ad.completions) || 0,
+//         spent: parseFloat(ad.spent) || 0,
+//         budget: parseFloat(ad.budget) || 0,
+//         reward: parseFloat(ad.reward) || 0,
+//         active: Boolean(ad.active),
+//         createdAt: ad.created_at ? new Date(ad.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+//         quiz: ad.quiz ? JSON.parse(ad.quiz) : []
+//       }));
+//       setAds(transformedAds);
+//     } else {
+//       console.error('Failed to fetch ads:', data);
+//       setError('Failed to fetch ads');
+//     }
+//   } catch (error) {
+//     console.error('Error fetching ads:', error);
+//     setError('Network error while fetching ads');
+//   } finally {
+//     setLoading(false);
+//   }
+// };
 
 
 export default api;

@@ -17,9 +17,9 @@ const AdServiceActivationPage = ({ authToken, onActivationComplete,  }) => {
   const token = authToken || localStorage.getItem('authToken');
   const API_BASE_URL = process.env.REACT_APP_API_SERVER_URL + "/api" || 'http://localhost:5001/api';
 
-  useEffect(() => {
-    checkUserEnrollment();
-  }, []);
+  // useEffect(() => {
+  //   checkUserEnrollment();
+  // }, []);
 
   const checkUserEnrollment = async () => {
     if (!token) {
