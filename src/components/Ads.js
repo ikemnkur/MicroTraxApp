@@ -40,35 +40,33 @@ const Ads = () => {
     }
 
     try {
-      // const response = await fetch(`${API_BASE_URL}/ads/advertiser/profile`, {
-      //   method: 'GET',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${user.token}`
-      //   }
-      // });
+      
 
       const response = await fetchAdvertiserProfile(user);
       // await fetchAds(user);
-      console.log('Fetcg Advertiser Profile response:', response);
+      console.log('Fetch Advertiser Profile response:', response.user);
       // const data = await response.json();
 
-      if (response.ok) {
+      // console.log("response ok status:", response.ok);
+
+      if (response) {
         // Based on the commented API, the response structure is { user: userData }
-        setUser(prevUser => ({
-          ...prevUser,
-          ...data.user,
-          token: prevUser.token // Keep the token
-        }));
+        // setUser(prevUser => ({
+        //   ...prevUser,
+        //   ...response.user,
+        //   token: prevUser.token // Keep the token
+        // }));
+        setUser(response.user);
+        console.log('Advertiser profile fetched successfully:', response.user);
       } else {
-        console.error('Failed to fetch advertiser profile:', data);
+        console.error('Failed to fetch advertiser profile:', response.user);
         setError('Failed to fetch user profile');
       }
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch advertiser profile');
-      }
+      // if (!response.ok) {
+      //   const errorData = await response.json();
+      //   throw new Error(errorData.error || 'Failed to fetch advertiser profile');
+      // }
 
     } catch (error) {
       console.error('Error fetching advertiser profile:', error);
@@ -85,21 +83,16 @@ const Ads = () => {
     try {
 
       const response = await fetchAds(user);
-      // const response = await fetch(`${API_BASE_URL}/ads/ad`, {
-      //   method: 'GET',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${user.token}`
-      //   }
-      // });
-
-      console.log('Fetch Ads response:', response);
+    
+      // console.log('Fetch Ads response:', response);
 
       // const data = await response.json();
 
-      if (response.ok) {
+      console.log('Fetch Ads data:', response.ads);
+
+      if (response) {
         // Transform server data to match expected format
-        const transformedAds = data.ads.map(ad => ({
+        const transformedAds = response.ads.map(ad => ({
           ...ad,
           views: parseInt(ad.views) || 0,
           completions: parseInt(ad.completions) || 0,
@@ -112,14 +105,14 @@ const Ads = () => {
         }));
         setAds(transformedAds);
       } else {
-        console.error('Failed to fetch ads:', data);
+        console.error('Failed to fetch ads:', response.ads);
         setError('Failed to fetch ads');
       }
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch ad');
-      }
+      // if (!response.ok) {
+      //   const errorData = await response.json();
+      //   throw new Error(errorData.error || 'Failed to fetch ad');
+      // }
 
     } catch (error) {
       console.error('Error fetching ads:', error);

@@ -490,9 +490,19 @@ export const createAdroute = async (adData) => {
   }
 };
 
+// export const fetchAdvertiserProfile = async (user) => {
+//   try {
+//     const response = await api.get('/ads/advertiser/profile', { headers: { 'Authorization': `Bearer ${user.token}` } });
+//     return response.data;
+//   } catch (error) {
+//     console.error('API - Error fetching advertiser profile:', error);
+//     throw error;
+//   }
+// };
+
 export const fetchAdvertiserProfile = async (user) => {
   try {
-    const response = await api.get('/ads/advertiser/profile', { headers: { 'Authorization': `Bearer ${user.token}` } });
+    const response = await api.get('/ads/advertiser/profile', user );
     return response.data;
   } catch (error) {
     console.error('API - Error fetching advertiser profile:', error);
@@ -500,11 +510,19 @@ export const fetchAdvertiserProfile = async (user) => {
   }
 };
 
-
+// export const fetchAds = async (user) => {
+//   try {
+//     const response = await api.get('/ads/ad', { headers: { 'Authorization': `Bearer ${user.token}` } });
+//     return response.data;
+//   } catch (error) {
+//     console.error('API - Error fetching ads:', error);
+//     throw error;
+//   }
+// };
 
 export const fetchAds = async (user) => {
   try {
-    const response = await api.get('/ads/ad', { headers: { 'Authorization': `Bearer ${user.token}` } });
+    const response = await api.get('/ads/ad', user );
     return response.data;
   } catch (error) {
     console.error('API - Error fetching ads:', error);
