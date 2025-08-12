@@ -35,9 +35,13 @@ import {
 import { styled } from '@mui/material/styles';
 
 import { createAdroute, updateUserProfile, fetchWalletData } from '../components/api'; // Adjust the import path as necessary
+import { useNavigate } from 'react-router-dom';
 
 // Lucide React icons  
 import { Target } from 'lucide-react';
+import { Navigate } from 'react-router-dom';
+
+
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
@@ -110,6 +114,8 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
   const [dragOver, setDragOver] = useState(false);
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
+
+  const navigate = useNavigate();
 
   // Get auth token from localStorage if not provided as prop
   const token = localStorage.getItem('token');
@@ -298,12 +304,16 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
     //   body: formDataToSend
     // });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to create ad');
-    }
+    // if (!response.ok) {
+    //   const errorData = await response.json();
+    //   throw new Error(errorData.error || 'Failed to create ad');
+    // }
 
-    return response.json();
+    setTimeout(() => {
+      navigate('/ads-service');
+      return response;
+    }, 1000);
+
   };
 
   const updateAd = async (adId, adData) => {

@@ -490,19 +490,73 @@ export const createAdroute = async (adData) => {
   }
 };
 
-// export const fetchAdvertiserProfile = async (user) => {
+
+export const AdInteraction = async (ad) => {
+  try {
+    const response = await api.get(`/ads/${ad.id}/interactions`, ad );
+    return response.data;
+  } catch (error) {
+    console.error('API - Error fetching ads to display: ', error);
+    throw error;
+  }
+};
+
+
+
+// =================
+// USER SUBSCRIPTIONS
+// =================
+
+// export const fetchUserSubscriptions = async () => {
 //   try {
-//     const response = await api.get('/ads/advertiser/profile', { headers: { 'Authorization': `Bearer ${user.token}` } });
+//     const response = await api.get('/user-subscriptions/get');
 //     return response.data;
 //   } catch (error) {
-//     console.error('API - Error fetching advertiser profile:', error);
+//     console.error('API - Error fetching user subscriptions:', error);
 //     throw error;
 //   }
 // };
 
-export const fetchAdvertiserProfile = async (user) => {
+// export const confirmUserSubToContent = async (contentData, message) => {
+//   try {
+//     const response = await api.post('/user-subscriptions/sub-to-content', { 
+//       contentId: contentData.id, 
+//       msg: message 
+//     });
+//     return response.data;
+//   } catch (error) {
+//     console.error('API - Error adding new subscription:', error);
+//     throw error;
+//   }
+// };
+
+// export const handleDeleteUserSubscription = async (contentId) => {
+//   try {
+//     const response = await api.delete(`/user-subscriptions/delete/${contentId}`);
+//     return response.data;
+//   } catch (error) {
+//     console.error('API - Error deleting subscription:', error);
+//     throw error;
+//   }
+// };
+
+// =================
+// ADS MANAGEMENT
+// =================
+
+export const createAdRoute = async (adData) => {
   try {
-    const response = await api.get('/ads/advertiser/profile', user );
+    const response = await api.post('/ads/ad/', adData);
+    return response.data;
+  } catch (error) {
+    console.error('API - Error creating ad:', error);
+    throw error;
+  }
+};
+
+export const fetchAdvertiserProfile = async () => {
+  try {
+    const response = await api.get('/ads/advertiser/profile');
     return response.data;
   } catch (error) {
     console.error('API - Error fetching advertiser profile:', error);
@@ -510,19 +564,9 @@ export const fetchAdvertiserProfile = async (user) => {
   }
 };
 
-// export const fetchAds = async (user) => {
-//   try {
-//     const response = await api.get('/ads/ad', { headers: { 'Authorization': `Bearer ${user.token}` } });
-//     return response.data;
-//   } catch (error) {
-//     console.error('API - Error fetching ads:', error);
-//     throw error;
-//   }
-// };
-
-export const fetchAds = async (user) => {
+export const fetchAds = async () => {
   try {
-    const response = await api.get('/ads/ad', user );
+    const response = await api.get('/ads/ad');
     return response.data;
   } catch (error) {
     console.error('API - Error fetching ads:', error);
@@ -530,99 +574,125 @@ export const fetchAds = async (user) => {
   }
 };
 
-// export const fetchAdvertiserProfile = async (user) => {
-//   try {
-//     const response = await api.get('/ads/advertiser/profile', { headers: { 'Authorization': `Bearer ${user.token}` } });
-//     return response.data;
-//   } catch (error) {
-//     console.error('API - Error fetching advertiser profile:', error);
-//     throw error;
-//   }
-// };
+export const fetchDisplayAds = async (filters = {}) => {
+  try {
+    const response = await api.get('/ads/display', { params: filters });
+    return response.data;
+  } catch (error) {
+    console.error('API - Error fetching ads to display:', error);
+    throw error;
+  }
+};
 
-// export const fetchAdvertiserProfile = async (user) => {
-//   // if (!user.token) {
-//   //   setLoading(false);
-//   //   setError('No authentication token found');
-//   //   return;
-//   // }
-//   const API_BASE_URL = process.env.REACT_APP_API_SERVER_URL + "/api" || 'http://localhost:5001/api';
+export const fetchPreviewAd = async (ad_id) => {
+  try {
+    const response = await api.get(`/ads/preview-ad/${ad_id}`);
+    return response.data;
+  } catch (error) {
+    console.error('API - Error fetching ad preview:', error);
+    throw error;
+  }
+};
 
-//   try {
-//     // const response = await api.get(`${API_BASE_URL}/ads/advertiser/profile`, {
-//     //   headers: {
-//     //     'Content-Type': 'application/json',
-//     //     'Authorization': `Bearer ${user.token}`
-//     //   }
-//     // });
+// =================
+// AD INTERACTIONS
+// =================
 
-//     const response = await api.get('/ads/advertiser/profile', { user: user, headers: { 'Authorization': `Bearer ${user.token}` } });
+export const recordAdInteraction = async (adId, interactionType, creditsEarned = 0) => {
+  try {
+    const response = await api.post(`/ads/ad/${adId}/interactions`, {
+      interactionType,
+      creditsEarned
+    });
+    return response.data;
+  } catch (error) {
+    console.error('API - Error recording ad interaction:', error);
+    throw error;
+  }
+};
 
-//     const data = await response.json();
+export const trackAdView = async (adId) => {
+  return recordAdInteraction(adId, 'view');
+};
 
-//     if (response.ok) {
-//       // Based on the commented API, the response structure is { user: userData }
-//       setUser(prevUser => ({
-//         ...prevUser,
-//         ...data.user,
-//         token: prevUser.token // Keep the token
-//       }));
-//     } else {
-//       console.error('Failed to fetch advertiser profile:', data);
-//       setError('Failed to fetch user profile');
-//     }
-//   } catch (error) {
-//     console.error('Error fetching advertiser profile:', error);
-//     setError('Network error while fetching profile');
-//   }
-// };
+export const trackAdSkip = async (adId) => {
+  return recordAdInteraction(adId, 'skip');
+};
 
-// // Fetch ads from the server
-// export const fetchAds = async (user) => {
-//   // if (!user.token) {
-//   //   return;
-//   // }
-//   // const API_BASE_URL = process.env.REACT_APP_API_SERVER_URL + "/api" || 'http://localhost:5001/api';
+export const trackAdCompletion = async (adId) => {
+  return recordAdInteraction(adId, 'completion');
+};
 
-//   // try {
-//   //   const response = await api.get(`${API_BASE_URL}/ads/ad`, {
-//   //     method: 'GET',
-//   //     headers: {
-//   //       'Content-Type': 'application/json',
-//   //       'Authorization': `Bearer ${user.token}`
-//   //     }
-//   //   });
+export const trackRewardClaim = async (adId, creditsEarned) => {
+  return recordAdInteraction(adId, 'reward_claimed', creditsEarned);
+};
 
-//   try {
-//     const response = await api.get('/ads/ad', { headers: { 'Authorization': `Bearer ${user.token}` } });
+// =================
+// QUIZ SYSTEM
+// =================
 
-//     const data = await response.json();
+export const fetchRandomQuizQuestion = async (adId) => {
+  try {
+    const response = await api.get(`/ads/ad/${adId}/quiz/random`);
+    return response.data;
+  } catch (error) {
+    console.error('API - Error fetching quiz question:', error);
+    throw error;
+  }
+};
 
-//     if (response.ok) {
-//       // Transform server data to match expected format
-//       const transformedAds = data.ads.map(ad => ({
-//         ...ad,
-//         views: parseInt(ad.views) || 0,
-//         completions: parseInt(ad.completions) || 0,
-//         spent: parseFloat(ad.spent) || 0,
-//         budget: parseFloat(ad.budget) || 0,
-//         reward: parseFloat(ad.reward) || 0,
-//         active: Boolean(ad.active),
-//         createdAt: ad.created_at ? new Date(ad.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-//         quiz: ad.quiz ? JSON.parse(ad.quiz) : []
-//       }));
-//       setAds(transformedAds);
-//     } else {
-//       console.error('Failed to fetch ads:', data);
-//       setError('Failed to fetch ads');
-//     }
-//   } catch (error) {
-//     console.error('Error fetching ads:', error);
-//     setError('Network error while fetching ads');
-//   } finally {
-//     setLoading(false);
-//   }
-// };
+export const submitQuizAnswer = async (adId, questionId, answer, selectedOption = null) => {
+  try {
+    const response = await api.post('/ads/quiz/answer', {
+      adId,
+      questionId,
+      answer,
+      selectedOption
+    });
+    return response.data;
+  } catch (error) {
+    console.error('API - Error submitting quiz answer:', error);
+    throw error;
+  }
+};
+
+// =================
+// ANALYTICS
+// =================
+
+export const fetchAdAnalytics = async (adId) => {
+  try {
+    const response = await api.get(`/ads/ad/${adId}/analytics`);
+    return response.data;
+  } catch (error) {
+    console.error('API - Error fetching ad analytics:', error);
+    throw error;
+  }
+};
+
+export const fetchDashboardAnalytics = async () => {
+  try {
+    const response = await api.get('/analytics/dashboard');
+    return response.data;
+  } catch (error) {
+    console.error('API - Error fetching dashboard analytics:', error);
+    throw error;
+  }
+};
+
+// =================
+// UTILITY FUNCTIONS
+// =================
+
+export const checkApiHealth = async () => {
+  try {
+    const response = await api.get('/health');
+    return response.data;
+  } catch (error) {
+    console.error('API - Health check failed:', error);
+    throw error;
+  }
+};
 
 
 export default api;

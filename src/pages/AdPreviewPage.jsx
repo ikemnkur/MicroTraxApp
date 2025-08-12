@@ -1,8 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import AdObject from '../pages/AdObject'; // Adjust path as needed
+// import AdObject from '../components/AdObject'; // Adjust path as needed
+import { fetchPreviewAd } from '../components/api';
 
-const AdPreviewPage = ({ ad, AdComponent, RewardModal }) => {
+const AdPreviewPage = ({ AdComponent, RewardModal }) => {
   const [showRewardModal, setShowRewardModal] = useState(false);
   const [rewards, setRewards] = useState(0);
+  const [ad, setAd] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showRewardButton, setShowRewardButton] = useState(false);
+
+  const Ad_id = useParams().id;  // Changed from .username to .user
+  const showRewardProbability = 1; // 30% chance to show reward button
 
   const handleAdComplete = () => {
     console.log('Ad completed');
@@ -10,6 +21,19 @@ const AdPreviewPage = ({ ad, AdComponent, RewardModal }) => {
 
   const handleAdSkip = () => {
     console.log('Ad skipped');
+  };
+
+  const handleAdView = () => {
+    console.log('Ad viewed');
+  };
+
+  const handleAdClick = () => {
+    console.log('Ad clicked');
+    goToAdWebSite(ad);
+  };
+
+  const handleRewardClaim = () => {
+    console.log('Reward claimed');
   };
 
   const handleRewardClick = (ad) => {
@@ -21,10 +45,170 @@ const AdPreviewPage = ({ ad, AdComponent, RewardModal }) => {
     setShowRewardModal(false);
   };
 
+  const goToAdWebSite = (ad) => {
+    if (ad?.link) {
+      window.open(ad.link, '_blank');
+    }
+  };
+
+  // Simple RewardModal component if not provided
+  const SimpleRewardModal = RewardModal || (({ ad, onClose, onReward }) => (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      background: 'rgba(0, 0, 0, 0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000
+    }}>
+      <div style={{
+        background: 'white',
+        padding: '24px',
+        borderRadius: '12px',
+        textAlign: 'center',
+        maxWidth: '400px'
+      }}>
+        <h3>Congratulations!</h3>
+        <p>You earned {ad?.reward || 5} credits!</p>
+        <button onClick={() => {
+          onReward(ad?.reward || 5);
+          onClose();
+        }}>
+          Claim Reward
+        </button>
+        <button onClick={onClose} style={{ marginLeft: '12px' }}>
+          Close
+        </button>
+      </div>
+    </div>
+  ));
+
+
+  // Fetch advertisement data
+  useEffect(() => {
+    const fetchAd = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        console.log('Fetching ads with ID:', Ad_id);
+        const response = await fetchPreviewAd(Ad_id);
+
+        console.log('Fetched Ads:', response);
+        console.log('Fetched Ads Details:', response.ads[0]);
+
+        if (!response.ads || response.ads.length === 0) {
+          setAd(null);
+          return;
+        }
+
+        const adData = response.ads[0]; // Get first ad
+        setAd(adData);
+
+        // Determine if reward button should be shown
+        setShowRewardButton(Math.random() < showRewardProbability);
+
+      } catch (err) {
+        setError(err.message);
+        console.error('Error fetching advertisement:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAd();
+  }, [Ad_id, showRewardProbability]);
+
+  if (loading) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        padding: '24px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: '24px',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          padding: '48px',
+          textAlign: 'center',
+          maxWidth: '500px',
+          width: '100%'
+        }}>
+          <div style={{ fontSize: '64px', marginBottom: '24px' }}>⏳</div>
+          <h2 style={{
+            fontSize: '1.5rem',
+            fontWeight: 'bold',
+            color: 'rgba(0, 0, 0, 0.8)',
+            marginBottom: '16px'
+          }}>
+            Loading Ad Preview
+          </h2>
+          <p style={{
+            color: 'rgba(0, 0, 0, 0.6)',
+            fontSize: '16px',
+            lineHeight: 1.6
+          }}>
+            Please wait while we fetch your advertisement data...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        padding: '24px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: '24px',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          padding: '48px',
+          textAlign: 'center',
+          maxWidth: '500px',
+          width: '100%'
+        }}>
+          <div style={{ fontSize: '64px', marginBottom: '24px' }}>❌</div>
+          <h2 style={{
+            fontSize: '1.5rem',
+            fontWeight: 'bold',
+            color: 'rgba(0, 0, 0, 0.8)',
+            marginBottom: '16px'
+          }}>
+            Error Loading Ad
+          </h2>
+          <p style={{
+            color: 'rgba(0, 0, 0, 0.6)',
+            fontSize: '16px',
+            lineHeight: 1.6
+          }}>
+            {error}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (!ad) {
     return (
-      <div style={{ 
-        minHeight: '100vh', 
+      <div style={{
+        minHeight: '100vh',
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         padding: '24px',
         display: 'flex',
@@ -42,16 +226,16 @@ const AdPreviewPage = ({ ad, AdComponent, RewardModal }) => {
           width: '100%'
         }}>
           <div style={{ fontSize: '64px', marginBottom: '24px' }}>⚠️</div>
-          <h2 style={{ 
-            fontSize: '1.5rem', 
-            fontWeight: 'bold', 
-            color: 'rgba(0, 0, 0, 0.8)', 
+          <h2 style={{
+            fontSize: '1.5rem',
+            fontWeight: 'bold',
+            color: 'rgba(0, 0, 0, 0.8)',
             marginBottom: '16px'
           }}>
             No Ad Selected
           </h2>
-          <p style={{ 
-            color: 'rgba(0, 0, 0, 0.6)', 
+          <p style={{
+            color: 'rgba(0, 0, 0, 0.6)',
             fontSize: '16px',
             lineHeight: 1.6
           }}>
@@ -63,26 +247,26 @@ const AdPreviewPage = ({ ad, AdComponent, RewardModal }) => {
   }
 
   return (
-    <div style={{ 
-      minHeight: '100vh', 
+    <div style={{
+      minHeight: '100vh',
       background: 'linear-gradient(135deg,rgb(210, 216, 247) 0%,rgb(187, 167, 208) 100%)',
       padding: '24px'
     }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         {/* Header */}
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
           marginBottom: '32px',
           flexWrap: 'wrap',
           gap: '16px'
         }}>
           <div>
-            <div style={{ 
-              width: '60px', 
-              height: '60px', 
-              marginBottom: '12px', 
+            <div style={{
+              width: '60px',
+              height: '60px',
+              marginBottom: '12px',
               borderRadius: '50%',
               background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
               display: 'flex',
@@ -94,7 +278,7 @@ const AdPreviewPage = ({ ad, AdComponent, RewardModal }) => {
             }}>
               👁️
             </div>
-            <h1 style={{ 
+            <h1 style={{
               fontSize: '2rem',
               fontWeight: 800,
               background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -107,7 +291,7 @@ const AdPreviewPage = ({ ad, AdComponent, RewardModal }) => {
               Ad Preview
             </h1>
           </div>
-          
+
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -144,15 +328,15 @@ const AdPreviewPage = ({ ad, AdComponent, RewardModal }) => {
             gap: '12px'
           }}>
             <span style={{ fontSize: '24px' }}>🎬</span>
-            <h2 style={{ 
-              fontSize: '1.5rem', 
-              fontWeight: 'bold', 
+            <h2 style={{
+              fontSize: '1.5rem',
+              fontWeight: 'bold',
               margin: 0
             }}>
               Live Preview
             </h2>
           </div>
-          
+
           <div style={{ padding: '32px' }}>
             <div style={{
               border: '3px dashed rgba(102, 126, 234, 0.3)',
@@ -165,6 +349,23 @@ const AdPreviewPage = ({ ad, AdComponent, RewardModal }) => {
               alignItems: 'center',
               justifyContent: 'center'
             }}>
+
+              {/* AdObject Component
+              <AdObject
+                onAdView={handleAdView}
+                onAdClick={handleAdClick}
+                onAdSkip={handleAdSkip}
+                onRewardClaim={handleRewardClaim}
+                RewardModal={SimpleRewardModal}
+                showRewardProbability={0.3} // 30% chance to show reward button
+                filters={{ format: 'banner' }} // Only show banner ads for this placement
+                style={{
+                  minHeight: '200px', // Ensure minimum height
+                  borderRadius: 0 // Remove border radius to fit Paper container
+                }}
+                className="banner-ad"
+              /> */}
+
               {/* Demo Ad Display */}
               <div style={{
                 background: 'white',
@@ -174,24 +375,26 @@ const AdPreviewPage = ({ ad, AdComponent, RewardModal }) => {
                 border: '2px solid rgba(0, 0, 0, 0.05)',
                 width: '100%',
                 maxWidth: '500px',
-                textAlign: 'center'
-              }}>
-                <div style={{ 
-                  fontSize: '48px', 
+                textAlign: 'center',
+                cursor: 'pointer'
+              }} >
+                {/* Todo: clicking on the ad and not on the buttonsshould open the ad's link in a new tab */}
+                <div style={{
+                  fontSize: '48px',
                   marginBottom: '16px'
                 }}>
                   {ad.format === 'video' ? '🎥' : ad.format === 'audio' ? '🎵' : '📄'}
                 </div>
-                <h3 style={{ 
-                  fontSize: '1.5rem', 
-                  fontWeight: 'bold', 
+                <h3 style={{
+                  fontSize: '1.5rem',
+                  fontWeight: 'bold',
                   marginBottom: '12px',
                   color: 'rgba(0, 0, 0, 0.8)'
                 }}>
                   {ad.title}
                 </h3>
-                <p style={{ 
-                  color: 'rgba(0, 0, 0, 0.6)', 
+                <p style={{
+                  color: 'rgba(0, 0, 0, 0.6)',
                   marginBottom: '20px',
                   lineHeight: 1.5
                 }}>
@@ -199,7 +402,10 @@ const AdPreviewPage = ({ ad, AdComponent, RewardModal }) => {
                 </p>
                 <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
                   <button
-                    onClick={() => handleRewardClick(ad)}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent the ad click from triggering
+                      handleRewardClick(ad);
+                    }}
                     style={{
                       padding: '12px 24px',
                       border: 'none',
@@ -224,7 +430,10 @@ const AdPreviewPage = ({ ad, AdComponent, RewardModal }) => {
                     🎁 Claim Reward
                   </button>
                   <button
-                    onClick={handleAdSkip}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent the ad click from triggering
+                      handleAdSkip();
+                    }}
                     style={{
                       padding: '12px 24px',
                       border: '2px solid rgba(0, 0, 0, 0.2)',
@@ -244,6 +453,31 @@ const AdPreviewPage = ({ ad, AdComponent, RewardModal }) => {
                     }}
                   >
                     Skip
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent the ad click from triggering
+                      goToAdWebSite(ad);
+                    }}
+                    style={{
+                      padding: '12px 24px',
+                      border: '2px solid rgba(0, 0, 0, 0.2)',
+                      borderRadius: '12px',
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      color: 'rgba(0, 0, 0, 0.7)',
+                      backgroundColor: 'transparent',
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.backgroundColor = 'transparent';
+                    }}
+                  >
+                    See
                   </button>
                 </div>
               </div>
@@ -266,7 +500,7 @@ const AdPreviewPage = ({ ad, AdComponent, RewardModal }) => {
                 Preview Mode
               </div>
             </div>
-            
+
             <div style={{
               marginTop: '20px',
               padding: '16px 20px',
@@ -278,9 +512,9 @@ const AdPreviewPage = ({ ad, AdComponent, RewardModal }) => {
               gap: '12px'
             }}>
               <span style={{ fontSize: '20px' }}>💡</span>
-              <p style={{ 
-                margin: 0, 
-                fontSize: '14px', 
+              <p style={{
+                margin: 0,
+                fontSize: '14px',
                 color: 'rgba(0, 0, 0, 0.7)',
                 fontWeight: 500
               }}>
@@ -307,19 +541,19 @@ const AdPreviewPage = ({ ad, AdComponent, RewardModal }) => {
             gap: '12px'
           }}>
             <span style={{ fontSize: '24px' }}>📊</span>
-            <h2 style={{ 
-              fontSize: '1.5rem', 
-              fontWeight: 'bold', 
+            <h2 style={{
+              fontSize: '1.5rem',
+              fontWeight: 'bold',
               margin: 0
             }}>
               Advertisement Details
             </h2>
           </div>
-          
+
           <div style={{ padding: '32px' }}>
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
               gap: '24px'
             }}>
               <div style={{
@@ -328,10 +562,10 @@ const AdPreviewPage = ({ ad, AdComponent, RewardModal }) => {
                 borderRadius: '16px',
                 border: '2px solid rgba(102, 126, 234, 0.1)'
               }}>
-                <h3 style={{ 
-                  fontSize: '16px', 
-                  fontWeight: 'bold', 
-                  color: 'rgba(0, 0, 0, 0.8)', 
+                <h3 style={{
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  color: 'rgba(0, 0, 0, 0.8)',
                   marginBottom: '16px',
                   display: 'flex',
                   alignItems: 'center',
@@ -342,14 +576,14 @@ const AdPreviewPage = ({ ad, AdComponent, RewardModal }) => {
                 </h3>
                 <div style={{ fontSize: '14px', lineHeight: 1.8, color: 'rgba(0, 0, 0, 0.7)' }}>
                   <p style={{ margin: '8px 0', display: 'flex', justifyContent: 'space-between' }}>
-                    <strong>Title:</strong> 
+                    <strong>Title:</strong>
                     <span>{ad.title}</span>
                   </p>
                   <p style={{ margin: '8px 0', display: 'flex', justifyContent: 'space-between' }}>
-                    <strong>Format:</strong> 
-                    <span style={{ 
-                      background: 'rgba(102, 126, 234, 0.1)', 
-                      padding: '2px 8px', 
+                    <strong>Format:</strong>
+                    <span style={{
+                      background: 'rgba(102, 126, 234, 0.1)',
+                      padding: '2px 8px',
                       borderRadius: '8px',
                       textTransform: 'capitalize'
                     }}>
@@ -357,7 +591,7 @@ const AdPreviewPage = ({ ad, AdComponent, RewardModal }) => {
                     </span>
                   </p>
                   <p style={{ margin: '8px 0', display: 'flex', justifyContent: 'space-between' }}>
-                    <strong>Budget:</strong> 
+                    <strong>Budget:</strong>
                     <span style={{ fontWeight: 600 }}>{ad.budget} credits</span>
                   </p>
                 </div>
@@ -369,10 +603,10 @@ const AdPreviewPage = ({ ad, AdComponent, RewardModal }) => {
                 borderRadius: '16px',
                 border: '2px solid rgba(16, 185, 129, 0.1)'
               }}>
-                <h3 style={{ 
-                  fontSize: '16px', 
-                  fontWeight: 'bold', 
-                  color: 'rgba(0, 0, 0, 0.8)', 
+                <h3 style={{
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  color: 'rgba(0, 0, 0, 0.8)',
                   marginBottom: '16px',
                   display: 'flex',
                   alignItems: 'center',
@@ -383,10 +617,10 @@ const AdPreviewPage = ({ ad, AdComponent, RewardModal }) => {
                 </h3>
                 <div style={{ fontSize: '14px', lineHeight: 1.8, color: 'rgba(0, 0, 0, 0.7)' }}>
                   <p style={{ margin: '8px 0', display: 'flex', justifyContent: 'space-between' }}>
-                    <strong>Reward:</strong> 
-                    <span style={{ 
-                      background: 'rgba(16, 185, 129, 0.1)', 
-                      padding: '2px 8px', 
+                    <strong>Reward:</strong>
+                    <span style={{
+                      background: 'rgba(16, 185, 129, 0.1)',
+                      padding: '2px 8px',
                       borderRadius: '8px',
                       fontWeight: 600,
                       color: '#059669'
@@ -395,11 +629,11 @@ const AdPreviewPage = ({ ad, AdComponent, RewardModal }) => {
                     </span>
                   </p>
                   <p style={{ margin: '8px 0', display: 'flex', justifyContent: 'space-between' }}>
-                    <strong>Frequency:</strong> 
+                    <strong>Frequency:</strong>
                     <span style={{ textTransform: 'capitalize' }}>{ad.frequency}</span>
                   </p>
                   <p style={{ margin: '8px 0', display: 'flex', justifyContent: 'space-between' }}>
-                    <strong>Quiz Questions:</strong> 
+                    <strong>Quiz Questions:</strong>
                     <span style={{ fontWeight: 600 }}>{ad.quiz?.length || 0}</span>
                   </p>
                 </div>
@@ -415,10 +649,10 @@ const AdPreviewPage = ({ ad, AdComponent, RewardModal }) => {
                 borderRadius: '16px',
                 border: '2px solid rgba(245, 158, 11, 0.1)'
               }}>
-                <h3 style={{ 
-                  fontSize: '18px', 
-                  fontWeight: 'bold', 
-                  color: 'rgba(0, 0, 0, 0.8)', 
+                <h3 style={{
+                  fontSize: '18px',
+                  fontWeight: 'bold',
+                  color: 'rgba(0, 0, 0, 0.8)',
                   marginBottom: '20px',
                   display: 'flex',
                   alignItems: 'center',
@@ -427,23 +661,23 @@ const AdPreviewPage = ({ ad, AdComponent, RewardModal }) => {
                   <span>🧠</span>
                   Quiz Questions Preview
                 </h3>
-                <div style={{ 
-                  display: 'grid', 
+                <div style={{
+                  display: 'grid',
                   gap: '16px'
                 }}>
                   {ad.quiz.slice(0, 3).map((question, index) => (
-                    <div 
-                      key={index} 
-                      style={{ 
-                        background: 'rgba(255, 255, 255, 0.7)', 
-                        padding: '20px', 
+                    <div
+                      key={index}
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.7)',
+                        padding: '20px',
                         borderRadius: '12px',
                         border: '1px solid rgba(0, 0, 0, 0.05)'
                       }}
                     >
-                      <div style={{ 
-                        display: 'flex', 
-                        alignItems: 'flex-start', 
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
                         gap: '12px',
                         marginBottom: '12px'
                       }}>
@@ -463,24 +697,24 @@ const AdPreviewPage = ({ ad, AdComponent, RewardModal }) => {
                           {index + 1}
                         </div>
                         <div style={{ flex: 1 }}>
-                          <p style={{ 
-                            fontWeight: 600, 
+                          <p style={{
+                            fontWeight: 600,
                             margin: '0 0 8px 0',
                             color: 'rgba(0, 0, 0, 0.8)',
                             lineHeight: 1.4
                           }}>
                             {question.question}
                           </p>
-                          <div style={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
                             gap: '12px',
                             fontSize: '12px'
                           }}>
-                            <span style={{ 
-                              background: 'rgba(245, 158, 11, 0.1)', 
+                            <span style={{
+                              background: 'rgba(245, 158, 11, 0.1)',
                               color: '#d97706',
-                              padding: '4px 8px', 
+                              padding: '4px 8px',
                               borderRadius: '6px',
                               fontWeight: 600,
                               textTransform: 'capitalize'

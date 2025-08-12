@@ -177,7 +177,7 @@ function App() {
               <ProtectedRoute> <AdAnalyticsPage /> </ProtectedRoute>} />
             <Route path="/manage-ads" element={
               <ProtectedRoute> <ManageAdsPage /> </ProtectedRoute>} />
-            <Route path="/preview-ad" element={
+            <Route path="/preview-ad/:id" element={
               <ProtectedRoute> <AdPreviewPage /> </ProtectedRoute>} />
             <Route path="/ads" element={
               <ProtectedRoute> <AdHomepage /> </ProtectedRoute>} />

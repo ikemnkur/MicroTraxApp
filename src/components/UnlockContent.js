@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   Typography, TextField, Button, Box, CircularProgress, Snackbar, Paper, Avatar,
   Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle,
-  Modal, IconButton, Grid, Rating, Divider, Card, CardContent, Stack, 
+  Modal, IconButton, Grid, Rating, Divider, Card, CardContent, Stack,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import CommentIcon from '@mui/icons-material/Comment';
@@ -14,6 +14,8 @@ import {
   ThumbDownAltOutlined, Visibility,
   SendOutlined
 } from '@mui/icons-material';
+import AdObject from '../pages/AdObject'; // Assuming you have an AdObject component
+import Adobject from '../pages/AdObject'
 
 import { fetchUserProfile } from './api';
 
@@ -627,11 +629,53 @@ const UnlockContent = () => {
   return (
     <Box sx={{ maxWidth: 800, margin: 'auto', padding: 2 }}>
       {/* create a component to display a banner ad above the content info section  */}
-      <Paper elevation={0} sx={{ p: 2, mt: 2, textAlign: 'center' }}>
+      {/* <Paper elevation={0} sx={{ p: 2, mt: 2, textAlign: 'center' }}>
         <Typography variant="body2" color="text.secondary">
           Advertisement
         </Typography>
+        <AdObject />
         <img src="https://via.placeholder.com/728x90.png?text=Banner+Ad" alt="Advertisement" />
+      </Paper> */}
+
+      {/* Advertisement Section */}
+      <Paper elevation={0} sx={{ p: 0, mt: 2, textAlign: 'center', overflow: 'hidden' }}>
+        <Typography variant="body2" color="text.secondary" sx={{ p: 1, backgroundColor: '#f5f5f5' }}>
+          Advertisement
+        </Typography>
+        {/* <AdObject
+          onAdView={handleAdView}
+          onAdClick={handleAdClick}
+          onAdSkip={handleAdSkip}
+          onRewardClaim={handleRewardClaim}
+          RewardModal={SimpleRewardModal}
+          showRewardProbability={0.3} // 30% chance to show reward button
+          filters={{ format: 'banner' }} // Only show banner ads for this placement
+          style={{
+            minHeight: '200px', // Ensure minimum height
+            borderRadius: 0 // Remove border radius to fit Paper container
+          }}
+          className="banner-ad"
+        /> */}
+        <AdObject
+          onAdView={(ad) => console.log('Ad viewed:', ad)}
+          onAdClick={(ad) => console.log('Ad clicked:', ad)}
+          onAdSkip={(ad) => console.log('Ad skipped:', ad)}
+          onRewardClaim={(ad, amount) => console.log('Reward claimed:', amount)}
+          RewardModal={({ onClose, onReward }) => (
+            <div style={{ /* simple modal styles */ }}>
+              <button onClick={() => onReward(5)}>Claim 5 Credits</button>
+              <button onClick={onClose}>Close</button>
+            </div>
+          )}
+          // style={{ borderRadius: 0 }}
+          showRewardProbability={0.3} // 30% chance to show reward button
+          filters={{ format: 'banner' }} // Only show banner ads for this placement
+          style={{
+            minHeight: '200px', // Ensure minimum height
+            borderRadius: 0 // Remove border radius to fit Paper container
+          }}
+          className="banner-ad"
+        />
       </Paper>
 
       <Typography variant="h3" gutterBottom sx={{ textAlign: 'center', marginTop: '20px' }}>
@@ -640,179 +684,179 @@ const UnlockContent = () => {
 
       {/* Basic info about the content */}
 
-      <Paper 
-      elevation={3}
-      sx={{
-        backgroundColor: '#e3f2fd', // Better light blue shade
-        padding: 3,
-        borderRadius: 2,
-        border: '1px solid #bbdefb'
-      }}
-    >
-      {/* Title Section */}
-      <Typography 
-        variant="h4" 
-        gutterBottom
-        sx={{ 
-          fontWeight: 600,
-          color: '#1565c0',
-          mb: 2
+      <Paper
+        elevation={3}
+        sx={{
+          backgroundColor: '#e3f2fd', // Better light blue shade
+          padding: 3,
+          borderRadius: 2,
+          border: '1px solid #bbdefb'
         }}
       >
-        {contentData?.title}
-      </Typography>
-
-      <Divider sx={{ mb: 2 }} />
-
-      {/* Author/Host Section */}
-      <Box sx={{ mb: 3 }}>
-        <Typography 
-          variant="h6" 
-          sx={{ 
-            mb: 1.5,
-            fontWeight: 500,
-            color: '#1976d2'
+        {/* Title Section */}
+        <Typography
+          variant="h4"
+          gutterBottom
+          sx={{
+            fontWeight: 600,
+            color: '#1565c0',
+            mb: 2
           }}
         >
-          Created by:
+          {contentData?.title}
         </Typography>
-        
-        <Box sx={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 2,
-          flexWrap: 'wrap'
-        }}>
+
+        <Divider sx={{ mb: 2 }} />
+
+        {/* Author/Host Section */}
+        <Box sx={{ mb: 3 }}>
+          <Typography
+            variant="h6"
+            sx={{
+              mb: 1.5,
+              fontWeight: 500,
+              color: '#1976d2'
+            }}
+          >
+            Created by:
+          </Typography>
+
           <Box sx={{
             display: 'flex',
             alignItems: 'center',
-            gap: 1.5,
-            flex: 1,
-            minWidth: 'fit-content'
+            gap: 2,
+            flexWrap: 'wrap'
           }}>
-            <Avatar
-              src={contentData?.profilePic || contentData?.avatar}
-              alt={contentData?.host_username}
-              sx={{ 
-                width: 40, 
-                height: 40,
-                border: '2px solid #1976d2'
-              }}
-            />
-            <Typography 
-              variant="h6"
-              sx={{ 
-                fontWeight: 500,
-                color: '#1565c0'
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.5,
+              flex: 1,
+              minWidth: 'fit-content'
+            }}>
+              <Avatar
+                src={contentData?.profilePic || contentData?.avatar}
+                alt={contentData?.host_username}
+                sx={{
+                  width: 40,
+                  height: 40,
+                  border: '2px solid #1976d2'
+                }}
+              />
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: 500,
+                  color: '#1565c0'
+                }}
+              >
+                {contentData?.host_username}
+              </Typography>
+            </Box>
+
+            <Button
+              variant="contained"
+              onClick={() => navigate(`/user/${contentData?.host_user_id}`)}
+              endIcon={<SendOutlined />}
+              sx={{
+                backgroundColor: '#1976d2',
+                '&:hover': {
+                  backgroundColor: '#1565c0',
+                },
+                borderRadius: 2,
+                px: 2,
+                py: 1,
+                textTransform: 'none',
+                fontWeight: 500
               }}
             >
-              {contentData?.host_username}
-            </Typography>
+              Visit Profile
+            </Button>
           </Box>
-          
-          <Button
-            variant="contained"
-            onClick={() => navigate(`/user/${contentData?.host_user_id}`)}
-            endIcon={<SendOutlined />}
-            sx={{
-              backgroundColor: '#1976d2',
-              '&:hover': {
-                backgroundColor: '#1565c0',
-              },
-              borderRadius: 2,
-              px: 2,
-              py: 1,
-              textTransform: 'none',
-              fontWeight: 500
-            }}
-          >
-            Visit Profile
-          </Button>
-        </Box>
-      </Box>
-
-      <Divider sx={{ mb: 2 }} />
-
-      {/* Content Details */}
-      <Stack spacing={2}>
-        <Box>
-          <Typography 
-            variant="subtitle1" 
-            sx={{ 
-              fontWeight: 600,
-              color: '#1565c0',
-              mb: 0.5
-            }}
-          >
-            Description:
-          </Typography>
-          <Typography 
-            variant="body1"
-            sx={{ 
-              color: '#424242',
-              lineHeight: 1.6
-            }}
-          >
-            {contentData?.description}
-          </Typography>
         </Box>
 
-        <Box sx={{
-          display: 'flex',
-          gap: 4,
-          flexWrap: 'wrap',
-          alignItems: 'center'
-        }}>
+        <Divider sx={{ mb: 2 }} />
+
+        {/* Content Details */}
+        <Stack spacing={2}>
           <Box>
-            <Typography 
-              variant="subtitle1" 
-              sx={{ 
+            <Typography
+              variant="subtitle1"
+              sx={{
                 fontWeight: 600,
                 color: '#1565c0',
                 mb: 0.5
               }}
             >
-              Cost:
+              Description:
             </Typography>
-            <Typography 
-              variant="h6"
-              sx={{ 
-                color: '#2e7d32',
-                fontWeight: 600
+            <Typography
+              variant="body1"
+              sx={{
+                color: '#424242',
+                lineHeight: 1.6
               }}
             >
-              ₡{contentData?.cost}
+              {contentData?.description}
             </Typography>
           </Box>
 
-          {isLoggedIn && (
+          <Box sx={{
+            display: 'flex',
+            gap: 4,
+            flexWrap: 'wrap',
+            alignItems: 'center'
+          }}>
             <Box>
-              <Typography 
-                variant="subtitle1" 
-                sx={{ 
+              <Typography
+                variant="subtitle1"
+                sx={{
                   fontWeight: 600,
                   color: '#1565c0',
                   mb: 0.5
                 }}
               >
-                Your Balance:
+                Cost:
               </Typography>
-              <Typography 
+              <Typography
                 variant="h6"
-                sx={{ 
+                sx={{
                   color: '#2e7d32',
                   fontWeight: 600
                 }}
               >
-                ₡{userBalance}
+                ₡{contentData?.cost}
               </Typography>
             </Box>
-          )}
-        </Box>
-      </Stack>
-    </Paper>
 
-     
+            {isLoggedIn && (
+              <Box>
+                <Typography
+                  variant="subtitle1"
+                  sx={{
+                    fontWeight: 600,
+                    color: '#1565c0',
+                    mb: 0.5
+                  }}
+                >
+                  Your Balance:
+                </Typography>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    color: '#2e7d32',
+                    fontWeight: 600
+                  }}
+                >
+                  ₡{userBalance}
+                </Typography>
+              </Box>
+            )}
+          </Box>
+        </Stack>
+      </Paper>
+
+
 
       {/* Content stats */}
       <Paper style={{ backgroundColor: '#DEEFFF', padding: '10px', marginTop: '20px' }}>
