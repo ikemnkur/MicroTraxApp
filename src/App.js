@@ -169,6 +169,7 @@ function App() {
               <ProtectedRoute> <Return /> </ProtectedRoute>} />
             <Route path="/test" element={
               <ProtectedRoute> <UserManagement /> </ProtectedRoute>} />
+              {/* Ad Service Pages */}
             <Route path="/create-ad" element={
               <ProtectedRoute> <CreateAdPage /> </ProtectedRoute>} />
             <Route path="/ad-help" element={
@@ -191,46 +192,7 @@ function App() {
               <ProtectedRoute> <AdObject /> </ProtectedRoute>} />
             <Route path="/display-ad" element={
               <ProtectedRoute> <DisplayAd /> </ProtectedRoute>} />
-            {/* <Route
-              path="/ads-register"
-              element={
-                <JoinAdProgram
-                  onRegistrationSuccess={(userData) => {
-                    console.log('Registration successful:', userData);
-                    navigate('/ads-activate'); // Navigate after registration
-                  }}
-                  onNavigateToLogin={() => {
-                    navigate('/ads-login');
-                  }}
-                />
-              }
-            />
-
-            <Route
-              path="/ads-login"
-              element={
-                <LoginToAdProgram
-                  onSignInSuccess={(userData) => {
-                    console.log('Sign in successful:', userData);
-                    navigate('/ads-service'); // Navigate after login
-                  }}
-                  onNavigateToRegister={() => {
-                    navigate('/register');
-                  }}
-                />
-              }
-            />
-
-            <Route
-              path="/ads-activate"
-              element={
-                <AdHomepage
-                  onActivationComplete={() => {
-                    navigate('/ads-service'); // Navigate after activation
-                  }}
-                />
-              }
-            /> */}
+            
 
           </Routes>
         </NavBar>

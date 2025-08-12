@@ -34,14 +34,14 @@ import {
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 
-import { createAdroute, updateUserProfile, fetchWalletData } from '../components/api'; // Adjust the import path as necessary
+import { createAdroute, updateAdroute } from '../components/api'; // Adjust the import path as necessary
 import { useNavigate } from 'react-router-dom';
 
 // Lucide React icons  
 import { Target } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 
-
+const { v4: uuidv4 } = require('uuid');
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
@@ -97,6 +97,7 @@ const QuestionCard = styled(Card)(({ theme }) => ({
 
 const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
   const [formData, setFormData] = useState({
+    ad_uuid: '',
     title: '',
     description: '',
     link: '',
@@ -110,6 +111,7 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
     ]
   });
 
+  const [ad_uuid, setAD_uuid] = useState(uuidv4());
   const [errors, setErrors] = useState({});
   const [dragOver, setDragOver] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -125,6 +127,7 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
   useEffect(() => {
     if (editingAd) {
       setFormData({
+        ad_uuid: ad_uuid || "",
         title: editingAd.title || '',
         description: editingAd.description || '',
         link: editingAd.link || '',
@@ -278,6 +281,7 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
     const formDataToSend = new FormData();
     
     // Add text fields
+    formDataToSend.append('ad_uuid', adData.ad_uuid);
     formDataToSend.append('title', adData.title);
     formDataToSend.append('description', adData.description);
     formDataToSend.append('link', adData.link);
@@ -310,7 +314,7 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
     // }
 
     setTimeout(() => {
-      navigate('/ads-service');
+      navigate(`/preview-ad/ad/${ad_uuid}`);
       return response;
     }, 1000);
 
@@ -320,6 +324,7 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
     const formDataToSend = new FormData();
     
     // Add text fields
+    formDataToSend.append('ad_uuid', adData.ad_uuid);
     formDataToSend.append('title', adData.title);
     formDataToSend.append('description', adData.description);
     formDataToSend.append('link', adData.link);
@@ -336,20 +341,31 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
       formDataToSend.append('media', adData.mediaFile);
     }
 
-    const response = await fetch(`${API_BASE_URL}/api/ads/ad/${adId}`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
-      body: formDataToSend
-    });
+    const response = await updateAdroute(formDataToSend);
+    console.log('Ad updated response:', response);
+
+    // const response = await fetch(`${API_BASE_URL}/api/ads/ad/${adId}`, {
+    //   method: 'PUT',
+    //   headers: {
+    //     'Authorization': `Bearer ${token}`
+    //   },
+    //   body: formDataToSend
+    // });
 
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.error || 'Failed to update ad');
     }
 
-    return response.json();
+    // setTimeout(() => {
+      if(confirm("Do you want a preview of the updated AD?")){
+        navigate(`/preview-ad/ad/${ad_uuid}`);
+        return response;
+      }
+      
+    // }, 1000);
+
+    // return response.json();
   };
 
   const handleSubmit = async () => {
@@ -392,6 +408,7 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
         
         // Reset form after successful creation
         setFormData({
+          ad_uuid: setAD_uuid(uuidv4()),
           title: '',
           description: '',
           link: '',
@@ -405,6 +422,80 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
           ]
         });
       }
+
+      // Call parent onSave if provided
+      if (onSave) {
+        onSave(result);
+      }
+
+    } catch (error) {
+      console.error('Error saving ad:', error);
+      setNotification({
+        open: true,
+        message: error.message || 'Failed to save advertisement',
+        severity: 'error'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePreviewAd = async () => {
+    if (!validateForm()) {
+      setNotification({
+        open: true,
+        message: 'Please fix the errors in the form',
+        severity: 'error'
+      });
+      return;
+    }
+
+    if (!token) {
+      setNotification({
+        open: true,
+        message: 'Authentication required. Please log in.',
+        severity: 'error'
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      let result;
+      // if (editingAd) {
+      //   result = await updateAd(editingAd.id, formData);
+      //   setNotification({
+      //     open: true,
+      //     message: 'Advertisement updated successfully!',
+      //     severity: 'success'
+      //   });
+      // } else {
+        // result = await createAd(formData);
+        // setNotification({
+        //   open: true,
+        //   message: 'Advertisement created successfully!',
+        //   severity: 'success'
+        // });
+        
+        // // Reset form after successful creation
+        // setFormData({
+        //   ad_uuid: setAD_uuid(uuidv4()),
+        //   title: '',
+        //   description: '',
+        //   link: '',
+        //   format: 'regular',
+        //   mediaFile: null,
+        //   budget: 2000,
+        //   reward: 0,
+        //   frequency: 'moderate',
+        //   quiz: [
+        //     { question: '', type: 'multiple', options: ['', '', '', ''], correct: 0, answer: '' }
+        //   ]
+        // });
+      // }
+
+      
 
       // Call parent onSave if provided
       if (onSave) {
@@ -470,6 +561,11 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
             </GradientHeader>
             
             <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <Typography variant="body2" component="h2">
+                ID#: ${ad_uuid}
+              </Typography>
+              </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
@@ -836,6 +932,32 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
                 {loading 
                   ? (editingAd ? 'Updating Advertisement...' : 'Creating Advertisement...') 
                   : (editingAd ? 'Update Advertisement' : 'Create Advertisement')
+                }
+              </Button>
+
+              <Button
+                fullWidth
+                variant="contained"
+                size="large"
+                startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <SaveIcon />}
+                onClick={handlePreviewAd}
+                disabled={loading}
+                sx={{
+                  py: 2,
+                  fontSize: '1.1rem',
+                  fontWeight: 'bold',
+                  background: loading ? 'rgba(25, 118, 210, 0.5)' : 'linear-gradient(135deg, #1976d2, #42a5f5)',
+                  '&:hover': {
+                    background: loading ? 'rgba(25, 118, 210, 0.5)' : 'linear-gradient(135deg, #1565c0, #1976d2)',
+                    transform: loading ? 'none' : 'translateY(-2px)',
+                    boxShadow: loading ? 'none' : 4
+                  },
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                {loading 
+                  ? (editingAd ? 'Updating Advertisement...' : 'Creating Advertisement...') 
+                  : (editingAd ? 'Preview Update Advertisement' : 'Preview New Ad')
                 }
               </Button>
             </StyledPaper>

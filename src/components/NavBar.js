@@ -30,6 +30,8 @@ import {
   LockOutlined,
   BookmarkAdd,
   LogoutOutlined,
+  InfoOutlineIcon,
+  HelpCenterIcon
 } from '@mui/icons-material';
 import CategoryIcon from '@mui/icons-material/Category';
 import { fetchUserProfile } from './api';
@@ -66,14 +68,14 @@ const NavBar = ({ children }) => {
     { text: 'Published Content', icon: <LockOutlined />, path: '/manage-content' },
     { text: 'Your Stuff', icon: <CategoryIcon />, path: '/your-stuff' },
     { text: 'Account', icon: <AccountCircle />, path: '/account' },
-    { text: "Info", icon: <BookmarkAdd />, path: '/' },
-    { text: "Help & FAQs", icon: <BookmarkAdd />, path: '/help' },
+    { text: "Info", icon: <InfoOutlineIcon />, path: '/' },
+    { text: "Help & FAQs", icon: <HelpCenterIcon />, path: '/help' },
     { text: "Ads", icon: <BookmarkAdd />, path: getAdsPath() },
   ];
 
   const unlockPage = location.pathname.startsWith('/unlock');
   const subPage = location.pathname.startsWith('/sub');
-  const hideNavBar = ['/login', '/register', '/'].includes(location.pathname);
+  const hideNavBar = ['/login', '/register', '/', '/ads', '/preview-ad', "/ad-", "-ad"].includes(location.pathname);
 
   function refreshPage() {
     window.location.reload(false);

@@ -490,6 +490,16 @@ export const createAdroute = async (adData) => {
   }
 };
 
+export const updateAdroute = async (adData) => {
+  try {
+    const response = await api.put(`/ads/ad/`, adData);
+    return response.data;
+  } catch (error) {
+    console.error('API - Error creating ad:', error);
+    throw error;
+  }
+};
+
 
 export const AdInteraction = async (ad) => {
   try {
