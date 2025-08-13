@@ -180,6 +180,8 @@ function App() {
               <ProtectedRoute> <ManageAdsPage /> </ProtectedRoute>} />
             <Route path="/preview-ad/:id" element={
               <ProtectedRoute> <AdPreviewPage /> </ProtectedRoute>} />
+            <Route path="/preview/pending-ad/" element={
+              <ProtectedRoute> <AdPreviewPage /> </ProtectedRoute>} />
             <Route path="/ads" element={
               <ProtectedRoute> <AdHomepage /> </ProtectedRoute>} />
             <Route path="/ads-join" element={

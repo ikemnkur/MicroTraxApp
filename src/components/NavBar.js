@@ -30,9 +30,11 @@ import {
   LockOutlined,
   BookmarkAdd,
   LogoutOutlined,
-  InfoOutlineIcon,
-  HelpCenterIcon
+
 } from '@mui/icons-material';
+
+import InfoIcon from '@mui/icons-material/Info';
+import HelpIcon from '@mui/icons-material/Help';
 import CategoryIcon from '@mui/icons-material/Category';
 import { fetchUserProfile } from './api';
 
@@ -68,14 +70,15 @@ const NavBar = ({ children }) => {
     { text: 'Published Content', icon: <LockOutlined />, path: '/manage-content' },
     { text: 'Your Stuff', icon: <CategoryIcon />, path: '/your-stuff' },
     { text: 'Account', icon: <AccountCircle />, path: '/account' },
-    { text: "Info", icon: <InfoOutlineIcon />, path: '/' },
-    { text: "Help & FAQs", icon: <HelpCenterIcon />, path: '/help' },
+    { text: "Info", icon: <InfoIcon />, path: '/' },
+    { text: "Help & FAQs", icon: <HelpIcon />, path: '/help' },
     { text: "Ads", icon: <BookmarkAdd />, path: getAdsPath() },
   ];
 
   const unlockPage = location.pathname.startsWith('/unlock');
   const subPage = location.pathname.startsWith('/sub');
-  const hideNavBar = ['/login', '/register', '/', '/ads', '/preview-ad', "/ad-", "-ad"].includes(location.pathname);
+  const previewPage = location.pathname.startsWith('/preview/pending-ad');
+  const hideNavBar = ['/login', '/register', '/', '/ads', '/preview-ad', "/ads-service", "/test-ad", "/ads", "/ads-join","/ads-login", "/preview/pending-ad"].includes(location.pathname);
 
   function refreshPage() {
     window.location.reload(false);
@@ -101,7 +104,7 @@ const NavBar = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    if (hideNavBar || unlockPage || subPage) {
+    if (hideNavBar || unlockPage || subPage || previewPage) {
       return;
     }
 

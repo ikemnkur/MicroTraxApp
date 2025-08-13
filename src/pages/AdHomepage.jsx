@@ -74,6 +74,13 @@ const AdServiceActivationPage = ({ authToken, onActivationComplete,  }) => {
     
     try {
 
+      setUserStatus({
+        isEnrolled,
+        isLoading: false,
+        userInfo: data.user,
+        error: null
+      });
+
       // navigate('/ads-join'); // or '/ads-service'
 
       // // If user doesn't exist in ad system, we might need to create/update their profile

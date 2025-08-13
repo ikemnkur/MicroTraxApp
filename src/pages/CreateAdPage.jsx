@@ -463,40 +463,10 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
 
     try {
       let result;
-      // if (editingAd) {
-      //   result = await updateAd(editingAd.id, formData);
-      //   setNotification({
-      //     open: true,
-      //     message: 'Advertisement updated successfully!',
-      //     severity: 'success'
-      //   });
-      // } else {
-        // result = await createAd(formData);
-        // setNotification({
-        //   open: true,
-        //   message: 'Advertisement created successfully!',
-        //   severity: 'success'
-        // });
-        
-        // // Reset form after successful creation
-        // setFormData({
-        //   ad_uuid: setAD_uuid(uuidv4()),
-        //   title: '',
-        //   description: '',
-        //   link: '',
-        //   format: 'regular',
-        //   mediaFile: null,
-        //   budget: 2000,
-        //   reward: 0,
-        //   frequency: 'moderate',
-        //   quiz: [
-        //     { question: '', type: 'multiple', options: ['', '', '', ''], correct: 0, answer: '' }
-        //   ]
-        // });
-      // }
 
-      
-
+      localStorage.setItem('previewAdData', JSON.stringify(formData));
+      // navigate(`/preview/pending-ad/?ad_uuid=${formData.ad_uuid}&title=${encodeURIComponent(formData.title)}&description=${encodeURIComponent(formData.description)}&link=${encodeURIComponent(formData.link)}&format=${formData.format}&budget=${formData.budget}&reward=${formData.reward}&frequency=${formData.frequency}&quiz=${encodeURIComponent(JSON.stringify(formData.quiz))}`);
+      navigate(`/preview/pending-ad/`);
       // Call parent onSave if provided
       if (onSave) {
         onSave(result);
@@ -907,35 +877,10 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
           </StyledPaper>
 
           {/* Submit Button */}
-          <Box sx={{ position: 'sticky', bottom: 16, zIndex: 10 }}>
+          <Box sx={{ position: 'sticky', gap: 10, bottom: 16, zIndex: 10 }}>
             <StyledPaper>
-              <Button
-                fullWidth
-                variant="contained"
-                size="large"
-                startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <SaveIcon />}
-                onClick={handleSubmit}
-                disabled={loading}
-                sx={{
-                  py: 2,
-                  fontSize: '1.1rem',
-                  fontWeight: 'bold',
-                  background: loading ? 'rgba(25, 118, 210, 0.5)' : 'linear-gradient(135deg, #1976d2, #42a5f5)',
-                  '&:hover': {
-                    background: loading ? 'rgba(25, 118, 210, 0.5)' : 'linear-gradient(135deg, #1565c0, #1976d2)',
-                    transform: loading ? 'none' : 'translateY(-2px)',
-                    boxShadow: loading ? 'none' : 4
-                  },
-                  transition: 'all 0.3s ease'
-                }}
-              >
-                {loading 
-                  ? (editingAd ? 'Updating Advertisement...' : 'Creating Advertisement...') 
-                  : (editingAd ? 'Update Advertisement' : 'Create Advertisement')
-                }
-              </Button>
-
-              <Button
+              <Button 
+                style={{ marginBottom: '10px' }}
                 fullWidth
                 variant="contained"
                 size="large"
@@ -958,6 +903,32 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
                 {loading 
                   ? (editingAd ? 'Updating Advertisement...' : 'Creating Advertisement...') 
                   : (editingAd ? 'Preview Update Advertisement' : 'Preview New Ad')
+                }
+              </Button>
+              {/* <br>2</br> */}
+              <Button
+                fullWidth
+                variant="contained"
+                size="large"
+                startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <SaveIcon />}
+                onClick={handleSubmit}
+                disabled={loading}
+                sx={{
+                  py: 2,
+                  fontSize: '1.1rem',
+                  fontWeight: 'bold',
+                  background: loading ? 'rgba(62, 210, 25, 0.5)' : 'linear-gradient(135deg, #4ad219ff, #42f57eff)',
+                  '&:hover': {
+                    background: loading ? 'rgba(62, 210, 25, 0.5)' : 'linear-gradient(135deg, #1dc015ff, #2fd219ff)',
+                    transform: loading ? 'none' : 'translateY(-2px)',
+                    boxShadow: loading ? 'none' : 4
+                  },
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                {loading 
+                  ? (editingAd ? 'Updating Advertisement...' : 'Creating Advertisement...') 
+                  : (editingAd ? 'Update Advertisement' : 'Create Advertisement')
                 }
               </Button>
             </StyledPaper>

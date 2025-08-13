@@ -12,7 +12,21 @@ const AdPreviewPage = ({ AdComponent, RewardModal }) => {
   const [error, setError] = useState(null);
   const [showRewardButton, setShowRewardButton] = useState(false);
 
-  const Ad_id = useParams().id;  // Changed from .username to .user
+  const Ad_id = useParams().id || '-1';  // Changed from .username to .user
+
+  // navigate(`/preview/pending-ad/?ad_uuid=${formData.ad_uuid}&title=${encodeURIComponent(formData.title)}&description=${encodeURIComponent(formData.description)}&link=${encodeURIComponent(formData.link)}&format=${formData.format}&budget=${formData.budget}&reward=${formData.reward}&frequency=${formData.frequency}&quiz=${encodeURIComponent(JSON.stringify(formData.quiz))}`);
+  const adParams = new URLSearchParams({
+    ad_uuid: ad?.ad_uuid,
+    title: ad?.title,
+    description: ad?.description,
+    link: ad?.link,
+    format: ad?.format,
+    budget: ad?.budget,
+    reward: ad?.reward,
+    frequency: ad?.frequency,
+    quiz: JSON.stringify(ad?.quiz)
+  });
+
   const showRewardProbability = 1; // 30% chance to show reward button
 
   const handleAdComplete = () => {
@@ -51,6 +65,8 @@ const AdPreviewPage = ({ AdComponent, RewardModal }) => {
     }
   };
 
+
+
   // Simple RewardModal component if not provided
   const SimpleRewardModal = RewardModal || (({ ad, onClose, onReward }) => (
     <div style={{
@@ -88,36 +104,74 @@ const AdPreviewPage = ({ AdComponent, RewardModal }) => {
   ));
 
 
+
   // Fetch advertisement data
   useEffect(() => {
+    // alert('Fetching ad with ID: ' + Ad_id);
     const fetchAd = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        console.log('Fetching ads with ID:', Ad_id);
-        const response = await fetchPreviewAd(Ad_id);
-
-        console.log('Fetched Ads:', response);
-        console.log('Fetched Ads Details:', response.ads[0]);
-
-        if (!response.ads || response.ads.length === 0) {
-          setAd(null);
-          return;
-        }
-
-        const adData = response.ads[0]; // Get first ad
-        setAd(adData);
-
-        // Determine if reward button should be shown
-        setShowRewardButton(Math.random() < showRewardProbability);
-
-      } catch (err) {
-        setError(err.message);
-        console.error('Error fetching advertisement:', err);
-      } finally {
+      
+      if (Ad_id === '-1') { // If no ad ID is provided, do not fetch
         setLoading(false);
+        // Sample ad data
+        // {
+        //     "ad_uuid": "",
+        //     "title": "Spanish Lessions",
+        //     "description": "sdafgsadfsdadsfsdaf",
+        //     "link": "https://www.lawlessspanish.com/grammar/pronouns/double-pronoun-order/",
+        //     "format": "regular",
+        //     "mediaFile": {},
+        //     "budget": 2000,
+        //     "reward": 5,
+        //     "frequency": "moderate",
+        //     "quiz": [
+        //         {
+        //             "question": "Word of the Day",
+        //             "type": "short",
+        //             "options": [
+        //                 "",
+        //                 "",
+        //                 "",
+        //                 ""
+        //             ],
+        //             "correct": 0,
+        //             "answer": "hola amigo"
+        //         }
+        //     ]
+        // }
+        setAd(JSON.parse(localStorage.getItem('previewAdData')));
+        // setAd(adParams);
+
+        console.log('No ad ID provided, using adParams:', adParams.toString());
+      } else {
+        try {
+          setLoading(true);
+          setError(null);
+
+          console.log('Fetching ads with ID:', Ad_id);
+          const response = await fetchPreviewAd(Ad_id);
+
+          console.log('Fetched Ads:', response);
+          console.log('Fetched Ads Details:', response.ads[0]);
+
+          if (!response.ads || response.ads.length === 0) {
+            setAd(null);
+            return;
+          }
+
+          const adData = response.ads[0]; // Get first ad
+          setAd(adData);
+
+          // Determine if reward button should be shown
+          setShowRewardButton(Math.random() < showRewardProbability);
+
+        } catch (err) {
+          setError(err.message);
+          console.error('Error fetching advertisement:', err);
+        } finally {
+          setLoading(false);
+        }
       }
+
     };
 
     fetchAd();
