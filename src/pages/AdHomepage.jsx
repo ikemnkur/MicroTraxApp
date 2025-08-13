@@ -68,68 +68,79 @@ const AdServiceActivationPage = ({ authToken, onActivationComplete,  }) => {
     }
   };
 
-  const handleActivateService = async () => {
-    setIsActivating(true);
+  useEffect(() => {
+    setTimeout(() => {
+      setUserStatus({
+      isEnrolled: false,
+      isLoading: true,
+      userInfo: data.user,
+      error: null
+    });
+    }, 2000);
+  })
+
+  // const handleActivateService = async () => {
+  //   // setIsActivating(true);
 
     
-    try {
+  //   try {
 
-      setUserStatus({
-        isEnrolled,
-        isLoading: false,
-        userInfo: data.user,
-        error: null
-      });
+  //     setUserStatus({
+  //       isEnrolled,
+  //       isLoading: false,
+  //       userInfo: data.user,
+  //       error: null
+  //     });
 
-      // navigate('/ads-join'); // or '/ads-service'
+  //     // navigate('/ads-join'); // or '/ads-service'
 
-      // // If user doesn't exist in ad system, we might need to create/update their profile
-      // const response = await fetch(`${API_BASE_URL}/ads/user/credits`, {
-      //   method: 'PUT',
-      //   headers: {
-      //     'Authorization': `Bearer ${token}`,
-      //     'Content-Type': 'application/json'
-      //   },
-      //   body: JSON.stringify({
-      //     operation: 'add',
-      //     amount: 0 // Just to initialize if needed
-      //   })
-      // });
+  //     // // If user doesn't exist in ad system, we might need to create/update their profile
+  //     // const response = await fetch(`${API_BASE_URL}/ads/user/credits`, {
+  //     //   method: 'PUT',
+  //     //   headers: {
+  //     //     'Authorization': `Bearer ${token}`,
+  //     //     'Content-Type': 'application/json'
+  //     //   },
+  //     //   body: JSON.stringify({
+  //     //     operation: 'add',
+  //     //     amount: 0 // Just to initialize if needed
+  //     //   })
+  //     // });
 
-      // if (!response.ok) {
-      //   throw new Error('Failed to activate ad service');
-      // }
+  //     // if (!response.ok) {
+  //     //   throw new Error('Failed to activate ad service');
+  //     // }
 
-      // // Refresh user status
-      // await checkUserEnrollment();
+  //     // // Refresh user status
+  //     // await checkUserEnrollment();
 
-      setNotification({
-        show: true,
-        message: 'Ad service activated successfully! Welcome to the advertiser network.',
-        type: 'success'
-      });
+  //     // setNotification({
+  //     //   show: true,
+  //     //   message: 'Ad service activated successfully! Welcome to the advertiser network.',
+  //     //   type: 'success'
+  //     // });
 
-      setTimeout(() => {
-        if (onActivationComplete) {
-          onActivationComplete();
-           navigate('/ads-join'); // or '/ads-service'
-        } else {
-          // Navigate to ads dashboard or join page
-          navigate('/ads-join'); // or '/ads-service'
-        }
-      }, 2000);
+  //     setTimeout(() => {
+  //       if (onActivationComplete) {
+  //         onActivationComplete();
+  //          navigate('/ads-join'); // or '/ads-service'
+  //       } else {
+  //         // Navigate to ads dashboard or join page
+  //         navigate('/ads-join'); // or '/ads-service'
+  //       }
+  //     }, 2000);
 
-    } catch (error) {
-      console.error('Activation error:', error);
-      setNotification({
-        show: true,
-        message: error.message || 'Failed to activate ad service',
-        type: 'error'
-      });
-    } finally {
-      setIsActivating(false);
-    }
-  };
+  //   } catch (error) {
+  //     console.error('Activation error:', error);
+  //     setNotification({
+  //       show: true,
+  //       message: error.message || 'Failed to activate ad service',
+  //       type: 'error'
+  //     });
+  //   } finally {
+  //     setIsActivating(false);
+  //   }
+  // };
 
   const benefits = [
     {

@@ -100,6 +100,8 @@ const UnlockContent = () => {
   // Save comments to database
   const saveCommentsToDb = async (contentId, updatedComments) => {
     try {
+
+      
       const token = localStorage.getItem('token');
       await axios.post(
         `${API_URL}/api/content/update-comments`,
@@ -405,7 +407,10 @@ const UnlockContent = () => {
         dislikedBy: [] // Array of user IDs who disliked this comment
       };
 
+
+
       // Update local state
+      loadComments(contentData.id) // check for any new comments, that won the race condition
       const updatedComments = [...comments, newComment];
       setComments(updatedComments);
 
@@ -756,7 +761,7 @@ const UnlockContent = () => {
 
             <Button
               variant="contained"
-              onClick={() => navigate(`/user/${contentData?.host_user_id}`)}
+              onClick={() => navigate(`/user/${contentData?.host_username}`)}
               endIcon={<SendOutlined />}
               sx={{
                 backgroundColor: '#1976d2',

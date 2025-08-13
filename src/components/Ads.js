@@ -338,12 +338,12 @@ const Ads = () => {
             editingAd={editingAd}
           />
         );
-      case 'preview':
-        return (
-          <AdPreviewPage
-            ad={getPreviewAd()}
-          />
-        );
+      // case 'preview':
+      //   return (
+      //     <AdPreviewPage
+      //       ad={getPreviewAd()}
+      //     />
+      //   );
       case 'analytics':
         return (
           <AdAnalyticsPage
