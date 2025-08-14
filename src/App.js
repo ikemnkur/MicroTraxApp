@@ -56,9 +56,10 @@ import JoinAdProgram from "./pages/JoinAdProgram";
 import LoginToAdProgram from "./pages/LoginToAdProgram.jsx";
 import AdObject from "./pages/AdObject";
 import DisplayAd from "./pages/DisplayAd.jsx";
+import Ads from "./pages/AdsHeader.jsx";
 
 // import Ads from "./components/Ads";
-import Ads from "../src/components/Ads.js";
+// import Ads from "../src/components/Ads.js";
 
 
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { fetchPreviewAd, fetchAdvertiserProfile } from '../components/api'; // Adjust the import path as necessary
 
 const AdServiceActivationPage = ({ authToken, onActivationComplete,  }) => {
   const navigate = useNavigate();
@@ -17,9 +18,9 @@ const AdServiceActivationPage = ({ authToken, onActivationComplete,  }) => {
   const token = authToken || localStorage.getItem('authToken');
   const API_BASE_URL = process.env.REACT_APP_API_SERVER_URL + "/api" || 'http://localhost:5001/api';
 
-  // useEffect(() => {
-  //   checkUserEnrollment();
-  // }, []);
+  useEffect(() => {
+    checkUserEnrollment();
+  }, []);
 
   const checkUserEnrollment = async () => {
     if (!token) {
@@ -33,29 +34,35 @@ const AdServiceActivationPage = ({ authToken, onActivationComplete,  }) => {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/ads/user/profile`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch user profile');
-      }
-
-      const data = await response.json();
+      const response = await fetchAdvertiserProfile();
+      // const response = await fetch(`${API_BASE_URL}/ads/user/profile`, {
+      //   headers: {
+      //     'Authorization': `Bearer ${token}`,
+      //     'Content-Type': 'application/json'
+      //   }
+      // });
       
-      // Check if user has ad service features (you might need to add this field to your database)
-      // For now, we'll assume if they have credits, they're enrolled
-      const isEnrolled = data.user && data.user.credits !== undefined;
+      console.log('Advertiser profile response:', response);
 
-      setUserStatus({
-        isEnrolled,
-        isLoading: false,
-        userInfo: data.user,
-        error: null
-      });
+      // if (!response.ok) {
+      //   throw new Error('Failed to fetch user profile');
+      // }
+
+      
+
+      // const data = await response;
+      
+      // // Check if user has ad service features (you might need to add this field to your database)
+      // // For now, we'll assume if they have credits, they're enrolled
+      // const isEnrolled = data.user && data.user.credits !== undefined;
+
+      // setUserStatus({
+      //   isEnrolled,
+      //   isLoading: false,
+      //   userInfo: data.user,
+      //   error: null
+      // });
 
     } catch (error) {
       console.error('Error checking enrollment:', error);
@@ -68,16 +75,16 @@ const AdServiceActivationPage = ({ authToken, onActivationComplete,  }) => {
     }
   };
 
-  useEffect(() => {
-    setTimeout(() => {
-      setUserStatus({
-      isEnrolled: false,
-      isLoading: true,
-      userInfo: data.user,
-      error: null
-    });
-    }, 2000);
-  })
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     setUserStatus({
+  //     isEnrolled: false,
+  //     isLoading: true,
+  //     userInfo: data.user,
+  //     error: null
+  //   });
+  //   }, 2000);
+  // })
 
   // const handleActivateService = async () => {
   //   // setIsActivating(true);
@@ -196,49 +203,49 @@ const AdServiceActivationPage = ({ authToken, onActivationComplete,  }) => {
     }
   ];
 
-  if (userStatus.isLoading) {
-    return (
-      <div style={{ 
-        minHeight: '100vh', 
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '24px'
-      }}>
-        <div style={{
-          background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(20px)',
-          borderRadius: '24px',
-          padding: '48px',
-          textAlign: 'center',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
-        }}>
-          <div style={{
-            width: '48px',
-            height: '48px',
-            border: '4px solid #667eea',
-            borderTop: '4px solid transparent',
-            borderRadius: '50%',
-            margin: '0 auto 24px',
-            animation: 'spin 1s linear infinite'
-          }} />
-          <h2 style={{ fontSize: '1.5rem', margin: '0 0 8px 0', color: 'rgba(0, 0, 0, 0.8)' }}>
-            Checking Account Status
-          </h2>
-          <p style={{ color: 'rgba(0, 0, 0, 0.6)', margin: 0 }}>
-            Please wait while we verify your account...
-          </p>
-          <style jsx>{`
-            @keyframes spin {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
-            }
-          `}</style>
-        </div>
-      </div>
-    );
-  }
+  // if (userStatus.isLoading) {
+  //   return (
+  //     <div style={{ 
+  //       minHeight: '100vh', 
+  //       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  //       display: 'flex',
+  //       alignItems: 'center',
+  //       justifyContent: 'center',
+  //       padding: '24px'
+  //     }}>
+  //       <div style={{
+  //         background: 'rgba(255, 255, 255, 0.95)',
+  //         backdropFilter: 'blur(20px)',
+  //         borderRadius: '24px',
+  //         padding: '48px',
+  //         textAlign: 'center',
+  //         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+  //       }}>
+  //         <div style={{
+  //           width: '48px',
+  //           height: '48px',
+  //           border: '4px solid #667eea',
+  //           borderTop: '4px solid transparent',
+  //           borderRadius: '50%',
+  //           margin: '0 auto 24px',
+  //           animation: 'spin 1s linear infinite'
+  //         }} />
+  //         <h2 style={{ fontSize: '1.5rem', margin: '0 0 8px 0', color: 'rgba(0, 0, 0, 0.8)' }}>
+  //           Checking Account Status
+  //         </h2>
+  //         <p style={{ color: 'rgba(0, 0, 0, 0.6)', margin: 0 }}>
+  //           Please wait while we verify your account...
+  //         </p>
+  //         <style jsx>{`
+  //           @keyframes spin {
+  //             0% { transform: rotate(0deg); }
+  //             100% { transform: rotate(360deg); }
+  //           }
+  //         `}</style>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   if (userStatus.isEnrolled) {
     return (
@@ -542,7 +549,7 @@ const AdServiceActivationPage = ({ authToken, onActivationComplete,  }) => {
           {/* Activation Button */}
           <div style={{ textAlign: 'center' }}>
             <button
-              onClick={handleActivateService}
+              onClick={() => navigate('/ads-join')}
               disabled={isActivating}
               style={{
                 background: isActivating 

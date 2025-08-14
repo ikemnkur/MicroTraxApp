@@ -117,7 +117,8 @@ const RegistrationPage = ({ onRegistrationSuccess, onNavigateToLogin }) => {
         body: JSON.stringify({
           name: formData.name.trim(),
           email: formData.email.trim().toLowerCase(),
-          password: formData.password
+          password: formData.password,
+          user_id: localStorage.getItem('userdata').user_id || null // Optional user_id if needed
         })
       });
 

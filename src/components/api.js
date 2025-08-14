@@ -551,6 +551,22 @@ export const AdInteraction = async (ad) => {
 // };
 
 // =================
+// ADVERTISER PROFILE MANAGEMENT
+// =================
+
+export const fetchAdvertiserProfile = async () => {
+  try {
+    const response = await api.get('/ads/advertiser/profile');
+    return response.data;
+  } catch (error) {
+    console.error('API - Error fetching advertiser profile:', error);
+    throw error;
+  }
+};
+
+
+
+// =================
 // ADS MANAGEMENT
 // =================
 
@@ -564,15 +580,6 @@ export const createAdRoute = async (adData) => {
   }
 };
 
-export const fetchAdvertiserProfile = async () => {
-  try {
-    const response = await api.get('/ads/advertiser/profile');
-    return response.data;
-  } catch (error) {
-    console.error('API - Error fetching advertiser profile:', error);
-    throw error;
-  }
-};
 
 export const fetchAds = async () => {
   try {

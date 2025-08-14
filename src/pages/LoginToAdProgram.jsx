@@ -110,7 +110,7 @@ const SignInPage = ({ onSignInSuccess, onNavigateToRegister }) => {
             }
 
             // Store user data
-            localStorage.setItem('userdata', JSON.stringify(data.user));
+            localStorage.setItem('advertiserData', JSON.stringify(data.user));
 
             setNotification({
                 show: true,
