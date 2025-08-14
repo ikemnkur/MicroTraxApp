@@ -3,7 +3,9 @@ import axios from 'axios';
 // import { useNavigate } from 'react-router-dom';
 
 
+
 const API_URL = process.env.REACT_APP_API_SERVER_URL + '/api'; // Adjust this if your API URL is different
+
 
 // const navigate = useNavigate();
 
@@ -366,11 +368,13 @@ export const fetchUserContent = async () => {
   }
 };
 
+
 // Your Content List (user deletes his content that they have unlocked)
 export const handleDeleteUserContent = async (contentId) => {
   try {
     const response = await api.delete(`/user-content/delete/${contentId}`);
     return response.data;
+
   } catch (error) {
     console.error('API - Error deleting content:', error);
     throw error;
@@ -386,22 +390,26 @@ export const handleCreatePublicContent = async (newContent) => {
   try {
     const response = await api.post('/public-content/add', newContent);
     return response.data;
+
   } catch (error) {
     console.error('API - Error adding new content:', error);
     throw error;
   }
 };
 
+
 // Creator can edit a public content item
 export const handleEditPublicContent = async (editedContent) => {
   try {
     const response = await api.post('/public-content/edit', editedContent);
     return response.data;
+
   } catch (error) {
     console.error('API - Error adding new content:', error);
     throw error;
   }
 };
+
 
 // Creator can delete a old public content item
 export const handleDeletePublicContent = async (contentId) => {
@@ -421,6 +429,7 @@ export const confirmUnlockContent = async (contentData, message) => {
   try {
     const response = await api.post(`/unlock/unlock-content`, { contentId: contentData.id, msg: message });
     return response.data;
+
   } catch (error) {
     console.error('API - Error adding new content:', error);
     throw error;
@@ -460,7 +469,9 @@ export const fetchUserSubscriptions = async () => {
 // Adds a subcription to a user's Subscriptions list
 export const confirmUserSubToContent = async (contentData, message) => {
   try {
+
     const response = await api.post(`/user-subscriptions/sub-to-content`, { contentId: contentData.id, msg: message });
+
     return response.data;
   } catch (error) {
     console.error('API - Error adding new content:', error);

@@ -37,6 +37,7 @@ import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 
 const ManageContent = () => {
+
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('date');
@@ -89,6 +90,7 @@ const ManageContent = () => {
     }
   };
 
+
   useEffect(() => {
     loadContent();
   }, []);
@@ -111,6 +113,7 @@ const ManageContent = () => {
     );
     setFilteredContentList(filtered);
   };
+
 
   const handleSearch = () => {
     searchContent();
@@ -175,6 +178,7 @@ const ManageContent = () => {
     setOpenDialog(true);
   };
 
+
   const handleSubmitEdit = async (e) => {
     e.preventDefault();
     try {
@@ -203,6 +207,7 @@ const ManageContent = () => {
     }
   };
 
+
   const cancelEdit = () => {
     setEditing(false);
     setNewContent({
@@ -217,6 +222,7 @@ const ManageContent = () => {
     });
     setOpenDialog(false);
   };
+
 
   // Share content state and handlers
   const [shareLink, setShareLink] = useState('');

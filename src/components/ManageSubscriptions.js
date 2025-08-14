@@ -16,19 +16,35 @@ import { v4 as uuidv4 } from 'uuid';
 // import useBaseUrl from '../hooks/useBaseUrl.js';
 
 const Subscriptions = () => {
+
+
+  // Mock data - replace with actual data fetching
+  const subscriptions = [
+    { id: 1, date: '2023-08-18', name: "YT Channel", type: 'Daily', username: 'user1', AccountID: "ACC132145936", amount: 1 },
+    { id: 2, date: '2023-08-17', name: " GameHub Sub", type: 'Monthly', username: 'user2', AccountID: "ACC132145936", amount: 2 },
+    { id: 3, date: '2023-08-17', name: "Cool Artilces.com", type: 'Weekly', username: 'user3', AccountID: "ACC132145936", amount: 4 },
+    // ... more subs
+  ];
+
   const navigate = useNavigate();
 
   // State variables for managing subscriptions and UI state
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('date');
   const [sortOrder, setSortOrder] = useState('desc');
-  const [subs, setSubs] = useState([]);
-  const [filteredSubs, setFilteredSubs] = useState([]);
+  const [subs, setSubs] = useState(subscriptions);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
+
+  const [openShareDialog, setOpenShareDialog] = useState(false);
+
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+
+  const [shareLink, setShareLink] = useState('');
+  const [shareItem, setShareItem] = useState('');
+
   const [editing, setEditing] = useState(false);
   const [thisUser] = useState(JSON.parse(localStorage.getItem("userdata")));
 
@@ -56,6 +72,7 @@ const Subscriptions = () => {
   } else {
     siteURL = process.env.REACT_APP_BASE_URL || 'http://localhost:3000';
   }
+
 
   // Function to load user subscriptions from the server
   const loadSubscriptions = async () => {
@@ -92,8 +109,22 @@ const Subscriptions = () => {
     }
   };
 
+
   // Load subscriptions on component mount
   useEffect(() => {
+    const loadSubscriptions = async () => {
+      try {
+        const data = await fetchSubscriptions();
+        console.log("Subsc. History Data: ", data)
+        setSubs(data);
+        setLoading(false);
+      } catch (err) {
+        console.error('Failed to fetch Subscriptions:', err);
+        setError('Failed to load Subscriptions history. Please try again later.');
+        setLoading(false);
+      }
+    };
+
     loadSubscriptions();
   }, []);
 
@@ -102,6 +133,7 @@ const Subscriptions = () => {
     const { name, value } = e.target;
     setNewSubscription(prev => ({ ...prev, [name]: name === 'cost' ? parseInt(value) : value }));
   };
+
 
   // Search subscriptions based on the search term
   const searchSubscriptions = () => {
@@ -163,6 +195,7 @@ const Subscriptions = () => {
       });
       setOpenDialog(false);
       loadSubscriptions();
+
     } catch (error) {
       console.error('Failed to create subscription:', error);
       setSnackbarMessage('Failed to create subscription.');
@@ -237,6 +270,7 @@ const Subscriptions = () => {
     setOpenDialog(false);
   };
 
+
   // State variables for sharing functionality
   const [shareLink, setShareLink] = useState('');
   const [openShareDialog, setOpenShareDialog] = useState(false);
@@ -248,6 +282,7 @@ const Subscriptions = () => {
     setOpenShareDialog(true);
   };
 
+
   return (
     <Box>
       <Typography variant="h4" gutterBottom>Manage Subscription Services</Typography>
@@ -258,20 +293,17 @@ const Subscriptions = () => {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        <Button variant="contained" color="primary" onClick={handleSearch}>
-          Search
-        </Button>
-        <strong style={{ padding: "15px" }}>Filter:</strong>
         <Select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
           variant="outlined"
         >
           <MenuItem value="date">Date</MenuItem>
+
           <MenuItem value="cost">Cost</MenuItem>
+
           <MenuItem value="username">Username</MenuItem>
         </Select>
-        <strong style={{ padding: "15px" }}>Sort:</strong>
         <Select
           value={sortOrder}
           onChange={(e) => setSortOrder(e.target.value)}
@@ -289,6 +321,7 @@ const Subscriptions = () => {
           <TableHead>
             <TableRow>
               <TableCell>Title</TableCell>
+
               <TableCell>Description</TableCell>
               <TableCell>Create Date</TableCell>
               {/* <TableCell>Create Time</TableCell> */}
@@ -315,6 +348,7 @@ const Subscriptions = () => {
                   </IconButton>
                   <IconButton edge="end" aria-label="share" onClick={() => handleShare(sub)}>
                     <ShareIcon />
+
                   </IconButton>
                 </TableCell>
               </TableRow>
@@ -350,6 +384,7 @@ const Subscriptions = () => {
           alignItems: 'center',
           width: '100%'
         }}>
+
           <form onSubmit={editing ? handleSubmitEdit : handleCreateSub}>
             <TextField
               label="Title"
@@ -428,6 +463,7 @@ const Subscriptions = () => {
             </Select>
             <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
               {editing ? (
+
                 <>
                   <Button onClick={cancelEdit} variant="contained" color="secondary" sx={{ mr: 2 }}>
                     Cancel
