@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Modal Form with Code Verification</title>
+  <style>
+    /* Basic styles for the page and modal */
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden; /* Hide scrollbars when modal is open */
+    }
+    body.modal-open {
+      overflow: hidden;
+    }
+    #modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    #modal {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 400px;
+      width: 90%;
+      box-sizing: border-box;
+    }
+    #modal h2 {
+      margin-top: 0;
+    }
+    #modal label {
+      display: block;
+      margin-bottom: 8px;
+    }
+    #modal input[type="text"],
+    #modal input[type="password"],
+    #modal input[type="email"] {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 12px;
+      box-sizing: border-box;
+    }
+    #modal button {
+      padding: 10px 20px;
+      cursor: pointer;
+    }
+    /* Hide iframe content initially */
+    #iframe-container {
+      display: none;
+      width: 100%;
+      height: 100%;
+    }
+    #iframe-container iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    /* Error message styling */
+    #error-message {
+      color: red;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Modal Overlay -->
+  <div id="modal-overlay">
+    <div id="modal">
+      <h2>Please Fill Out the Form</h2>
+      <div id="error-message"></div>
+      <form id="modal-form">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required>
+
+        <label for="access-code">Access Code:</label>
+        <input type="password" id="access-code" name="access-code" required>
+
+        <button type="submit">Submit</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Iframe Container -->
+  <div id="iframe-container">
+    <iframe src="https://www.example.com" title="Embedded Content"></iframe>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const correctCode = '1234'; // Replace with your desired access code
+      const modalOverlay = document.getElementById('modal-overlay');
+      const modalForm = document.getElementById('modal-form');
+      const iframeContainer = document.getElementById('iframe-container');
+      const errorMessage = document.getElementById('error-message');
+
+      modalForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        // Get form values
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const accessCode = document.getElementById('access-code').value.trim();
+
+        // Simple form validation
+        if (name === '' || email === '' || accessCode === '') {
+          errorMessage.textContent = 'Please fill out all fields.';
+          return;
+        }
+
+        // Check if the access code is correct
+        if (accessCode === correctCode) {
+          // Hide the modal and show the iframe
+          modalOverlay.style.display = 'none';
+          iframeContainer.style.display = 'block';
+          document.body.classList.remove('modal-open');
+        } else {
+          errorMessage.textContent = 'Incorrect access code. Please try again.';
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>

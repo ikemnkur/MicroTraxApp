@@ -1,9 +1,29 @@
+require('dotenv').config();
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { Typography, TextField, Button, Paper, Box, Snackbar, Avatar } from '@mui/material';
-import { fetchUserProfile, fetchOtherUserProfile, sendMoneyToOtherUser } from './api'; // Make sure this import is correct
-
-
+import { 
+  Typography, 
+  TextField, 
+  Button, 
+  Paper, 
+  Box, 
+  Snackbar, 
+  Avatar, 
+  Alert,
+  InputAdornment,
+  Fade,
+  CircularProgress,
+  Divider
+} from '@mui/material';
+import { 
+  Person, 
+  Search,
+  Send,
+  Visibility
+} from '@mui/icons-material';
+import { fetchUserProfile, fetchOtherUserProfile, sendMoneyToOtherUser } from './api';
+import axios from 'axios';
+import { useAuthCheck } from './useAuthCheck';
 
 const SendMoney = () => {
   const { userId } = useParams();
@@ -16,8 +36,13 @@ const SendMoney = () => {
   const [message, setMessage] = useState('');
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [thisUser, setThisUser] = useState(JSON.parse(localStorage.getItem("userdata")))
+  const [thisUser, setThisUser] = useState(JSON.parse(localStorage.getItem("userdata")));
+  const [searching, setSearching] = useState(false);
+  const [sending, setSending] = useState(false);
   const usernameInputRef = useRef(null);
+  useAuthCheck();
+
+  const API_URL = process.env.REACT_APP_API_SERVER_URL + '/api';
 
   useEffect(() => {
     let ud = JSON.parse(localStorage.getItem("userdata"))
@@ -31,139 +56,308 @@ const SendMoney = () => {
     if (recipientFromUrl) setRecipient(recipientFromUrl);
     if (amountFromUrl) setAmount(amountFromUrl);
 
-
+    console.log("recipient from url: ", recipientFromUrl)
     loadUserProfile();
+
+    if(recipientFromUrl !== null)
+      setTimeout(() => {
+        search4user(null, recipientFromUrl)
+      }, 50);
+      
   }, [userId, location.search]);
 
   const loadUserProfile = async () => {
     if (userId) {
-    try {
-      const userData = await fetchUserProfile(userId);
-      // setToUser(userData);
-    } catch (error) {
-      console.error('Error fetching toUser profile:', error);
-      setSnackbarMessage('Failed to load toUser profile');
-      setOpenSnackbar(true);
-      if (error.response?.status === 403) {
-        // Unauthorized, token might be expired
-        setTimeout(() => navigate('/'), 1000);
+      try {
+        const profile = await fetchUserProfile();
+        const updatedUserData = {
+          ...profile,
+          birthDate: profile.birthDate ? profile.birthDate.split('T')[0] : '',
+          accountTier: profile.accountTier || 1,
+          encryptionKey: profile.encryptionKey || '',
+        };
+        setUserData(updatedUserData);
+        localStorage.setItem('userdata', JSON.stringify(updatedUserData));
+      } catch (error) {
+        console.error('Error fetching toUser profile:', error);
+        setSnackbarMessage('Failed to load toUser profile');
+        setOpenSnackbar(true);
+        if (error.response?.status === 403) {
+          setTimeout(() => navigate('/'), 1000);
+        }
       }
-    }
-    console.log("User ID: ", userId);
-    console.log("toUser Data: ", toUser);
+      console.log("User ID: ", userId);
+      console.log("toUser Data: ", toUser);
     }
   };
 
-  const search4user = async (e) => {
-    let term = recipient;
+  const search4user = async (e, user2search) => {
+    setSearching(true);
+    let term = user2search;
+    if (term == null) 
+      term = recipient;
+
+    console.log("Search Term: ", term)
     try {
       const s4uData = await fetchOtherUserProfile(term);
-      setTimeout(() =>{
-        console.log("S4U: ", s4uData)
-        setToUser(s4uData);}
-        , 100
-      )
+      setTimeout(() => {
+        console.log("Searching 4 User: ", s4uData)
+        setToUser(s4uData);
+        setSearching(false);
+      }, 100)
       setUserNotFound(false)
     } catch (error) {
       setUserNotFound(true)
+      setSearching(false);
+      setTimeout(() => {
+        setUserNotFound(false)
+      }, 3000);
       console.error(`Error fetching ${term} profile:`, error);
-      setSnackbarMessage(`Failed to find User: ₡{term}`);
+      setSnackbarMessage(`Failed to find User: ${term}`);
       setOpenSnackbar(true);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSending(true);
     console.log('Sending', amount, 'to', recipient);
     try {
       const sendmoneyData = {
-        recipient,
-        recipientId: toUser.id,
+        recipient: recipient,
+        recipientId: toUser.user_id,
         recipientUsername: toUser.username,
+        sendingUsername: thisUser.username,
+        sendingId: thisUser.user_id,
         amount: parseFloat(amount),
-        message
+        message: message
       };
       await sendMoneyToOtherUser(sendmoneyData);
       setSnackbarMessage("Money sent successfully!");
       setOpenSnackbar(true);
+      
       // Reset form
       setRecipient('');
       setAmount('');
       setMessage('');
-    } catch (error) {
-      setSnackbarMessage(error.message || "Failed to send money. Please try again later.");
-      setOpenSnackbar(true);
-      if (error.response?.status === 401) {
-        // Unauthorized, token might be expired
-        setTimeout(() => navigate('/login'), 1500);
+      setToUser(null);
+
+      const notif = {
+        type: 'money_received',
+        recipient_user_id: toUser.user_id, 
+        message: `You received ₡${amount} from ${thisUser.username}.`,
+        from_user: thisUser.user_id,
+        date: new Date(),
+        recipient_username: toUser.username
       }
+
+      createNotification(notif)
+      setSending(false);
+
+    } catch (error) {
+      setSending(false);
+      setSnackbarMessage(error.message || "Failed to send coins. Please try again later.");
+      setOpenSnackbar(true);
+    }
+  };
+
+  const createNotification = async (notificationData) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(API_URL + '/notifications/create', notificationData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log("New notification: ", notificationData.message)
+    } catch (error) {
+      console.error('Error creating notification:', error);
     }
   };
 
   const goToUserProfile = (e) => {
-    // e.preventDefault();
     navigate(`/user/${toUser.username}`)
   }
 
   return (
-    <Box>
-      <Typography variant="h4" gutterBottom>Send Money</Typography>
-      {UserNotFound && (
-        <Paper sx={{ p: 2, display: 'flex', color: "lightgrey", alignItems: 'center', mb: 2 }}>
-          
-          <Typography variant="h4">{`Username: "${recipient}" was not found in the database.`}</Typography>
-         
-        </Paper>
-      )}
-      {toUser && (
-        <Paper sx={{ p: 2, display: 'flex', alignItems: 'center', mb: 2 }}>
-          <Avatar src={toUser.avatar} alt={toUser.username} sx={{ width: 100, height: 100, mr: 2 }} />
-          <Typography variant="h4">{toUser.username}</Typography>
-          <Button style={{float: 'right', marginLeft: "50px"}} onClick={goToUserProfile} variant="contained" color="primary" sx={{ mt: 2 }}>
-              View Profile
-          </Button>
-        </Paper>
-      )}
-      <Paper sx={{ p: 2 }}>
+    <Box sx={{ p: 2 }}>
+      {/* Header */}
+       <Box sx={{ mb: 4, textAlign: 'center' }}>
+        <Typography 
+          variant="h3" 
+          component="h1"
+          sx={{ 
+            fontWeight: 700,
+            background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+            backgroundClip: 'text',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            mb: 1
+          }}
+        >
+          Send Coins
+        </Typography>
+        <Typography variant="h6" color="text.secondary">
+          Transfer coins to other users securely
+        </Typography>
+      </Box>
+
+      {/* User Not Found Alert */}
+      <Fade in={UserNotFound}>
+        <Box sx={{ mb: 2 }}>
+          {UserNotFound && (
+            <Alert severity="error" sx={{ borderRadius: 1 }}>
+              Username "{recipient}" was not found in the database.
+            </Alert>
+          )}
+        </Box>
+      </Fade>
+
+      {/* User Profile Display */}
+      <Fade in={!!toUser}>
+        <Box sx={{ mb: 2 }}>
+          {toUser && (
+            <Paper sx={{ 
+              p: 2, 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 2,
+              backgroundColor: '#f8f9fa',
+              border: '1px solid #e9ecef'
+            }}>
+              <Avatar 
+                src={toUser.profilePic || toUser.avatar} 
+                alt={toUser.username} 
+                sx={{ 
+                  width: 80, 
+                  height: 80,
+                  border: '2px solid #1976d2'
+                }} 
+              />
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="h5" sx={{ fontWeight: 600, color: '#1976d2', mb: 1 }}>
+                  {toUser.username}
+                </Typography>
+                <Typography variant="body1" color="text.secondary">
+                  Bio: {toUser.bio || "No bio available."}
+                </Typography>
+              </Box>
+              <Button 
+                onClick={goToUserProfile} 
+                variant="contained" 
+                startIcon={<Visibility />}
+                sx={{ 
+                  textTransform: 'none',
+                  fontWeight: 500
+                }}
+              >
+                View Profile
+              </Button>
+            </Paper>
+          )}
+        </Box>
+      </Fade>
+
+      {/* Send Money Form */}
+      <Paper sx={{ p: 3 }}>
         <form onSubmit={handleSubmit}>
-          <div style={{display: "flex", gap: 5}}>
+          {/* Recipient Search Section */}
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              Find Recipient
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-end' }}>
+              <TextField
+                label="Recipient Username"
+                fullWidth
+                value={recipient}
+                ref={usernameInputRef}
+                onChange={(e) => { setRecipient(e.target.value) }}
+                required
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Person color="action" />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              <Button 
+                onClick={search4user} 
+                variant="contained"
+                disabled={searching || !recipient.trim()}
+                startIcon={searching ? <CircularProgress size={16} /> : <Search />}
+                sx={{ 
+                  minWidth: 120,
+                  minHeight: 48,
+                  textTransform: 'none'
+                }}
+              >
+                {searching ? 'Searching...' : 'Search'}
+              </Button>
+            </Box>
+          </Box>
+
+          <Divider sx={{ my: 3 }} />
+
+          {/* Transaction Details */}
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+              Transaction Details
+            </Typography>
+            
             <TextField
-              label="Recipient Username"
+              label="Amount"
               fullWidth
               margin="normal"
-              value={recipient}
-              ref={usernameInputRef}
-              onChange={(e) => { setRecipient(e.target.value) }}
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
               required
+              inputProps={{ min: "0.01", step: "0.01" }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Typography color="primary" sx={{ fontWeight: 600 }}>
+                      ₡
+                    </Typography>
+                  </InputAdornment>
+                ),
+              }}
             />
-            <Button onClick={ search4user } variant="contained" color="primary" sx={{ mt: 2 }}>
-              Search
-            </Button>
-          </div>
+            
+            <TextField
+              label="Leave a Message"
+              fullWidth
+              margin="normal"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              required
+              multiline
+              rows={3}
+              placeholder="Enter a message for the recipient..."
+            />
+          </Box>
 
-          <TextField
-            label="Amount"
-            fullWidth
-            margin="normal"
-            type="number"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            required
-            inputProps={{ min: "0.01", step: "0.01" }}
-          />
-          <TextField
-            label="Leave a Message"
-            fullWidth
-            margin="normal"
-            placeholder={`${recipient} Enjoy: ₡{amount} !!!, from ${thisUser.username}`}
-            onChange={(e) => setMessage(e.target.value)}
-            required
-          />
-          <Button type="submit" variant="contained" color="primary" sx={{ mt: 2 }}>
-            Send Money
+          {/* Submit Button */}
+          <Button 
+            type="submit" 
+            variant="contained" 
+            size="large"
+            disabled={sending || !toUser || !amount || !message}
+            startIcon={sending ? <CircularProgress size={20} /> : <Send />}
+            sx={{ 
+              mt: 2,
+              py: 1.5,
+              px: 4,
+              fontSize: '1rem',
+              fontWeight: 600,
+              textTransform: 'none'
+            }}
+          >
+            {sending ? 'Sending Coins...' : 'Send Coins'}
           </Button>
         </form>
       </Paper>
+
       <Snackbar
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         open={openSnackbar}

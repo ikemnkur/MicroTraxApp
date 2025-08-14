@@ -11,7 +11,7 @@
   background-color: #222;
   height: 150px;
   padding: 20px;
-  color: white;
+  color: rgba(176, 246, 241, 0.6);
 }
 
 .App-intro {
@@ -21,4 +21,8 @@
 @keyframes App-logo-spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+body {
+  zoom: 70%; /* Scales the content to 80% */
 }

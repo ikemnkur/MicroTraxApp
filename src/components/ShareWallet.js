@@ -9,14 +9,23 @@ const ShareWallet = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [thisUser, setThisUser] = useState(JSON.parse(localStorage.getItem("userdata")))
 
+
+  let siteURL = ""; //useBaseUrl();
+  if (typeof window !== 'undefined') {
+    siteURL = window.location.origin;
+  } else {
+    siteURL = process.env.REACT_APP_BASE_URL || 'http://localhost:3000';
+  }
+
+
   useEffect(() => {
     // Mock fetching current user's username
     setUsername(thisUser.username);
   }, []);
 
   useEffect(() => {
-    // setShareLink(`https://microtrax.com/send?recipient=${username}`);
-    setShareLink(`http://localhost:3000/send?recipient=${username}`);
+    // setShareLink(`https://${siteURL}/send?recipient=${username}`);
+    setShareLink(`${siteURL}/send?recipient=${username}`);
   }, [username]);
 
   const handleCopyLink = () => {

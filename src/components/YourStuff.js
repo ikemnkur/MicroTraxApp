@@ -1,3 +1,4 @@
+require('dotenv').config();
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -22,21 +23,45 @@ import {
   TableHead,
   TableRow,
   IconButton,
+  Card,
+  CardContent,
+  CardMedia,
+  Link,
 } from '@mui/material';
-import { Delete as DeleteIcon, EditNote as EditNoteIcon, Share as ShareIcon } from '@mui/icons-material';
+import {
+  Delete as DeleteIcon,
+  EditNote as EditNoteIcon,
+  Share as ShareIcon,
+  Visibility,
+  Close as CloseIcon,
+} from '@mui/icons-material';
 import {
   fetchUserContent,
-  fetchSubscriptions,
-  handleDeleteContent,
-  handleSubmitNewContent,
-  handleSubmitNewEdit,
+  fetchUserSubscriptions,
+  handleDeleteUserContent,
   fetchWalletData,
-} from './api';
-import Clipboard from './Clipboard.js'; // If you have a Clipboard component
-import QRCode from 'qrcode.react'; // If you use QR codes
+} from './api.js';
+import Clipboard from './Clipboard.js';
+import QRCode from 'qrcode.react';
+import axios from 'axios';
+import { useAuthCheck } from './useAuthCheck.js';
+import { lightBlue } from '@mui/material/colors';
+
+const API_URL = process.env.REACT_APP_API_SERVER_URL + '/api';
+
+let siteURL = "";
+if (typeof window !== 'undefined') {
+  siteURL = window.location.origin;
+} else {
+  siteURL = process.env.REACT_APP_BASE_URL || 'http://localhost:3000';
+}
 
 const YourStuff = () => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
+  useAuthCheck();
+
+  const [searchTermContent, setSearchTermContent] = useState('');
+  const [searchTermSub, setSearchTermSub] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
   const [action, setAction] = useState('');
   const [walletData, setWalletData] = useState(null);
@@ -44,12 +69,19 @@ const YourStuff = () => {
   const [filteredContent, setFilteredContent] = useState([]);
   const [editing, setEditing] = useState(false);
   const [subscriptionList, setSubscriptionList] = useState([]);
+  const [userData, setUserData] = useState(JSON.parse(localStorage.getItem('userdata')) || {});
   const [subs, setSubs] = useState([]);
   const [filteredSubs, setFilteredSubs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [sortBy, setSortBy] = useState('date');
   const [sortOrder, setSortOrder] = useState('asc');
+  const [ud] = useState(JSON.parse(localStorage.getItem("userdata")));
+
+  // New state for view content modal
+  const [openViewDialog, setOpenViewDialog] = useState(false);
+  const [viewingContent, setViewingContent] = useState(null);
+
   const [newContent, setNewContent] = useState({
     title: '',
     username: '',
@@ -59,15 +91,34 @@ const YourStuff = () => {
     type: 'url',
     reference_id: '',
   });
+
+  const [userSubscription, setUserSubscription] = useState({
+    username: "",
+    hostuser_id: "",
+    title: '',
+    cost: 1,
+    frequency: '',
+    description: '',
+    content: '',
+    type: 'url',
+    reference_id: "",
+    id: 0,
+    account_id: ""
+  });
+
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [openSnackbar, setOpenSnackbar] = useState(false);
-  const navigate = useNavigate();
 
+  const [shareLink, setShareLink] = useState('');
+  const [shareItem, setShareItem] = useState('');
+  const [openShareDialog, setOpenShareDialog] = useState(false);
+
+  // For now, using walletData username or default
   const thisUser = { username: walletData?.username || 'CurrentUser' };
 
   useEffect(() => {
     loadUserContent();
-    loadUserSubscriptions();
+    // loadUserSubscriptions(); // Uncomment if needed.
     loadWalletData();
   }, []);
 
@@ -91,26 +142,26 @@ const YourStuff = () => {
 
   const loadUserContent = async () => {
     try {
-      const content = await fetchUserContent();
-      setContentList(content);
-      setFilteredContent(content);
-      console.log('Content: ' + JSON.stringify(content));
-    } catch (error) {
-      console.error('Failed to fetch user content:', error);
-      if (error.response?.status === 403) {
-        setTimeout(() => navigate('/'), 250);
-      }
-      setSnackbarMessage('Failed to fetch user content');
-      setOpenSnackbar(true);
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_URL}/user-content/get`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = response.data;
+      console.log("Your Stuff Data:", data);
+      setContentList(data);
+      setFilteredContent(data);
+    } catch (err) {
+      console.error('Failed to fetch content:', err);
+      setError('Failed to load content. Please try again later.');
     }
   };
 
   const loadUserSubscriptions = async () => {
     try {
-      const subscriptions = await fetchSubscriptions();
+      const subscriptions = await fetchUserSubscriptions();
       setSubs(subscriptions);
       setFilteredSubs(subscriptions);
-      console.log('Subscriptions: ' + JSON.stringify(subscriptions));
+      console.log('Subscriptions: ', JSON.stringify(subscriptions));
     } catch (error) {
       console.error('Failed to fetch subscriptions:', error);
       if (error.response?.status === 403) {
@@ -124,7 +175,7 @@ const YourStuff = () => {
   const loadWalletData = async () => {
     try {
       setIsLoading(true);
-      const data = await fetchWalletData();
+      const data = await fetchWalletData(ud);
       setWalletData(data);
     } catch (err) {
       console.error('Error fetching wallet data:', err);
@@ -135,9 +186,13 @@ const YourStuff = () => {
     }
   };
 
-  const handleDelete = async (contentId) => {
+  const handleDeleteSubscription = async (subId) => {
     try {
-      await handleDeleteContent(contentId);
+      const token = localStorage.getItem('token');
+      const response = await axios.delete(`${API_URL}/user-subscriptions/delete/${subId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log("Delete User Subscription Response: ", response);
       loadUserContent();
     } catch (error) {
       console.error('Failed to delete content:', error);
@@ -146,95 +201,39 @@ const YourStuff = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await handleSubmitNewContent(newContent);
-      setNewContent({ title: '', username: thisUser.username, cost: 1, description: '', content: '', type: 'url', reference_id: '' });
-      loadUserContent();
-    } catch (error) {
-      console.error('Failed to add content:', error);
-      setSnackbarMessage('Failed to add content');
-      setOpenSnackbar(true);
+  const handleShare = (item, type) => {
+    console.log(item);
+    if (type === "content") {
+      setShareLink(`${siteURL}/unlock/${item.reference_id}`);
     }
-  };
-
-  const handleSubmitEdit = async (e) => {
-    e.preventDefault();
-    try {
-      await handleSubmitNewEdit(newContent);
-      setNewContent({ title: '', username: thisUser.username, cost: 1, description: '', content: '', type: 'url', reference_id: '' });
-      setEditing(false);
-      loadUserContent();
-    } catch (error) {
-      console.error('Failed to edit content:', error);
-      setSnackbarMessage('Failed to edit content');
-      setOpenSnackbar(true);
+    if (type === "subscription") {
+      setShareLink(`${siteURL}/subscription/${item.reference_id}`);
     }
-  };
-
-  const handleEdit = (item) => {
     try {
-      setEditing(true);
-      setNewContent({
+      setShareItem({
         title: item.title,
         username: thisUser.username,
         cost: item.cost,
         description: item.description,
-        content: item.content.content,
+        content: item.content?.content,
         type: item.type,
         reference_id: '',
       });
     } catch (error) {
-      console.error('Failed to edit content:', error);
-      setSnackbarMessage('Failed to edit content');
-      setOpenSnackbar(true);
-    }
-  };
-
-  const cancelEdit = () => {
-    try {
-      setEditing(false);
-      setNewContent({ title: '', username: thisUser.username, cost: 1, description: '', content: '', type: 'url', reference_id: '' });
-    } catch (error) {
-      console.error('Failed to cancel edit:', error);
-      setSnackbarMessage('Failed to cancel edit');
-      setOpenSnackbar(true);
-    }
-  };
-
-  const [shareLink, setShareLink] = useState('');
-  const [shareItem, setShareItem] = useState('');
-  const [openShareDialog, setOpenShareDialog] = useState(false);
-
-  const handleShare = (item, type) => {
-    // Implement sharing functionality here
-    if(type === "content"){
-      setShareLink(`https://microtrax.com/unlock/${item.id}`);
-    }
-    if(type === "subscription"){
-      setShareLink(`https://microtrax.com/subscription/${item.id}`);
-    }
-   
-    try {
-      setShareItem({ title: item.title, username: thisUser.username, cost: item.cost, description: item.description, content: (item.content.content), type: item.type, reference_id: '' });
-    } catch (error) {
       console.error('Failed to share content:', error);
-      // Handle error (e.g., show error message to user)
       setSnackbarMessage('Failed to generate share content');
       setOpenSnackbar(true);
-    } 
-    console.log('Share item:', item)
+    }
+    console.log('Share item:', item);
     setOpenShareDialog(true);
   };
 
   const searchSubscriptions = () => {
-    const filtered = subs.filter((s) => {
-      return (
-        s.host_username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.cost.toString().includes(searchTerm)
-      );
-    });
+    const filtered = subs.filter((s) =>
+      s.host_username.toLowerCase().includes(searchTermSub.toLowerCase()) ||
+      s.cost.toString().includes(searchTermSub) ||
+      s.title.toLowerCase().includes(searchTermSub.toLowerCase())
+    );
     setFilteredSubs(filtered);
   };
 
@@ -243,12 +242,11 @@ const YourStuff = () => {
   };
 
   const searchContent = () => {
-    const filtered = contentList.filter((c) => {
-      return (
-        c.host_username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.cost.toString().includes(searchTerm)
-      );
-    });
+    const filtered = contentList.filter((c) =>
+      c.host_username.toLowerCase().includes(searchTermContent.toLowerCase()) ||
+      c.cost.toString().includes(searchTermContent) ||
+      c.title.toLowerCase().includes(searchTermContent.toLowerCase())
+    );
     setFilteredContent(filtered);
   };
 
@@ -259,7 +257,6 @@ const YourStuff = () => {
   const sortSubscriptions = (subscriptionsToSort) => {
     return [...subscriptionsToSort].sort((a, b) => {
       let aValue, bValue;
-
       switch (sortBy) {
         case 'date':
           aValue = new Date(a.created_at);
@@ -277,7 +274,6 @@ const YourStuff = () => {
           aValue = a.id;
           bValue = b.id;
       }
-
       if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
       if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
       return 0;
@@ -287,7 +283,6 @@ const YourStuff = () => {
   const sortContent = (contentToSort) => {
     return [...contentToSort].sort((a, b) => {
       let aValue, bValue;
-
       switch (sortBy) {
         case 'date':
           aValue = new Date(a.created_at);
@@ -305,18 +300,128 @@ const YourStuff = () => {
           aValue = a.id;
           bValue = b.id;
       }
-
       if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
       if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
       return 0;
     });
   };
 
+  const handleViewContent = (item) => {
+    setViewingContent(item);
+    setOpenViewDialog(true);
+  };
+
+  const handleCloseViewDialog = () => {
+    setOpenViewDialog(false);
+    setViewingContent(null);
+  };
+
+  const handleDeleteFromView = async () => {
+    if (viewingContent) {
+      try {
+        await handleDeleteUserContent(viewingContent.id);
+        handleCloseViewDialog();
+        loadUserContent(); // Refresh the content list
+        setSnackbarMessage('Content deleted successfully');
+        setOpenSnackbar(true);
+      } catch (error) {
+        console.error('Failed to delete content:', error);
+        setSnackbarMessage('Failed to delete content');
+        setOpenSnackbar(true);
+      }
+    }
+  };
+
+  const renderContentPreview = (content) => {
+    if (!content) return null;
+
+    // Safely extract content data, handling nested content objects
+    let contentData;
+    if (typeof content.content === 'object' && content.content !== null) {
+      contentData = content.content.content || JSON.stringify(content.content);
+    } else {
+      contentData = content.content || content;
+    }
+
+    // Ensure we have a string to display
+    if (typeof contentData === 'object') {
+      contentData = JSON.stringify(contentData);
+    }
+    
+    switch (content.type) {
+      case 'image':
+        return (
+          <Card sx={{ maxWidth: '100%', mb: 2 }}>
+            <CardMedia
+              component="img"
+              height="300"
+              image={String(contentData)}
+              alt={content.title || 'Content image'}
+              sx={{ objectFit: 'contain' }}
+            />
+          </Card>
+        );
+      
+      case 'video':
+        return (
+          <Card sx={{ maxWidth: '100%', mb: 2 }}>
+            <CardMedia
+              component="video"
+              height="300"
+              src={String(contentData)}
+              controls
+              sx={{ objectFit: 'contain' }}
+            />
+          </Card>
+        );
+      
+      case 'url':
+        return (
+          <Card sx={{ maxWidth: '100%', mb: 2 }}>
+            <CardContent>
+              <Typography variant="body2" color="text.secondary">
+                URL Content:
+              </Typography>
+              <Link 
+                href={String(contentData)} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                sx={{ wordBreak: 'break-all' }}
+              >
+                <Typography variant="body1">
+                  {String(contentData)}
+                </Typography>
+              </Link>
+            </CardContent>
+          </Card>
+        );
+      
+      case 'text':
+      default:
+        return (
+          <Card sx={{ maxWidth: '100%', mb: 2 }}>
+            <CardContent>
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                Text Content:
+              </Typography>
+              <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+                {String(contentData)}
+              </Typography>
+            </CardContent>
+          </Card>
+        );
+    }
+  };
+
   const contentToDisplay = sortContent(filteredContent);
   const subscriptionsToDisplay = sortSubscriptions(filteredSubs);
 
   if (isLoading) {
-    return <CircularProgress />;
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
   if (error) {
@@ -324,60 +429,54 @@ const YourStuff = () => {
   }
 
   return (
-    <Box>
-     
-      <Paper sx={{ p: 2, mb: 2 }}> 
-        <Typography variant="h3" gutterBottom>
-        Your Stuff
-      </Typography>
-        <Box sx={{ display: 'block', justifyContent: 'space-around', mt: 2 , padding: "5px"}}>
-          <Typography variant="h6" gutterBottom>
-            Current Balance: ₡{walletData?.balance}
-          </Typography>
-          <Typography variant="body1" gutterBottom>
-            Account Tier: {walletData?.accountTier}
-          </Typography>
-          <Typography variant="body1" gutterBottom>
-            Daily Transaction Limit: ₡{walletData?.dailyTransactionLimit}
-          </Typography>
-        </Box>
+    <Box sx={{ p: 2 }}>
+      <Paper sx={{ p: 2, mb: 2 }}>
+      
         <Box sx={{ mt: 2 }}>
-          <TableContainer component={Paper}>
-            <Typography variant="h4" gutterBottom>
-              My Unlocked Content
+          <TableContainer component={Paper} sx={{ backgroundColor: lightBlue[90] }}>
+            <Typography variant="h4" gutterBottom sx={{ p: 2 }}>
+              Your Unlocked Content
             </Typography>
-            <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2, alignItems: 'center', px: 2 }}>
               <TextField
                 label="Search"
                 variant="outlined"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={searchTermContent}
+                onChange={(e) => setSearchTermContent(e.target.value)}
+                sx={{ flex: { xs: '1 1 100%', md: '0 0 auto' } }}
               />
               <Button variant="contained" color="primary" onClick={handleSearchContent}>
                 Search
               </Button>
-              <strong style={{ padding: '15px' }}>Filter:</strong>
-              <Select value={sortBy} onChange={(e) => setSortBy(e.target.value)} variant="outlined">
+              <Typography sx={{ pt: 1 }}>Filter:</Typography>
+              <Select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                variant="outlined"
+                size="small"
+              >
                 <MenuItem value="date">Date</MenuItem>
                 <MenuItem value="amount">Amount</MenuItem>
                 <MenuItem value="username">Username</MenuItem>
               </Select>
-              <strong style={{ padding: '15px' }}>Sort:</strong>
-              <Select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} variant="outlined">
+              <Typography sx={{ pt: 1 }}>Sort:</Typography>
+              <Select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value)}
+                variant="outlined"
+                size="small"
+              >
                 <MenuItem value="asc">Ascending</MenuItem>
                 <MenuItem value="desc">Descending</MenuItem>
               </Select>
-              {/* <Button variant="contained" color="primary" onClick={() => handleOpenDialog('create')}>
-                Create New Content
-              </Button> */}
             </Box>
             <Table>
               <TableHead>
-                <TableRow style={{ backgroundColor: 'lightgrey', borderRadius: 10 }}>
+                <TableRow sx={{ backgroundColor: 'lightgrey' }}>
                   <TableCell>Title</TableCell>
                   <TableCell>Date</TableCell>
                   <TableCell>Type</TableCell>
-                  <TableCell>User</TableCell>
+                  <TableCell>Host User</TableCell>
                   <TableCell>Cost</TableCell>
                   <TableCell>Actions</TableCell>
                 </TableRow>
@@ -389,16 +488,19 @@ const YourStuff = () => {
                     <TableCell>{item.created_at.slice(0, 10)}</TableCell>
                     <TableCell>{item.type}</TableCell>
                     <TableCell>{item.host_username}</TableCell>
-                    <TableCell>${parseFloat(item.cost).toFixed(2)}</TableCell>
+                    <TableCell>{item.cost}</TableCell>
                     <TableCell>
-                      <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(item.id)}>
-                        <DeleteIcon />
+                      <IconButton aria-label="View" onClick={() => handleViewContent(item)}>
+                        <Visibility />
                       </IconButton>
-                      <IconButton edge="end" aria-label="edit" onClick={() => handleEdit(item)}>
-                        <EditNoteIcon />
-                      </IconButton>
-                      <IconButton edge="end" aria-label="share" onClick={() => handleShare(item, "content")}>
+                      <IconButton aria-label="share" onClick={() => handleShare(item, "content")}>
                         <ShareIcon />
+                      </IconButton>
+                      <IconButton
+                        aria-label="delete"
+                        onClick={() => handleDeleteUserContent(item.id)}
+                      >
+                        <DeleteIcon />
                       </IconButton>
                     </TableCell>
                   </TableRow>
@@ -414,83 +516,127 @@ const YourStuff = () => {
             </Table>
           </TableContainer>
         </Box>
-        <Box sx={{ mt: 4 }}>
-          <TableContainer component={Paper}>
-            <Typography variant="h4" gutterBottom>
-              My Subscriptions
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-              <TextField
-                label="Search"
-                variant="outlined"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <Button variant="contained" color="primary" onClick={handleSearchSubs}>
-                Search
-              </Button>
-              <strong style={{ padding: '15px' }}>Filter:</strong>
-              <Select value={sortBy} onChange={(e) => setSortBy(e.target.value)} variant="outlined">
-                <MenuItem value="date">Date</MenuItem>
-                <MenuItem value="amount">Amount</MenuItem>
-                <MenuItem value="username">Username</MenuItem>
-              </Select>
-              <strong style={{ padding: '15px' }}>Sort:</strong>
-              <Select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} variant="outlined">
-                <MenuItem value="asc">Ascending</MenuItem>
-                <MenuItem value="desc">Descending</MenuItem>
-              </Select>
-            </Box>
-            <Table>
-              <TableHead>
-                <TableRow style={{ backgroundColor: 'lightgrey', borderRadius: 10 }}>
-                  <TableCell>Title</TableCell>
-                  <TableCell>Date</TableCell>
-                  <TableCell>Type</TableCell>
-                  <TableCell>User</TableCell>
-                  <TableCell>Amount</TableCell>
-                  <TableCell>Action</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {subscriptionsToDisplay && subscriptionsToDisplay.map((sub) => (
-                  <TableRow key={sub.id}>
-                    <TableCell>{sub.title}</TableCell>
-                    <TableCell>{sub.created_at.slice(0, 10)}</TableCell>
-                    <TableCell>{sub.type}</TableCell>
-                    <TableCell>{sub.host_username}</TableCell>
-                    <TableCell>${parseFloat(sub.cost).toFixed(2)}</TableCell>
-                    <TableCell>
-                      <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(sub.id)}>
-                        <DeleteIcon />
-                      </IconButton>
-                      <IconButton edge="end" aria-label="edit" onClick={() => handleEdit(sub)}>
-                        <EditNoteIcon />
-                      </IconButton>
-                      <IconButton edge="end" aria-label="share" onClick={() => handleShare(sub, "subscription")}>
-                        <ShareIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {subscriptionsToDisplay.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={6} align="center">
-                      No subscriptions found.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Box>
       </Paper>
 
+      {/* View Content Modal */}
+      <Dialog
+        open={openViewDialog}
+        onClose={handleCloseViewDialog}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            maxHeight: '90vh',
+            position: 'relative',
+          },
+        }}
+      >
+        <Box sx={{ 
+          position: 'absolute', 
+          top: 8, 
+          right: 8, 
+          zIndex: 1,
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          borderRadius: '50%',
+        }}>
+          <IconButton 
+            onClick={handleCloseViewDialog}
+            sx={{ 
+              color: 'red',
+              '&:hover': { backgroundColor: 'rgba(255, 0, 0, 0.1)' }
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </Box>
+        
+        <DialogTitle sx={{ pr: 6 }}>
+          {viewingContent?.title}
+        </DialogTitle>
+        
+        <DialogContent>
+          {/* Content Preview */}
+          <Box sx={{ mb: 3 }}>
+            {renderContentPreview(viewingContent)}
+          </Box>
+          
+          {/* Content Details */}
+          <Paper sx={{ p: 2, backgroundColor: '#f5f5f5' }}>
+            <Typography variant="h6" gutterBottom>
+              Content Details
+            </Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+              <Box>
+                <Typography variant="body2" color="text.secondary">
+                  Date:
+                </Typography>
+                <Typography variant="body1">
+                  {viewingContent?.created_at?.slice(0, 10)}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="body2" color="text.secondary">
+                  Type:
+                </Typography>
+                <Typography variant="body1">
+                  {viewingContent?.type}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="body2" color="text.secondary">
+                  Host User:
+                </Typography>
+                <Typography variant="body1">
+                  {viewingContent?.host_username}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="body2" color="text.secondary">
+                  Cost:
+                </Typography>
+                <Typography variant="body1">
+                  {viewingContent?.cost}
+                </Typography>
+              </Box>
+            </Box>
+            {viewingContent?.description && (
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Description:
+                </Typography>
+                <Typography variant="body1">
+                  {viewingContent.description}
+                </Typography>
+              </Box>
+            )}
+          </Paper>
+        </DialogContent>
+        
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button 
+            variant="outlined" 
+            onClick={() => handleShare(viewingContent, "content")}
+            startIcon={<ShareIcon />}
+          >
+            Share
+          </Button>
+          <Button 
+            variant="outlined" 
+            color="error"
+            onClick={handleDeleteFromView}
+            startIcon={<DeleteIcon />}
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Share Dialog */}
       <Dialog
         open={openShareDialog}
         onClose={() => setOpenShareDialog(false)}
         PaperProps={{
-          style: {
+          sx: {
             width: '400px',
             display: 'flex',
             flexDirection: 'column',
@@ -498,29 +644,33 @@ const YourStuff = () => {
           },
         }}
       >
-        <DialogTitle>Share Item</DialogTitle>
-        <DialogContent style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          width: '100%'
-        }}>
-          <DialogContentText style={{ textAlign: 'center' }}>
-            Share this:
-          </DialogContentText>
-          <Box sx={{ my: 2 }}>
-            <QRCode value={shareLink} size={256} />
-          </Box>
-
-          <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', mb: 2 }}>
-            <Clipboard Item={shareLink} />
-          </Box>
+        <DialogTitle>Share this item to others</DialogTitle>
+        <DialogContent
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            textAlign: 'center',
+          }}
+        >
+          <DialogContentText>Share this item:</DialogContentText>
+          {shareLink && (
+            <>
+              <Box sx={{ my: 2 }}>
+                <QRCode value={shareLink} size={256} />
+              </Box>
+              <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', mb: 2 }}>
+                <Clipboard Item={shareLink} />
+              </Box>
+            </>
+          )}
         </DialogContent>
-        <DialogActions style={{ width: '100%', justifyContent: 'flex-end' }}>
+        <DialogActions sx={{ width: '100%', justifyContent: 'flex-end' }}>
           <Button onClick={() => setOpenShareDialog(false)}>Close</Button>
         </DialogActions>
       </Dialog>
 
+      {/* Action Dialog */}
       <Dialog open={openDialog} onClose={handleCloseDialog}>
         <DialogTitle>{action === 'reload' ? 'Reload Wallet' : 'Withdraw Funds'}</DialogTitle>
         <DialogContent>
@@ -535,7 +685,7 @@ const YourStuff = () => {
           </Button>
         </DialogActions>
       </Dialog>
-      {/* Snackbar for messages */}
+
       <Snackbar
         open={openSnackbar}
         autoHideDuration={6000}

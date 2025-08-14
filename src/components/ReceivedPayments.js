@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TextField, Select, MenuItem, Box, CircularProgress } from '@mui/material';
-import { fetchRecieveTransactionHistory } from './api';
+import { fetchreceiveTransactionHistory } from './api';
 
 const ReceivedPayments = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -13,7 +13,7 @@ const ReceivedPayments = () => {
   useEffect(() => {
     const loadTransactions = async () => {
       try {
-        const data = await fetchRecieveTransactionHistory();
+        const data = await fetchreceiveTransactionHistory();
         console.log("History Data: ", data)
         setTransactions(data);
         setLoading(false);
@@ -21,10 +21,10 @@ const ReceivedPayments = () => {
         console.error('Failed to fetch transaction history:', err);
         setError('Failed to load transaction history. Please try again later.');
         setLoading(false);
-        if (error.response?.status === 403) {
-          // Unauthorized, token might be expired
-          setTimeout(() => navigate('/'), 1000);
-        }
+        // if (error.response?.status === 403) {
+        //   // Unauthorized, token might be expired
+        //   setTimeout(() => navigate('/'), 1000);
+        // }
       }
     };
 

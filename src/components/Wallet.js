@@ -1,3 +1,4 @@
+require('dotenv').config();
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -20,6 +21,7 @@ const Wallet = () => {
   const [walletData, setWalletData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [thisUser] = useState(JSON.parse(localStorage.getItem("userdata")));
   const navigate = useNavigate();
 
   const tiers = [
@@ -36,8 +38,10 @@ const Wallet = () => {
     const loadWalletData = async () => {
       try {
         setIsLoading(true);
-        const data = await fetchWalletData();
+        let ud = JSON.parse(localStorage.getItem("userdata"))
+        const data = await fetchWalletData(ud)
         setWalletData(data);
+        console.log("WD: " , walletData)
       } catch (err) {
         console.error('Error fetching wallet data:', err);
         setError('Failed to load wallet data. Please try again.');
@@ -54,16 +58,23 @@ const Wallet = () => {
   }, []);
 
   const handleOpenDialog = (selectedAction) => {
-    setAction(selectedAction);
-    setOpenDialog(true);
+    // setAction(selectedAction);
+    // setOpenDialog(true);
+    if (selectedAction === 'reload') {
+      navigate('/reload');
+    } else if (selectedAction === 'withdraw') {
+      navigate('/withdraw');
+    } else {
+      navigate('/convert');
+    }
   };
 
   const handleCloseDialog = () => {
-    setOpenDialog(false);
+    // setOpenDialog(false);
   };
 
   const handleConfirm = () => {
-    setOpenDialog(false);
+    // setOpenDialog(false);
     if (action === 'reload') {
       navigate('/reload');
     } else if (action === 'withdraw') {
@@ -83,15 +94,20 @@ const Wallet = () => {
     <Box>
       <Typography variant="h4" gutterBottom>Wallet</Typography>
       <Paper sx={{ p: 2, mb: 2 }}>
-        <Typography variant="h6" gutterBottom>Current Balance: ₡{walletData?.balance}</Typography>
-        <Typography variant="body1" gutterBottom>Account Tier: {walletData?.accountTier}</Typography>
-        <Typography variant="body1" gutterBottom>Daily Transaction Limit: ₡{walletData?.dailyTransactionLimit}</Typography>
+        <Typography variant="h6" gutterBottom>Current Balance: ₡{walletData?.redeemable + walletData?.spendable}</Typography>
+        <Typography variant="body1" gutterBottom>Account Tier: {tiers[thisUser?.accountTier - 1]?.name}</Typography>
+        {/* <Typography variant="body1" gutterBottom>Daily Transaction Limit: ₡{walletData?.daily_transaction_limit}</Typography> */}
+        <Typography variant="body1" gutterBottom>Coins You can Redeem: ₡{walletData?.redeemable}</Typography>
+        <Typography variant="body1" gutterBottom>Coins You Can Spend: ₡{walletData?.spendable}</Typography>
         <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 2 }}>
           <Button variant="contained" color="primary" onClick={() => handleOpenDialog('reload')}>
             Reload Wallet
           </Button>
+          <Button variant="contained" color="tertiary" onClick={() => handleOpenDialog('convert')}>
+            Convert Coins
+          </Button>
           <Button variant="contained" color="secondary" onClick={() => handleOpenDialog('withdraw')}>
-            Withdraw Funds
+            Withdraw Coins
           </Button>
         </Box>
       </Paper>
