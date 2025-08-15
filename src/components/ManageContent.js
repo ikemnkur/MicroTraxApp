@@ -115,7 +115,7 @@ const ManageContent = () => {
   };
 
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     searchContent();
   };
 
