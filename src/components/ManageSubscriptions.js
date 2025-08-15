@@ -272,7 +272,7 @@ const Subscriptions = () => {
 
 
   // State variables for sharing functionality
-  const [shareLink, setShareLink] = useState('');
+  // const [shareLink, setShareLink] = useState('');
   const [openShareDialog, setOpenShareDialog] = useState(false);
 
   // Share a subscription
