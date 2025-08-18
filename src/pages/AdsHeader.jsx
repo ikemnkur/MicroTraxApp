@@ -2,15 +2,19 @@ import React, { useState, useEffect } from 'react';
 
 import CreateAdPage from '../pages/CreateAdPage';
 import AdPreviewPage from '../pages/AdPreviewPage';
-import AdAnalyticsPage from '../pages/AdAnalyticsPage';
+import AdAnalyticsPage from './AdAnalyticsPage';
 import ManageAdsPage from '../pages/ManageAdsPage';
 import AdHelpPage from '../pages/AdHelpPage';
+import AdDashboardPage from './AdDashboardPage';
+import AdAccountPage from '../pages/AdAccountPage';
+
 import { fetchAds, fetchAdvertiserProfile } from '../components/api';
+import { Button } from '@mui/material';
 
 const API_BASE_URL = process.env.REACT_APP_API_SERVER_URL + "/api" || 'http://localhost:5001/api';
 
 const Ads = () => {
-  const [currentPage, setCurrentPage] = useState('create');
+  const [currentPage, setCurrentPage] = useState('dashboard');
   const [ads, setAds] = useState([]); // Initialize with empty array
   const [editingAd, setEditingAd] = useState(null);
   const [user, setUser] = useState({
@@ -25,12 +29,44 @@ const Ads = () => {
 
   // Navigation items
   const navigationItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: '📊' },
     { id: 'create', label: 'Create Ad', icon: '➕' },
-    { id: 'preview', label: 'Preview', icon: '👁️' },
+
     { id: 'analytics', label: 'Analytics', icon: '📈' },
     { id: 'manage', label: 'Manage Ads', icon: '⚙️' },
-    { id: 'help', label: 'Help', icon: '❓' }
+    { id: 'help', label: 'Help', icon: '❓' },
+    { id: "account", label: "Account", icon: "👤" },
   ];
+
+  // Check to see if user is logged in
+  useEffect(() => {
+    let lastLoginTime = localStorage.getItem('lastLoginTime');
+    let expired = false;
+    if (lastLoginTime) {
+      const now = new Date();
+      const lastLogin = new Date(lastLoginTime);
+      const timeDiff = now - lastLogin; // Difference in milliseconds
+      const diffMinutes = Math.floor(timeDiff / 1000 / 60); // Convert to minutes
+      if (diffMinutes < 5) {
+        console.log('User logged in recently, refreshing ads...');
+        ADS_fetchAds();
+      }
+      if (diffMinutes > 60) {
+        console.log('User session expired, redirecting to login...');
+        expired = true;
+      } 
+    }
+    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken') || localStorage.getItem('token');
+    console.log('User token:', token, 'Expired:', expired);
+    if (token && !expired) {
+      setUser(prev => ({ ...prev, token }));
+      console.log('User token found:', token);
+    } else {
+      console.log('No user token found, redirecting to login');
+      // alert('Your session has expired. Please log in again.');
+      window.location.href = '/ads-login'; // Redirect to login page
+    }
+  }, []);
 
   const ADS_fetchAdvertiserProfile = async () => {
     if (!user.token) {
@@ -40,7 +76,7 @@ const Ads = () => {
     }
 
     try {
-      
+
 
       const response = await fetchAdvertiserProfile(user);
       // await fetchAds(user);
@@ -83,7 +119,7 @@ const Ads = () => {
     try {
 
       const response = await fetchAds(user);
-    
+
       // console.log('Fetch Ads response:', response);
 
       // const data = await response.json();
@@ -323,6 +359,11 @@ const Ads = () => {
           <div style={{ fontSize: '48px', marginBottom: '20px' }}>🔒</div>
           <h2 style={{ margin: '0 0 10px', color: '#dc2626' }}>Authentication Required</h2>
           <p style={{ margin: 0, color: '#666' }}>Please log in to access the ad management system.</p>
+          <Button variant="contained" color="primary" style={{ marginTop: '20px' }}>
+            <a href="/ads-login" style={{ textDecoration: 'none', color: 'white' }}>
+              Go to Login
+            </a>
+          </Button>
         </div>
       </div>
     );
@@ -338,12 +379,13 @@ const Ads = () => {
             editingAd={editingAd}
           />
         );
-      // case 'preview':
-      //   return (
-      //     <AdPreviewPage
-      //       ad={getPreviewAd()}
-      //     />
-      //   );
+      case 'dashboard':
+        return (
+          <AdDashboardPage
+            ads={ads}
+            onEditAd={handleEditAd}
+          />
+        );
       case 'analytics':
         return (
           <AdAnalyticsPage
@@ -363,6 +405,10 @@ const Ads = () => {
         );
       case 'help':
         return <AdHelpPage />;
+      
+      case 'account':
+        return <AdAccountPage />;
+
       default:
         return (
           <CreateAdPage
@@ -455,7 +501,22 @@ const Ads = () => {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-              <div style={{
+              <Button onClick={() => {
+                localStorage.setItem('authToken', '');
+                localStorage.setItem('advertiserData', '');
+                localStorage.setItem('lastLoginTime', '');
+                sessionStorage.setItem('authToken', '');
+              }}>
+                <a href="/ads-login" style={{ textDecoration: 'none', color: 'inherit' }}>
+                  Logout
+                </a>
+              </Button>
+              <Button>
+                <a href="/dashboard" style={{ textDecoration: 'none', color: 'inherit' }}>
+                  Dashboard
+                </a>
+              </Button>
+              {/* <div style={{ 
                 display: 'flex',
                 alignItems: 'center',
                 gap: '12px',
@@ -498,8 +559,19 @@ const Ads = () => {
                   }}>
                     {user.email || ''}
                   </div>
+                  
                 </div>
-              </div>
+                <Button>
+                    <a href="/logout" style={{ textDecoration: 'none', color: 'inherit' }}>
+                      Logout
+                    </a>
+                  </Button>
+                   <Button>
+                    <a href="/dashboard" style={{ textDecoration: 'none', color: 'inherit' }}>
+                      Dashboard
+                    </a>
+                  </Button>
+              </div>? */}
             </div>
           </div>
         </div>

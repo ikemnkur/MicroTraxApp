@@ -37,12 +37,12 @@ const Subscriptions = () => {
   const [error, setError] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
 
-  const [openShareDialog, setOpenShareDialog] = useState(false);
+  // const [openShareDialog, setOpenShareDialog] = useState(false);
 
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
 
-  const [shareLink, setShareLink] = useState('');
+  // const [shareLink, setShareLink] = useState('');
   const [shareItem, setShareItem] = useState('');
 
   const [editing, setEditing] = useState(false);

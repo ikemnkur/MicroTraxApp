@@ -43,14 +43,20 @@ api.interceptors.response.use(
     // const subPage = window.location.pathname.startsWith('/sub');
 
     // Check if the current path is the info page
-    let paths = ["/info", "/help", "/ads", "/unlock", "/sub"];
+    let paths = ["/info", "/help", "/ads", "/unlock", "/sub", '/login', '/register', '/', '/info', '/create-ad', "/ad-analytics", "/ad-help", '/ads', '/display-ad','/preview-ad', "/ads-service", "/test-ad", "/ads", "/ads-join","/ads-login", "/preview/pending-ad"]
 
-    if (paths.includes(window.location.pathname)) {
+    // Check if current path starts with '/unlock', to handle dynamic unlock paths like '/unlock/:itemid'
+    const isExempted = paths.some(path => location.pathname.startsWith(path));
+
+    
+    if (isExempted) {
       // User is on one of the specified pages; do not redirect to login
       // Allow the error to be handled by the component
+      // alert("Your are visiting a page that does not require authentication, you can continue without logging in.");
       console.log("No redirect to login, current path is: ", window.location.pathname);
       return Promise.reject(error);
     } else {
+      // alert("You are not logged in, please login to continue.");
       console.log("Redirecting to login, current path is: ", window.location.pathname);
     }
 
@@ -602,9 +608,19 @@ export const fetchAds = async () => {
   }
 };
 
-export const fetchDisplayAds = async (filters = {}) => {
+// export const fetchDisplayAds = async (filters = {}) => {
+//   try {
+//     const response = await api.get('/ads/display', { format: filters });
+//     return response.data;
+//   } catch (error) {
+//     console.error('API - Error fetching ads to display:', error);
+//     throw error;
+//   }
+// };
+
+export const fetchDisplayAds = async (format, userId) => {
   try {
-    const response = await api.get('/ads/display', { params: filters });
+    const response = await api.post('/ads/display', { format: format, excludeUserId: userId });
     return response.data;
   } catch (error) {
     console.error('API - Error fetching ads to display:', error);

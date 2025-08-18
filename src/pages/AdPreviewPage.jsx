@@ -438,6 +438,12 @@ const AdPreviewPage = ({ AdComponent, RewardModal }) => {
                   marginBottom: '16px'
                 }}>
                   {ad.format === 'video' ? '🎥' : ad.format === 'audio' ? '🎵' : '📄'}
+                  <img src={ad.mediaUrl} alt="Ad Media" style={{
+                    maxWidth: '100%',
+                    borderRadius: '12px',
+                    marginBottom: '16px'
+                  }} />
+                  {ad.mediaUrl}
                 </div>
                 <h3 style={{
                   fontSize: '1.5rem',
@@ -572,7 +578,7 @@ const AdPreviewPage = ({ AdComponent, RewardModal }) => {
                 color: 'rgba(0, 0, 0, 0.7)',
                 fontWeight: 500
               }}>
-                This is how your ad will appear to users. Interactive elements are fully functional in preview mode.
+                This is how your ad will appear to users. Interactive elements are not fully functional in preview mode.
               </p>
             </div>
           </div>

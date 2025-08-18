@@ -45,6 +45,7 @@ const Info = () => {
 
   // New state for modal and FAQ search
   const [openSupportModal, setOpenSupportModal] = useState(false);
+  const [supportUsername, setSupportUsername] = useState('');
   const [supportProblemType, setSupportProblemType] = useState('');
   const [supportMessage, setSupportMessage] = useState('');
   const [supportTitle, setSupportTitle] = useState('');
@@ -116,6 +117,8 @@ const Info = () => {
       supportTitle,
       supportMessage,
       supportContactInfo,
+      supportUsername: userData.username || supportUsername,
+      supportUserId: userData.id || "0" // Fallback to 0 if userData is not available
     });
     setSupportProblemType('');
     setSupportTitle('');
@@ -285,7 +288,7 @@ const Info = () => {
       </Box>
 
       {/* FAQ Section */}
-      <Box>
+      {/* <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
           <TextField
             label="Search FAQs"
@@ -453,7 +456,7 @@ const Info = () => {
             A: Accumulation of bad reviews or frequent reports.
           </Typography>
         </Paper>
-      </Box>
+      </Box> */}
 
       {/* Support Ticket Modal */}
       <Modal
@@ -510,10 +513,18 @@ const Info = () => {
             sx={{ mb: 2 }}
           />
           <TextField
-            label="Contact Info"
+            label="Email or Other Contact Info"
             fullWidth
             value={supportContactInfo}
             onChange={(e) => setSupportContactInfo(e.target.value)}
+            sx={{ mb: 2 }}
+          />
+
+          <TextField
+            label="Username"
+            fullWidth
+            value={supportUsername}
+            onChange={(e) => setSupportUsername(e.target.value)}
             sx={{ mb: 2 }}
           />
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>

@@ -38,9 +38,12 @@ const LiveAdvertisement = ({
       try {
         setLoading(true);
         setError(null);
-        
-        console.log('Fetching ads with filters:', filters);
-        const response = await fetchDisplayAds(filters);
+
+        const userdata = JSON.parse(localStorage.getItem('userdata')) || {};
+        console.log('Fetching ads with filters:', filters, 'User:', userdata.username || 'Guest');
+        const response = await fetchDisplayAds(filters.format, userdata.user_id || 0);
+        // console.log('Fetching ads with filters:', filters);
+        // const response = await fetchDisplayAds(filters);
 
         console.log('Fetched Ads:', response.ads[0]);
         

@@ -52,9 +52,10 @@ const NavBar = ({ children }) => {
     console.log('User Data.Advertising:', userData.advertising);
     if (userData.advertising === "active") {
       console.log('Ads Path: /ads-service');
+      // window.open("/ads-service", '_blank');
       return '/ads-service';
     } else {
-      console.log('Ads Path: /ads');
+      // console.log('Ads Path: /ads');
       return '/ads';
     }
   };
@@ -77,8 +78,8 @@ const NavBar = ({ children }) => {
 
   const unlockPage = location.pathname.startsWith('/unlock');
   const subPage = location.pathname.startsWith('/sub');
-  const previewPage = location.pathname.startsWith('/preview/pending-ad');
-  const hideNavBar = ['/login', '/register', '/', '/info', '/create-ad', "/ad-analytics", "ad-help", '/ads', 'display-ad','/preview-ad', "/ads-service", "/test-ad", "/ads", "/ads-join","/ads-login", "/preview/pending-ad"].includes(location.pathname);
+  const previewPage = location.pathname.startsWith('/preview/pending-ad/');
+  const hideNavBar = ['/login', "/help", '/register', '/', '/info', '/create-ad', "/ad-analytics", "/ad-help", '/ads', '/display-ad','/preview-ad', "/ads-service", "/test-ad", "/ads", "/ads-join","/ads-login", "/preview/pending-ad"].includes(location.pathname);
 
   function refreshPage() {
     window.location.reload(false);

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import CreateAdPage from '../pages/CreateAdPage';
 import AdPreviewPage from '../pages/AdPreviewPage';
 import AdAnalyticsPage from '../pages/AdAnalyticsPage';
+import AdDashboardPage from '../pages/AdDashboardPage';
 import ManageAdsPage from '../pages/ManageAdsPage';
 import AdHelpPage from '../pages/AdHelpPage';
 import { fetchAds, fetchAdvertiserProfile } from './api';

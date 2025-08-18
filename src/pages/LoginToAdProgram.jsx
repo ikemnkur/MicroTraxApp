@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const SignInPage = ({ onSignInSuccess, onNavigateToRegister }) => {
@@ -37,6 +37,51 @@ const SignInPage = ({ onSignInSuccess, onNavigateToRegister }) => {
             description: 'Connect with your target market effectively'
         }
     ];
+
+    useEffect(() => {
+        // Validate Token
+        let lastLoginTime = localStorage.getItem('lastLoginTime');
+        let expired = false;
+        if (lastLoginTime) {
+            lastLoginTime = new Date(lastLoginTime);
+            const currentTime = new Date();
+            const timeDiff = currentTime - lastLoginTime;
+            const diffMinutes = Math.floor(timeDiff / 1000 / 60);
+            if (diffMinutes > 60) {
+                expired = true;
+                localStorage.setItem('authToken', '');
+                localStorage.setItem('advertiserData', '');
+                localStorage.setItem('lastLoginTime', '');
+                sessionStorage.setItem('authToken', '');
+                setNotification({
+                    show: true,
+                    message: 'Session expired. Please log in again.',
+                    type: 'error'
+                });
+            }
+        }
+
+        // Check if user is already logged in
+        const authToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        if (authToken && !expired) {
+            // User is logged in, redirect to ads service or dashboard
+            navigate('/ads-service'); // or wherever you want to redirect
+            alert('You are already logged in. Redirecting to Ads Service...');
+        } else {
+            // User is not logged in, show the sign-in form
+            setNotification({
+                show: true,
+                message: 'Please sign in to continue',
+                type: 'info'
+            });
+            setTimeout(() => {
+
+                navigate('/ads-login'); // or wherever you want to redirect
+
+            }, 1000); // Simulate loading delay
+
+        }
+    }, []);
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({
@@ -118,7 +163,11 @@ const SignInPage = ({ onSignInSuccess, onNavigateToRegister }) => {
                 type: 'success'
             });
 
-           // FIXED: Call success callback if provided, otherwise navigate directly
+            // Update last login time
+            localStorage.setItem('lastLoginTime', new Date().toISOString());
+            localStorage.setItem('authToken', data.token);
+
+            // FIXED: Call success callback if provided, otherwise navigate directly
             if (onSignInSuccess) {
                 setTimeout(() => {
                     onSignInSuccess(data);

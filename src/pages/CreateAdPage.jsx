@@ -212,9 +212,46 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
     }));
   };
 
-  const handleFileUpload = (e) => {
+//   const uploadToFirebaseStorage = async (file, fileName) => {
+//     try {
+//         const gcs = storage.bucket("bucket_name"); // Removed "gs://" from the bucket name
+//         const storagepath = `storage_folder/${fileName}`;
+//         const result = await gcs.upload(file, {
+//             destination: storagepath,
+//             predefinedAcl: 'publicRead', // Set the file to be publicly readable
+//             metadata: {
+//                 contentType: "application/plain", // Adjust the content type as needed
+//             }
+//         });
+//         return result[0].metadata.mediaLink;
+//     } catch (error) {
+//         console.log(error);
+//         throw new Error(error.message);
+//     }
+// }
+
+  const uploadToFirebaseStorage = async (file, fileName) => {
+    try {
+        const gcs = storage.bucket("cloutcoinclub_bucket"); // Removed "gs://" from the bucket name
+        const storagepath = `storage_folder/${fileName}`;
+        const result = await gcs.upload(file, {
+            destination: storagepath,
+            predefinedAcl: 'publicRead', // Set the file to be publicly readable
+            metadata: {
+                contentType: "application/plain", // Adjust the content type as needed
+            }
+        });
+        return result[0].metadata.mediaLink;
+    } catch (error) {
+        console.log(error);
+        throw new Error(error.message);
+    }
+  };
+
+  const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     processFile(file);
+    
   };
 
   const handleFileDrop = (e) => {
@@ -224,7 +261,7 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
     processFile(file);
   };
 
-  const processFile = (file) => {
+  const processFile = async (file) => {
     if (file) {
       const maxSize = formData.format === 'video' ? 2.5 * 1024 * 1024 : 2 * 1024 * 1024;
       if (file.size > maxSize) {
@@ -234,6 +271,10 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
         }));
         return;
       }
+
+      let result= await uploadToFirebaseStorage(file, `${file.name}.txt`);
+      console.log(result);
+
       setFormData(prev => ({
         ...prev,
         mediaFile: file
@@ -440,6 +481,12 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
     }
   };
 
+  const goToAdPreview = (adData) => {
+    // if (ad?.link) {
+      window.open("/preview/pending-ad/", '_blank');
+    // }
+  };
+
   const handlePreviewAd = async () => {
     if (!validateForm()) {
       setNotification({
@@ -466,7 +513,10 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
 
       localStorage.setItem('previewAdData', JSON.stringify(formData));
       // navigate(`/preview/pending-ad/?ad_uuid=${formData.ad_uuid}&title=${encodeURIComponent(formData.title)}&description=${encodeURIComponent(formData.description)}&link=${encodeURIComponent(formData.link)}&format=${formData.format}&budget=${formData.budget}&reward=${formData.reward}&frequency=${formData.frequency}&quiz=${encodeURIComponent(JSON.stringify(formData.quiz))}`);
-      navigate(`/preview/pending-ad/`);
+      // navigate(`/preview/pending-ad/`);
+
+      goToAdPreview(formData);
+
       // Call parent onSave if provided
       if (onSave) {
         onSave(result);
@@ -532,7 +582,10 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
             
             <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
-              <Typography variant="body2" component="h2">
+             
+              </Grid>
+              <Grid item xs={12} > 
+                 <Typography variant="body2" component="h2">
                 ID#: ${ad_uuid}
               </Typography>
               </Grid>

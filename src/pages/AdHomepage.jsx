@@ -13,12 +13,16 @@ const AdServiceActivationPage = ({ authToken, onActivationComplete,  }) => {
   const [activationStep, setActivationStep] = useState(1);
   const [isActivating, setIsActivating] = useState(false);
   const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
-
+  const userData = JSON.parse(localStorage.getItem('userdata'));
+  const [currentUser, setCurrentUser] = useState(userData);
   // Get auth token from localStorage if not provided as prop
   const token = authToken || localStorage.getItem('authToken');
   const API_BASE_URL = process.env.REACT_APP_API_SERVER_URL + "/api" || 'http://localhost:5001/api';
 
+  
+
   useEffect(() => {
+    console.log('Current user data:', userData);
     checkUserEnrollment();
   }, []);
 
@@ -35,13 +39,45 @@ const AdServiceActivationPage = ({ authToken, onActivationComplete,  }) => {
 
     try {
 
-      const response = await fetchAdvertiserProfile();
-      // const response = await fetch(`${API_BASE_URL}/ads/user/profile`, {
-      //   headers: {
-      //     'Authorization': `Bearer ${token}`,
-      //     'Content-Type': 'application/json'
+      // code for server-side API endpoint:
+      // // Get user profile api endpoint on server
+      // app.post('/user/profile', async (req, res) => {
+
+      //   const { user_id } = req.body;
+
+      //   // console.log("userdata for ad:", userdata);
+      //   console.log("user_id for ad:", user_id);
+
+      //   try {
+      //     const users = await executeQuery(
+      //       'SELECT id, name, email, credits, created_at FROM advertisers WHERE user_id = ?',
+      //       [user_id]
+      //     );
+
+      //     if (users.length === 0) {
+      //       return res.status(404).json({ error: 'User not found' });
+      //     }
+
+      //     res.json({ user: users[0] });
+      //     console.log("User AD profile:", users[0]);
+      //   } catch (error) {
+      //     console.error('Get profile error:', error);
+      //     res.status(500).json({ error: 'Internal server error' });
       //   }
       // });
+
+      // const response = await fetchAdvertiserProfile();
+      const response = await fetch(`${API_BASE_URL}/ads/user/profile`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        method: "POST",
+        body: JSON.stringify({
+          userdata: currentUser,
+          user_id: currentUser.user_id
+        })
+      });
       
       console.log('Advertiser profile response:', response);
 
@@ -51,18 +87,21 @@ const AdServiceActivationPage = ({ authToken, onActivationComplete,  }) => {
 
       
 
-      // const data = await response;
+      const data = await response.json();
       
       // // Check if user has ad service features (you might need to add this field to your database)
       // // For now, we'll assume if they have credits, they're enrolled
-      // const isEnrolled = data.user && data.user.credits !== undefined;
+      const isEnrolled = data.user && data.user.credits !== undefined;
+      console.log('User enrollment status:', isEnrolled, data.user);
 
-      // setUserStatus({
-      //   isEnrolled,
-      //   isLoading: false,
-      //   userInfo: data.user,
-      //   error: null
-      // });
+      setTimeout(() => {
+        setUserStatus({
+          isEnrolled,
+          isLoading: false,
+          userInfo: data.user,
+          error: null
+        });
+      }, 750);
 
     } catch (error) {
       console.error('Error checking enrollment:', error);
@@ -86,68 +125,68 @@ const AdServiceActivationPage = ({ authToken, onActivationComplete,  }) => {
   //   }, 2000);
   // })
 
-  // const handleActivateService = async () => {
-  //   // setIsActivating(true);
+  const handleActivateService = async () => {
+    // setIsActivating(true);
 
     
-  //   try {
+    try {
 
-  //     setUserStatus({
-  //       isEnrolled,
-  //       isLoading: false,
-  //       userInfo: data.user,
-  //       error: null
-  //     });
+      setUserStatus({
+        isEnrolled,
+        isLoading: false,
+        userInfo: data.user,
+        error: null
+      });
 
-  //     // navigate('/ads-join'); // or '/ads-service'
+      // navigate('/ads-join'); // or '/ads-service'
 
-  //     // // If user doesn't exist in ad system, we might need to create/update their profile
-  //     // const response = await fetch(`${API_BASE_URL}/ads/user/credits`, {
-  //     //   method: 'PUT',
-  //     //   headers: {
-  //     //     'Authorization': `Bearer ${token}`,
-  //     //     'Content-Type': 'application/json'
-  //     //   },
-  //     //   body: JSON.stringify({
-  //     //     operation: 'add',
-  //     //     amount: 0 // Just to initialize if needed
-  //     //   })
-  //     // });
+      // // If user doesn't exist in ad system, we might need to create/update their profile
+      // const response = await fetch(`${API_BASE_URL}/ads/user/credits`, {
+      //   method: 'PUT',
+      //   headers: {
+      //     'Authorization': `Bearer ${token}`,
+      //     'Content-Type': 'application/json'
+      //   },
+      //   body: JSON.stringify({
+      //     operation: 'add',
+      //     amount: 0 // Just to initialize if needed
+      //   })
+      // });
 
-  //     // if (!response.ok) {
-  //     //   throw new Error('Failed to activate ad service');
-  //     // }
+      // if (!response.ok) {
+      //   throw new Error('Failed to activate ad service');
+      // }
 
-  //     // // Refresh user status
-  //     // await checkUserEnrollment();
+      // // Refresh user status
+      // await checkUserEnrollment();
 
-  //     // setNotification({
-  //     //   show: true,
-  //     //   message: 'Ad service activated successfully! Welcome to the advertiser network.',
-  //     //   type: 'success'
-  //     // });
+      // setNotification({
+      //   show: true,
+      //   message: 'Ad service activated successfully! Welcome to the advertiser network.',
+      //   type: 'success'
+      // });
 
-  //     setTimeout(() => {
-  //       if (onActivationComplete) {
-  //         onActivationComplete();
-  //          navigate('/ads-join'); // or '/ads-service'
-  //       } else {
-  //         // Navigate to ads dashboard or join page
-  //         navigate('/ads-join'); // or '/ads-service'
-  //       }
-  //     }, 2000);
+      setTimeout(() => {
+        if (onActivationComplete) {
+          onActivationComplete();
+           navigate('/ads-join'); // or '/ads-service'
+        } else {
+          // Navigate to ads dashboard or join page
+          navigate('/ads-join'); // or '/ads-service'
+        }
+      }, 2000);
 
-  //   } catch (error) {
-  //     console.error('Activation error:', error);
-  //     setNotification({
-  //       show: true,
-  //       message: error.message || 'Failed to activate ad service',
-  //       type: 'error'
-  //     });
-  //   } finally {
-  //     setIsActivating(false);
-  //   }
-  // };
+    } catch (error) {
+      console.error('Activation error:', error);
+      setNotification({
+        show: true,
+        message: error.message || 'Failed to activate ad service',
+        type: 'error'
+      });
+    } finally {
+      setIsActivating(false);
+    }
+  };
 
   const benefits = [
     {
@@ -203,49 +242,49 @@ const AdServiceActivationPage = ({ authToken, onActivationComplete,  }) => {
     }
   ];
 
-  // if (userStatus.isLoading) {
-  //   return (
-  //     <div style={{ 
-  //       minHeight: '100vh', 
-  //       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-  //       display: 'flex',
-  //       alignItems: 'center',
-  //       justifyContent: 'center',
-  //       padding: '24px'
-  //     }}>
-  //       <div style={{
-  //         background: 'rgba(255, 255, 255, 0.95)',
-  //         backdropFilter: 'blur(20px)',
-  //         borderRadius: '24px',
-  //         padding: '48px',
-  //         textAlign: 'center',
-  //         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
-  //       }}>
-  //         <div style={{
-  //           width: '48px',
-  //           height: '48px',
-  //           border: '4px solid #667eea',
-  //           borderTop: '4px solid transparent',
-  //           borderRadius: '50%',
-  //           margin: '0 auto 24px',
-  //           animation: 'spin 1s linear infinite'
-  //         }} />
-  //         <h2 style={{ fontSize: '1.5rem', margin: '0 0 8px 0', color: 'rgba(0, 0, 0, 0.8)' }}>
-  //           Checking Account Status
-  //         </h2>
-  //         <p style={{ color: 'rgba(0, 0, 0, 0.6)', margin: 0 }}>
-  //           Please wait while we verify your account...
-  //         </p>
-  //         <style jsx>{`
-  //           @keyframes spin {
-  //             0% { transform: rotate(0deg); }
-  //             100% { transform: rotate(360deg); }
-  //           }
-  //         `}</style>
-  //       </div>
-  //     </div>
-  //   );
-  // }
+  if (userStatus.isLoading) {
+    return (
+      <div style={{ 
+        minHeight: '100vh', 
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '24px'
+      }}>
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: '24px',
+          padding: '48px',
+          textAlign: 'center',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+        }}>
+          <div style={{
+            width: '48px',
+            height: '48px',
+            border: '4px solid #667eea',
+            borderTop: '4px solid transparent',
+            borderRadius: '50%',
+            margin: '0 auto 24px',
+            animation: 'spin 1s linear infinite'
+          }} />
+          <h2 style={{ fontSize: '1.5rem', margin: '0 0 8px 0', color: 'rgba(0, 0, 0, 0.8)' }}>
+            Checking Account Status
+          </h2>
+          <p style={{ color: 'rgba(0, 0, 0, 0.6)', margin: 0 }}>
+            Please wait while we verify your account...
+          </p>
+          <style jsx>{`
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          `}</style>
+        </div>
+      </div>
+    );
+  }
 
   if (userStatus.isEnrolled) {
     return (
@@ -335,7 +374,8 @@ const AdServiceActivationPage = ({ authToken, onActivationComplete,  }) => {
                   Your ad service is active and ready to go. Start creating engaging advertisements that convert!
                 </p>
                 <button
-                  onClick={() => onActivationComplete && onActivationComplete()}
+                  // onClick={() => onActivationComplete && onActivationComplete()}
+                  onClick={() => navigate('/ads-login')}
                   style={{
                     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                     color: 'white',

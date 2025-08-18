@@ -47,7 +47,8 @@ import UpgradeAccountPage from "./components/UpgradeAccountPage";
 import DowngradeAccountPage from "./components/DowngradeAccountPage";
 
 import AdHelpPage from "./pages/AdHelpPage";
-import AdAnalyticsPage from "./pages/AdAnalyticsPage";
+import AdAnalyticsPage from "./pages/AdAnalyticsPage.jsx";
+import AdDashboardPage from "./pages/AdDashboardPage.jsx";
 import ManageAdsPage from "./pages/ManageAdsPage";
 import CreateAdPage from "./pages/CreateAdPage";
 import AdPreviewPage from "./pages/AdPreviewPage";
@@ -106,10 +107,9 @@ function App() {
               <ProtectedRoute> <AdminDashboard /> </ProtectedRoute>} />
             <Route path="/dashboard" element={
               <ProtectedRoute> <Dashboard /> </ProtectedRoute>} />
-            <Route path="/" element={
-              <ProtectedRoute> <Info /> </ProtectedRoute>} />
-            <Route path="/info" element={
-              <ProtectedRoute> <Info /> </ProtectedRoute>} />
+            <Route path="/" element={<Info />} />
+            <Route path="/info" element={<Info />} />
+
             <Route path="/transactions" element={
               <ProtectedRoute> <TransactionHistory /> </ProtectedRoute>} />
             <Route path="/send" element={
@@ -177,6 +177,8 @@ function App() {
               <ProtectedRoute> <AdHelpPage /> </ProtectedRoute>} />
             <Route path="/ad-analytics" element={
               <ProtectedRoute> <AdAnalyticsPage /> </ProtectedRoute>} />
+             <Route path="/ad-dashboard" element={
+              <ProtectedRoute> <AdDashboardPage /> </ProtectedRoute>} />
             <Route path="/manage-ads" element={
               <ProtectedRoute> <ManageAdsPage /> </ProtectedRoute>} />
             <Route path="/preview-ad/:id" element={
@@ -193,9 +195,8 @@ function App() {
               <ProtectedRoute> <Ads /> </ProtectedRoute>} /> 
             <Route path="/test-ad" element={
               <ProtectedRoute> <AdObject /> </ProtectedRoute>} />
-            <Route path="/display-ad" element={
-              <ProtectedRoute> <DisplayAd /> </ProtectedRoute>} />
-            
+            <Route path="/display-ad" element={<DisplayAd /> } />
+
 
           </Routes>
         </NavBar>
