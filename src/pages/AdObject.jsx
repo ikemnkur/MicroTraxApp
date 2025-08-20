@@ -6,7 +6,8 @@ import {
   trackAdCompletion,
   trackRewardClaim,
   fetchRandomQuizQuestion,
-  submitQuizAnswer
+  submitQuizAnswer,
+  recordAdInteractionGuest
 } from '../components/api';
 
 const LiveAdvertisement = ({ 
@@ -32,6 +33,15 @@ const LiveAdvertisement = ({
   const [quizResult, setQuizResult] = useState(null);
   const [adViewed, setAdViewed] = useState(false);
 
+  // if user is not logged dont show reward button
+  useEffect(() => {
+    if (!localStorage.getItem('token')) {
+      setShowRewardButton(false);
+    } else {
+      setShowRewardButton(Math.random() < showRewardProbability);
+    }
+  }, [showRewardProbability]);
+
   // Fetch advertisement data
   useEffect(() => {
     const fetchAd = async () => {
@@ -41,10 +51,9 @@ const LiveAdvertisement = ({
 
         const userdata = JSON.parse(localStorage.getItem('userdata')) || {};
         console.log('Fetching ads with filters:', filters, 'User:', userdata.username || 'Guest');
+                
         const response = await fetchDisplayAds(filters.format, userdata.user_id || 0);
-        // console.log('Fetching ads with filters:', filters);
-        // const response = await fetchDisplayAds(filters);
-
+        
         console.log('Fetched Ads:', response.ads[0]);
         
         if (!response.ads || response.ads.length === 0) {
@@ -54,7 +63,9 @@ const LiveAdvertisement = ({
         
         const adData = response.ads[0]; // Get first ad
         setAd(adData);
-        
+
+        console.log('Current Ad Data Media link:', adData.media_url);
+
         // Determine if reward button should be shown
         setShowRewardButton(Math.random() < showRewardProbability);
         
@@ -80,7 +91,13 @@ const LiveAdvertisement = ({
     if (!ad || adViewed) return;
     
     try {
-      await trackAdView(ad.id);
+      // check if user is logged or a guest
+      if (localStorage.getItem('token')) {
+        await trackAdView(ad.id);
+      } else {
+        await recordAdInteractionGuest(ad.id, 'view');
+        console.log("User is a guest, not tracking ad view.");
+      }
       setAdViewed(true);
       
       if (onAdView) {
@@ -450,123 +467,133 @@ const LiveAdvertisement = ({
       </div>
     );
   }
-
-  // Main ad display
+  // Main ad display (compact, max 25% of screen)
   return (
-    <div style={{ 
-      background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
-      borderRadius: '24px',
-      padding: '32px',
-      position: 'relative',
-      ...style
-    }} className={className}>
-      {/* Ad Content */}
-      <div style={{
-        background: 'white',
-        borderRadius: '16px',
-        padding: '32px',
-        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
-        border: '2px solid rgba(0, 0, 0, 0.05)',
-        maxWidth: '600px',
+    <div
+      style={{
+        background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%)',
+        // borderRadius: '12px',
+        // padding: '5px',
+        position: 'relative',
+        maxWidth: '540px',
+        minWidth: '260px',
+        width: '100%',
+        boxSizing: 'border-box',
         margin: '0 auto',
-        textAlign: 'center',
-        position: 'relative'
-      }}>
-        {/* Ad Format Icon */}
-        <div style={{ 
-          fontSize: '56px', 
-          marginBottom: '20px',
-          animation: 'bounce 2s infinite'
-        }}>
-          {ad.format === 'video' ? '🎥' : 
-           ad.format === 'audio' ? '🎵' : 
-           ad.format === 'banner' ? '🖼️' : '📄'}
-        </div>
-
+        ...style
+      }}
+      className={className}
+    >
+      {/* Ad Content */}
+      <div
+        style={{
+          background: 'white',
+          // borderRadius: '12px',
+          padding: '8px',
+          // boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+          // border: '1px solid rgba(0,0,0,0.04)',
+          maxWidth: '100%',
+          textAlign: 'center',
+          position: 'relative',
+        }}
+      >
         {/* Ad Title */}
-        <h3 style={{ 
-          fontSize: '1.75rem', 
-          fontWeight: 'bold', 
-          marginBottom: '16px',
-          color: 'rgba(0, 0, 0, 0.85)',
-          lineHeight: 1.3
-        }}>
+        <h3
+          style={{
+            fontSize: '1rem',
+            fontWeight: 'bold',
+            marginBottom: '4px',
+            color: 'rgba(0,0,0,0.85)',
+            // lineHeight: 1.2,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
           {ad.title}
         </h3>
 
         {/* Ad Description */}
-        <p style={{ 
-          color: 'rgba(0, 0, 0, 0.65)', 
-          marginBottom: '28px',
-          lineHeight: 1.6,
-          fontSize: '16px'
-        }}>
+        <p
+          style={{
+            color: 'rgba(0,0,0,0.65)',
+            marginBottom: '6px',
+            lineHeight: 1.2,
+            fontSize: '0.92rem',
+            maxHeight: '2.8em',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
           {ad.description}
         </p>
 
         {/* Ad Media (if applicable) */}
-        {ad.mediaUrl && (
-          <div style={{ marginBottom: '24px' }}>
+        {ad.media_url && (
+          <div style={{ marginBottom: '4px' }}>
             {ad.format === 'video' && (
-              <video 
-                controls 
-                style={{ width: '100%', borderRadius: '12px' }}
-                src={ad.mediaUrl}
+              <video
+                controls
+                style={{  maxHeight: '120px', borderRadius: '8px' }}
+                src={ad.media_url}
               />
             )}
             {ad.format === 'audio' && (
-              <audio 
-                controls 
+              <audio
+                controls
                 style={{ width: '100%' }}
-                src={ad.mediaUrl}
+                src={ad.media_url}
               />
             )}
             {ad.format === 'banner' && (
-              <img 
-                src={ad.mediaUrl} 
+              <img
+                src={ad.media_url}
                 alt={ad.title}
-                style={{ width: '100%', borderRadius: '12px' }}
+                style={{  maxHeight: '120px', objectFit: 'cover', borderRadius: '8px' }}
               />
             )}
           </div>
         )}
 
         {/* Action Buttons */}
-        <div style={{ 
-          display: 'flex', 
-          gap: '12px', 
-          justifyContent: 'center',
-          flexWrap: 'wrap'
-        }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: '8px',
+            justifyContent: 'center',
+            flexWrap: 'wrap',
+            marginTop: '4px',
+          }}
+        >
           {/* Find Out More Button */}
           {ad.findOutMoreLink && (
             <button
               onClick={handleFindOutMore}
               style={{
-                padding: '14px 28px',
+                padding: '8px 14px',
                 border: 'none',
-                borderRadius: '12px',
-                fontSize: '15px',
+                borderRadius: '8px',
+                fontSize: '0.92rem',
                 fontWeight: 600,
                 color: 'white',
                 background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
                 cursor: 'pointer',
                 transition: 'all 0.3s ease',
-                boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)',
+                boxShadow: '0 2px 8px rgba(59,130,246,0.18)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px'
+                gap: '4px',
               }}
               onMouseEnter={(e) => {
-                e.target.style.transform = 'translateY(-2px)';
-                e.target.style.boxShadow = '0 8px 20px rgba(59, 130, 246, 0.6)';
+                e.target.style.transform = 'translateY(-1px)';
+                e.target.style.boxShadow = '0 4px 12px rgba(59,130,246,0.28)';
               }}
               onMouseLeave={(e) => {
                 e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.4)';
+                e.target.style.boxShadow = '0 2px 8px rgba(59,130,246,0.18)';
               }}
             >
-              <span>🔗</span> Find Out More
+              <span>🔗</span> More
             </button>
           )}
 
@@ -575,31 +602,31 @@ const LiveAdvertisement = ({
             <button
               onClick={handleRewardClick}
               style={{
-                padding: '14px 28px',
+                padding: '8px 14px',
                 border: 'none',
-                borderRadius: '12px',
-                fontSize: '15px',
+                borderRadius: '8px',
+                fontSize: '0.92rem',
                 fontWeight: 600,
                 color: 'white',
                 background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                 cursor: 'pointer',
                 transition: 'all 0.3s ease',
-                boxShadow: '0 4px 12px rgba(16, 185, 129, 0.4)',
+                boxShadow: '0 2px 8px rgba(16,185,129,0.18)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
-                animation: 'pulse 2s infinite'
+                gap: '4px',
+                animation: 'pulse 2s infinite',
               }}
               onMouseEnter={(e) => {
-                e.target.style.transform = 'translateY(-2px) scale(1.05)';
-                e.target.style.boxShadow = '0 8px 20px rgba(16, 185, 129, 0.6)';
+                e.target.style.transform = 'translateY(-1px) scale(1.04)';
+                e.target.style.boxShadow = '0 4px 12px rgba(16,185,129,0.28)';
               }}
               onMouseLeave={(e) => {
                 e.target.style.transform = 'translateY(0) scale(1)';
-                e.target.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.4)';
+                e.target.style.boxShadow = '0 2px 8px rgba(16,185,129,0.18)';
               }}
             >
-              <span>🎁</span> Claim Reward
+              <span>🎁</span> Reward
             </button>
           )}
 
@@ -607,45 +634,47 @@ const LiveAdvertisement = ({
           <button
             onClick={handleSkip}
             style={{
-              padding: '14px 28px',
-              border: '2px solid rgba(0, 0, 0, 0.2)',
-              borderRadius: '12px',
-              fontSize: '15px',
+              padding: '8px 14px',
+              border: '1px solid rgba(0,0,0,0.14)',
+              borderRadius: '8px',
+              fontSize: '0.92rem',
               fontWeight: 600,
-              color: 'rgba(0, 0, 0, 0.7)',
+              color: 'rgba(0,0,0,0.7)',
               backgroundColor: 'white',
               cursor: 'pointer',
-              transition: 'all 0.3s ease'
+              transition: 'all 0.3s ease',
             }}
             onMouseEnter={(e) => {
-              e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
-              e.target.style.borderColor = 'rgba(0, 0, 0, 0.3)';
+              e.target.style.backgroundColor = 'rgba(0,0,0,0.04)';
+              e.target.style.borderColor = 'rgba(0,0,0,0.22)';
             }}
             onMouseLeave={(e) => {
               e.target.style.backgroundColor = 'white';
-              e.target.style.borderColor = 'rgba(0, 0, 0, 0.2)';
+              e.target.style.borderColor = 'rgba(0,0,0,0.14)';
             }}
           >
-            Skip Ad
+            Skip
           </button>
         </div>
 
         {/* Sponsored Badge */}
-        <div style={{
-          position: 'absolute',
-          top: '16px',
-          right: '16px',
-          background: 'rgba(0, 0, 0, 0.05)',
-          color: 'rgba(0, 0, 0, 0.6)',
-          padding: '6px 12px',
-          borderRadius: '16px',
-          fontSize: '11px',
-          fontWeight: 600,
-          textTransform: 'uppercase',
-          letterSpacing: '0.5px'
-        }}>
+        {/* <div
+          style={{
+            position: 'absolute',
+            top: '8px',
+            right: '8px',
+            background: 'rgba(0,0,0,0.04)',
+            color: 'rgba(0,0,0,0.5)',
+            padding: '3px 8px',
+            borderRadius: '10px',
+            fontSize: '0.7rem',
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+          }}
+        >
           Sponsored
-        </div>
+        </div> */}
       </div>
 
       {/* Reward Modal */}
@@ -662,10 +691,6 @@ const LiveAdvertisement = ({
         @keyframes pulse {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.8; transform: scale(1.05); }
-        }
-        @keyframes bounce {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-10px); }
         }
       `}</style>
     </div>

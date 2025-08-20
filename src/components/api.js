@@ -518,15 +518,15 @@ export const updateAdroute = async (adData) => {
 };
 
 
-export const AdInteraction = async (ad) => {
-  try {
-    const response = await api.get(`/ads/${ad.id}/interactions`, ad );
-    return response.data;
-  } catch (error) {
-    console.error('API - Error fetching ads to display: ', error);
-    throw error;
-  }
-};
+// export const AdInteraction = async (ad) => {
+//   try {
+//     const response = await api.get(`/ads/ad/${ad.id}/interactions`, ad );
+//     return response.data;
+//   } catch (error) {
+//     console.error('API - Error fetching ads to display: ', error);
+//     throw error;
+//   }
+// };
 
 
 
@@ -644,6 +644,7 @@ export const fetchPreviewAd = async (ad_id) => {
 
 export const recordAdInteraction = async (adId, interactionType, creditsEarned = 0) => {
   try {
+    console.log("Recording ad interaction:", { adId, interactionType, creditsEarned });
     const response = await api.post(`/ads/ad/${adId}/interactions`, {
       interactionType,
       creditsEarned
@@ -651,6 +652,19 @@ export const recordAdInteraction = async (adId, interactionType, creditsEarned =
     return response.data;
   } catch (error) {
     console.error('API - Error recording ad interaction:', error);
+    throw error;
+  }
+};
+
+export const recordAdInteractionGuest = async (adId, interactionType) => {
+  try {
+    console.log("Recording ad interaction:", { adId, interactionType });
+    const response = await api.post(`/ads/guest-ad/${adId}/interactions`, {
+      interactionType,
+    });
+    return response.data;
+  } catch (error) {
+    console.error('API - Error recording guest ad interaction:', error);
     throw error;
   }
 };

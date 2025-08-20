@@ -643,8 +643,8 @@ const UnlockContent = () => {
       </Paper> */}
 
       {/* Advertisement Section */}
-      <Paper elevation={0} sx={{ p: 0, mt: 2, textAlign: 'center', overflow: 'hidden' }}>
-        <Typography variant="body2" color="text.secondary" sx={{ p: 1, backgroundColor: '#f5f5f5' }}>
+      <Paper elevation={0} sx={{ p: 0, mt: 1, textAlign: 'center', overflow: 'hidden' }}>
+        <Typography variant="body2" color="text.secondary" sx={{ p: 0, backgroundColor: '#f5f5f5' }}>
           Advertisement
         </Typography>
         {/* <AdObject
@@ -677,6 +677,7 @@ const UnlockContent = () => {
           filters={{ format: 'banner' }} // Only show banner ads for this placement
           style={{
             minHeight: '200px', // Ensure minimum height
+            maxHeight: '300px', // Limit maximum height
             borderRadius: 0 // Remove border radius to fit Paper container
           }}
           className="banner-ad"
