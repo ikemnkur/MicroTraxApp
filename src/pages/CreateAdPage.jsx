@@ -103,6 +103,7 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
     link: '',
     format: 'regular',
     mediaFile: null,
+    mediaFileLink: "",
     budget: 2000,
     reward: 0,
     frequency: 'moderate',
@@ -272,9 +273,13 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
         return;
       }
 
-      let result= await uploadToFirebaseStorage(file, `${file.name}.txt`);
-      console.log(result);
+      let link2upload = await uploadToFirebaseStorage(file, `${file.name}`);
+      console.log("Uploaded File Link: ", link2upload);
 
+      setFormData(prev => ({
+        ...prev,
+        mediaFileLink: link2upload
+      }));
       setFormData(prev => ({
         ...prev,
         mediaFile: file
@@ -326,6 +331,7 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
     formDataToSend.append('title', adData.title);
     formDataToSend.append('description', adData.description);
     formDataToSend.append('link', adData.link);
+    formDataToSend.append('mediaLink', adData.mediaLink);
     formDataToSend.append('format', adData.format);
     formDataToSend.append('budget', adData.budget.toString());
     formDataToSend.append('reward', adData.reward.toString());
