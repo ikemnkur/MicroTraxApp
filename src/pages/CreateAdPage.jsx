@@ -130,11 +130,14 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
     formData.append('media', file);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/upload`, {
-        method: 'POST',
-        body: formData,
-        // headers: { 'Authorization': `Bearer ${token}` } // if needed
+      const response = await api.post(`${API_BASE_URL}/api/upload`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
+      // const response = await fetch(`${API_BASE_URL}/api/upload`, {
+      //   method: 'POST',
+      //   body: formData,
+      // headers: { 'Authorization': `Bearer ${token}` } // if needed
+      // });
       if (!response.ok) throw new Error('Upload failed');
       const data = await response.json();
       return data.mediaLink; // Your backend should return the public URL
