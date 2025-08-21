@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  fetchDisplayAds, 
-  trackAdView, 
-  trackAdSkip, 
+import {
+  fetchDisplayAds,
+  trackAdView,
+  trackAdSkip,
   trackAdCompletion,
   trackRewardClaim,
   fetchRandomQuizQuestion,
@@ -10,10 +10,10 @@ import {
   recordAdInteractionGuest
 } from '../components/api';
 
-const LiveAdvertisement = ({ 
-  onAdView, 
-  onAdClick, 
-  onAdSkip, 
+const LiveAdvertisement = ({
+  onAdView,
+  onAdClick,
+  onAdSkip,
   onRewardClaim,
   RewardModal,
   showRewardProbability = 0.2,
@@ -51,16 +51,16 @@ const LiveAdvertisement = ({
 
         const userdata = JSON.parse(localStorage.getItem('userdata')) || {};
         console.log('Fetching ads with filters:', filters, 'User:', userdata.username || 'Guest');
-                
+
         const response = await fetchDisplayAds(filters.format, userdata.user_id || 0);
-        
+
         console.log('Fetched Ads:', response.ads[0]);
-        
+
         if (!response.ads || response.ads.length === 0) {
           setAd(null);
           return;
         }
-        
+
         const adData = response.ads[0]; // Get first ad
         setAd(adData);
 
@@ -68,7 +68,7 @@ const LiveAdvertisement = ({
 
         // Determine if reward button should be shown
         setShowRewardButton(Math.random() < showRewardProbability);
-        
+
       } catch (err) {
         setError(err.message);
         console.error('Error fetching advertisement:', err);
@@ -80,6 +80,13 @@ const LiveAdvertisement = ({
     fetchAd();
   }, [filters, showRewardProbability]);
 
+  const goToAdWebSite = (ad) => {
+    if (ad?.link) {
+      window.open(ad.link, '_blank');
+    }
+  };
+
+
   // Track ad view when component mounts and ad is loaded
   useEffect(() => {
     if (ad && !adViewed) {
@@ -89,7 +96,7 @@ const LiveAdvertisement = ({
 
   const handleAdView = async () => {
     if (!ad || adViewed) return;
-    
+
     try {
       // check if user is logged or a guest
       if (localStorage.getItem('token')) {
@@ -99,7 +106,7 @@ const LiveAdvertisement = ({
         console.log("User is a guest, not tracking ad view.");
       }
       setAdViewed(true);
-      
+
       if (onAdView) {
         onAdView(ad);
       }
@@ -110,15 +117,15 @@ const LiveAdvertisement = ({
 
   const handleFindOutMore = async () => {
     if (!ad?.findOutMoreLink) return;
-    
+
     try {
       // Track completion since user is engaging with the ad
       await trackAdCompletion(ad.id);
-      
+
       if (onAdClick) {
         onAdClick(ad);
       }
-      
+
       // Open link in new tab
       window.open(ad.findOutMoreLink, '_blank');
     } catch (error) {
@@ -128,7 +135,7 @@ const LiveAdvertisement = ({
 
   const handleRewardClick = async () => {
     if (!ad) return;
-    
+
     try {
       // Fetch quiz question for this ad
       const quizResponse = await fetchRandomQuizQuestion(ad.id);
@@ -143,7 +150,7 @@ const LiveAdvertisement = ({
 
   const handleQuizSubmit = async () => {
     if (!quizQuestion || !ad) return;
-    
+
     try {
       const response = await submitQuizAnswer(
         ad.id,
@@ -151,9 +158,9 @@ const LiveAdvertisement = ({
         quizAnswer,
         selectedOption
       );
-      
+
       setQuizResult(response);
-      
+
       if (response.correct) {
         // Close quiz and show reward modal after short delay
         setTimeout(() => {
@@ -175,11 +182,11 @@ const LiveAdvertisement = ({
   const handleRewardEarned = async (amount) => {
     try {
       await trackRewardClaim(ad.id, amount);
-      
+
       if (onRewardClaim) {
         onRewardClaim(ad, amount);
       }
-      
+
       setShowRewardModal(false);
     } catch (error) {
       console.error('Error tracking reward claim:', error);
@@ -188,14 +195,14 @@ const LiveAdvertisement = ({
 
   const handleSkip = async () => {
     if (!ad) return;
-    
+
     try {
       await trackAdSkip(ad.id);
-      
+
       if (onAdSkip) {
         onAdSkip(ad);
       }
-      
+
       setAd(null);
     } catch (error) {
       console.error('Error tracking ad skip:', error);
@@ -219,8 +226,8 @@ const LiveAdvertisement = ({
   // Loading state
   if (loading) {
     return (
-      <div style={{ 
-        minHeight: '400px', 
+      <div style={{
+        minHeight: '400px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -232,8 +239,8 @@ const LiveAdvertisement = ({
           textAlign: 'center',
           color: 'white'
         }}>
-          <div style={{ 
-            fontSize: '48px', 
+          <div style={{
+            fontSize: '48px',
             marginBottom: '16px',
             animation: 'pulse 1.5s ease-in-out infinite'
           }}>
@@ -248,8 +255,8 @@ const LiveAdvertisement = ({
   // Error or no ad state
   if (error || !ad) {
     return (
-      <div style={{ 
-        minHeight: '400px', 
+      <div style={{
+        minHeight: '400px',
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         padding: '24px',
         display: 'flex',
@@ -271,25 +278,25 @@ const LiveAdvertisement = ({
           <div style={{ fontSize: '64px', marginBottom: '24px' }}>
             {error ? '❌' : '🎉'}
           </div>
-          <h2 style={{ 
-            fontSize: '1.5rem', 
-            fontWeight: 'bold', 
-            color: 'rgba(0, 0, 0, 0.8)', 
+          <h2 style={{
+            fontSize: '1.5rem',
+            fontWeight: 'bold',
+            color: 'rgba(0, 0, 0, 0.8)',
             marginBottom: '16px'
           }}>
             {error ? 'Error Loading Ad' : 'No Ads Available'}
           </h2>
-          <p style={{ 
-            color: 'rgba(0, 0, 0, 0.6)', 
+          <p style={{
+            color: 'rgba(0, 0, 0, 0.6)',
             fontSize: '16px',
             lineHeight: 1.6,
             marginBottom: '24px'
           }}>
-            {error 
+            {error
               ? 'There was an error loading the advertisement. Please try again later.'
               : "Great! No ads to display at the moment. Enjoy the ad-free experience!"}
           </p>
-          <button 
+          <button
             onClick={handleClose}
             style={{
               padding: '12px 24px',
@@ -322,7 +329,7 @@ const LiveAdvertisement = ({
   // Quiz Modal
   if (showQuiz && quizQuestion) {
     return (
-      <div style={{ 
+      <div style={{
         position: 'fixed',
         top: 0,
         left: 0,
@@ -344,16 +351,16 @@ const LiveAdvertisement = ({
           textAlign: 'center',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
         }}>
-          <h3 style={{ 
-            fontSize: '1.5rem', 
-            fontWeight: 'bold', 
+          <h3 style={{
+            fontSize: '1.5rem',
+            fontWeight: 'bold',
             marginBottom: '24px',
             color: 'rgba(0, 0, 0, 0.85)'
           }}>
             Answer to Earn Reward! 🎁
           </h3>
-          
-          <p style={{ 
+
+          <p style={{
             fontSize: '16px',
             marginBottom: '24px',
             color: 'rgba(0, 0, 0, 0.7)',
@@ -433,8 +440,8 @@ const LiveAdvertisement = ({
                 fontSize: '16px',
                 fontWeight: 600,
                 color: 'white',
-                background: (!quizAnswer && !selectedOption) 
-                  ? 'rgba(0, 0, 0, 0.3)' 
+                background: (!quizAnswer && !selectedOption)
+                  ? 'rgba(0, 0, 0, 0.3)'
                   : 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
                 cursor: (!quizAnswer && !selectedOption) ? 'not-allowed' : 'pointer',
                 transition: 'all 0.3s ease'
@@ -442,7 +449,7 @@ const LiveAdvertisement = ({
             >
               Submit Answer
             </button>
-            
+
             <button
               onClick={() => {
                 setShowQuiz(false);
@@ -534,7 +541,7 @@ const LiveAdvertisement = ({
             {ad.format === 'video' && (
               <video
                 controls
-                style={{  maxHeight: '120px', borderRadius: '8px' }}
+                style={{ maxHeight: '120px', borderRadius: '8px' }}
                 src={ad.media_url}
               />
             )}
@@ -549,7 +556,7 @@ const LiveAdvertisement = ({
               <img
                 src={ad.media_url}
                 alt={ad.title}
-                style={{  maxHeight: '120px', objectFit: 'cover', borderRadius: '8px' }}
+                style={{ maxHeight: '120px', objectFit: 'cover', borderRadius: '8px' }}
               />
             )}
           </div>
@@ -654,6 +661,31 @@ const LiveAdvertisement = ({
             }}
           >
             Skip
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent the ad click from triggering
+              goToAdWebSite(ad);
+            }}
+            style={{
+              padding: '12px 24px',
+              border: '2px solid rgba(0, 0, 0, 0.2)',
+              borderRadius: '12px',
+              fontSize: '14px',
+              fontWeight: 600,
+              color: 'rgba(0, 0, 0, 0.7)',
+              backgroundColor: 'transparent',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = 'transparent';
+            }}
+          >
+            See
           </button>
         </div>
 

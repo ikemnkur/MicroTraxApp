@@ -120,6 +120,30 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
 
   const navigate = useNavigate();
 
+  // Remove direct usage of @google-cloud/storage in React.
+  // Instead, send the file to your backend API, which will handle uploading to Google Cloud Storage.
+  // Example: Use fetch or axios to POST the file to your backend endpoint.
+
+  // Example function to upload file to backend:
+  const uploadToBackend = async (file) => {
+    const formData = new FormData();
+    formData.append('media', file);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/upload`, {
+        method: 'POST',
+        body: formData,
+        // headers: { 'Authorization': `Bearer ${token}` } // if needed
+      });
+      if (!response.ok) throw new Error('Upload failed');
+      const data = await response.json();
+      return data.mediaLink; // Your backend should return the public URL
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  };
+
   // Get auth token from localStorage if not provided as prop
   const token = localStorage.getItem('token');
   console.log('Auth Token:', authToken);
@@ -163,7 +187,7 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
 
   // API Base URL - adjust this to match your backend URL
   // const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
-    const API_BASE_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:5001';
+  const API_BASE_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:5001';
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -213,46 +237,46 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
     }));
   };
 
-//   const uploadToFirebaseStorage = async (file, fileName) => {
-//     try {
-//         const gcs = storage.bucket("bucket_name"); // Removed "gs://" from the bucket name
-//         const storagepath = `storage_folder/${fileName}`;
-//         const result = await gcs.upload(file, {
-//             destination: storagepath,
-//             predefinedAcl: 'publicRead', // Set the file to be publicly readable
-//             metadata: {
-//                 contentType: "application/plain", // Adjust the content type as needed
-//             }
-//         });
-//         return result[0].metadata.mediaLink;
-//     } catch (error) {
-//         console.log(error);
-//         throw new Error(error.message);
-//     }
-// }
+  //   const uploadToFirebaseStorage = async (file, fileName) => {
+  //     try {
+  //         const gcs = storage.bucket("bucket_name"); // Removed "gs://" from the bucket name
+  //         const storagepath = `storage_folder/${fileName}`;
+  //         const result = await gcs.upload(file, {
+  //             destination: storagepath,
+  //             predefinedAcl: 'publicRead', // Set the file to be publicly readable
+  //             metadata: {
+  //                 contentType: "application/plain", // Adjust the content type as needed
+  //             }
+  //         });
+  //         return result[0].metadata.mediaLink;
+  //     } catch (error) {
+  //         console.log(error);
+  //         throw new Error(error.message);
+  //     }
+  // }
 
-  const uploadToFirebaseStorage = async (file, fileName) => {
-    try {
-        const gcs = storage.bucket("cloutcoinclub_bucket"); // Removed "gs://" from the bucket name
-        const storagepath = `storage_folder/${fileName}`;
-        const result = await gcs.upload(file, {
-            destination: storagepath,
-            predefinedAcl: 'publicRead', // Set the file to be publicly readable
-            metadata: {
-                contentType: "application/plain", // Adjust the content type as needed
-            }
-        });
-        return result[0].metadata.mediaLink;
-    } catch (error) {
-        console.log(error);
-        throw new Error(error.message);
-    }
-  };
+  // const uploadToFirebaseStorage = async (file, fileName) => {
+  //   try {
+  //     const gcs = storage.bucket("cloutcoinclub_bucket"); // Removed "gs://" from the bucket name
+  //     const storagepath = `storage_folder/${fileName}`;
+  //     const result = await gcs.upload(file, {
+  //       destination: storagepath,
+  //       predefinedAcl: 'publicRead', // Set the file to be publicly readable
+  //       metadata: {
+  //         contentType: "application/plain", // Adjust the content type as needed
+  //       }
+  //     });
+  //     return result[0].metadata.mediaLink;
+  //   } catch (error) {
+  //     console.log(error);
+  //     throw new Error(error.message);
+  //   }
+  // };
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     processFile(file);
-    
+
   };
 
   const handleFileDrop = (e) => {
@@ -273,7 +297,7 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
         return;
       }
 
-      let link2upload = await uploadToFirebaseStorage(file, `${file.name}`);
+      let link2upload = await uploadToBackend(file);
       console.log("Uploaded File Link: ", link2upload);
 
       setFormData(prev => ({
@@ -293,7 +317,7 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.title.trim()) newErrors.title = 'Title is required';
     if (!formData.description.trim()) newErrors.description = 'Description is required';
     if (!formData.link.trim()) newErrors.link = 'Link is required';
@@ -303,7 +327,7 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
     if (formData.reward < 0 || formData.reward > 100) {
       newErrors.reward = 'Reward must be between 0 and 100 credits';
     }
-    
+
     // Validate quiz questions
     formData.quiz.forEach((question, index) => {
       if (!question.question.trim()) {
@@ -318,14 +342,14 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
         newErrors[`quiz_answer_${index}`] = 'Correct answer is required';
       }
     });
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const createAd = async (adData) => {
     const formDataToSend = new FormData();
-    
+
     // Add text fields
     formDataToSend.append('ad_uuid', adData.ad_uuid);
     formDataToSend.append('title', adData.title);
@@ -336,10 +360,10 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
     formDataToSend.append('budget', adData.budget.toString());
     formDataToSend.append('reward', adData.reward.toString());
     formDataToSend.append('frequency', adData.frequency);
-    
+
     // Add quiz data as JSON string
     formDataToSend.append('quiz', JSON.stringify(adData.quiz));
-    
+
     // Add media file if present
     if (adData.mediaFile) {
       formDataToSend.append('media', adData.mediaFile);
@@ -369,7 +393,7 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
 
   const updateAd = async (adId, adData) => {
     const formDataToSend = new FormData();
-    
+
     // Add text fields
     formDataToSend.append('ad_uuid', adData.ad_uuid);
     formDataToSend.append('title', adData.title);
@@ -379,10 +403,10 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
     formDataToSend.append('budget', adData.budget.toString());
     formDataToSend.append('reward', adData.reward.toString());
     formDataToSend.append('frequency', adData.frequency);
-    
+
     // Add quiz data as JSON string
     formDataToSend.append('quiz', JSON.stringify(adData.quiz));
-    
+
     // Add media file if present
     if (adData.mediaFile) {
       formDataToSend.append('media', adData.mediaFile);
@@ -405,11 +429,11 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
     }
 
     // setTimeout(() => {
-      if(confirm("Do you want a preview of the updated AD?")){
-        navigate(`/preview-ad/ad/${ad_uuid}`);
-        return response;
-      }
-      
+    if (confirm("Do you want a preview of the updated AD?")) {
+      navigate(`/preview-ad/ad/${ad_uuid}`);
+      return response;
+    }
+
     // }, 1000);
 
     // return response.json();
@@ -452,7 +476,7 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
           message: 'Advertisement created successfully!',
           severity: 'success'
         });
-        
+
         // Reset form after successful creation
         setFormData({
           ad_uuid: setAD_uuid(uuidv4()),
@@ -489,7 +513,7 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
 
   const goToAdPreview = (adData) => {
     // if (ad?.link) {
-      window.open("/preview/pending-ad/", '_blank');
+    window.open("/preview/pending-ad/", '_blank');
     // }
   };
 
@@ -545,24 +569,24 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
   };
 
   return (
-    <Box sx={{ 
-      minHeight: '100vh', 
+    <Box sx={{
+      minHeight: '100vh',
       background: 'linear-gradient(135deg,rgb(210, 216, 247) 0%,rgb(174, 144, 206) 100%)',
       p: { xs: 2, sm: 3, md: 4 }
     }}>
       <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
         {/* Header */}
         <Box sx={{ textAlign: 'center', mb: 4 }}>
-          <Avatar sx={{ 
-            width: 80, 
-            height: 80, 
-            mx: 'auto', 
+          <Avatar sx={{
+            width: 80,
+            height: 80,
+            mx: 'auto',
             mb: 2,
             background: 'linear-gradient(135deg, #1976d2, #42a5f5)'
           }}>
             <Target sx={{ fontSize: 40 }} />
           </Avatar>
-          <Typography variant="h3" component="h1" sx={{ 
+          <Typography variant="h3" component="h1" sx={{
             fontWeight: 'bold',
             background: 'linear-gradient(135deg, #1976d2, #42a5f5)',
             backgroundClip: 'text',
@@ -585,15 +609,15 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
                 Basic Information
               </Typography>
             </GradientHeader>
-            
+
             <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-             
+              <Grid item xs={12} md={6}>
+
               </Grid>
-              <Grid item xs={12} > 
-                 <Typography variant="body2" component="h2">
-                ID#: ${ad_uuid}
-              </Typography>
+              <Grid item xs={12} >
+                <Typography variant="body2" component="h2">
+                  ID#: ${ad_uuid}
+                </Typography>
               </Grid>
               <Grid item xs={12} md={6}>
                 <TextField
@@ -649,7 +673,7 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
                 Format & Media
               </Typography>
             </GradientHeader>
-            
+
             <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'bold' }}>
               Ad Format
             </Typography>
@@ -657,7 +681,7 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
               {formatOptions.map((option) => (
                 <Grid item xs={6} sm={4} md={2} key={option.value}>
                   <FormatCard selected={formData.format === option.value}>
-                    <CardContent 
+                    <CardContent
                       sx={{ textAlign: 'center', p: 2, cursor: loading ? 'not-allowed' : 'pointer' }}
                       onClick={() => !loading && handleInputChange('format', option.value)}
                     >
@@ -690,8 +714,8 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
                 disabled={loading}
                 accept={
                   formData.format === 'video' ? 'video/*' :
-                  formData.format === 'audio' ? 'audio/*,image/*' : 
-                  'image/*'
+                    formData.format === 'audio' ? 'audio/*,image/*' :
+                      'image/*'
                 }
               />
               <UploadIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
@@ -722,7 +746,7 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
                 Campaign Settings
               </Typography>
             </GradientHeader>
-            
+
             <Grid container spacing={4}>
               <Grid item xs={12} sm={6} md={4}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -799,8 +823,8 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
                 startIcon={<AddIcon />}
                 onClick={addQuizQuestion}
                 disabled={loading}
-                sx={{ 
-                  bgcolor: 'rgba(255,255,255,0.2)', 
+                sx={{
+                  bgcolor: 'rgba(255,255,255,0.2)',
                   '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' }
                 }}
               >
@@ -814,7 +838,7 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
                   <CardContent>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Avatar sx={{ 
+                        <Avatar sx={{
                           bgcolor: 'primary.main',
                           width: 40,
                           height: 40,
@@ -832,8 +856,8 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
                           onClick={() => removeQuizQuestion(index)}
                           disabled={loading}
                           color="error"
-                          sx={{ 
-                            '&:hover': { 
+                          sx={{
+                            '&:hover': {
                               bgcolor: 'error.light',
                               color: 'white'
                             }
@@ -880,9 +904,9 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
                           >
                             <Stack spacing={2}>
                               {question.options.map((option, optionIndex) => (
-                                <Box key={optionIndex} sx={{ 
-                                  display: 'flex', 
-                                  alignItems: 'center', 
+                                <Box key={optionIndex} sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
                                   gap: 2,
                                   p: 2,
                                   bgcolor: 'grey.50',
@@ -938,7 +962,7 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
           {/* Submit Button */}
           <Box sx={{ position: 'sticky', gap: 10, bottom: 16, zIndex: 10 }}>
             <StyledPaper>
-              <Button 
+              <Button
                 style={{ marginBottom: '10px' }}
                 fullWidth
                 variant="contained"
@@ -959,8 +983,8 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
                   transition: 'all 0.3s ease'
                 }}
               >
-                {loading 
-                  ? (editingAd ? 'Updating Advertisement...' : 'Creating Advertisement...') 
+                {loading
+                  ? (editingAd ? 'Updating Advertisement...' : 'Creating Advertisement...')
                   : (editingAd ? 'Preview Update Advertisement' : 'Preview New Ad')
                 }
               </Button>
@@ -985,8 +1009,8 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
                   transition: 'all 0.3s ease'
                 }}
               >
-                {loading 
-                  ? (editingAd ? 'Updating Advertisement...' : 'Creating Advertisement...') 
+                {loading
+                  ? (editingAd ? 'Updating Advertisement...' : 'Creating Advertisement...')
                   : (editingAd ? 'Update Advertisement' : 'Create Advertisement')
                 }
               </Button>
@@ -1001,8 +1025,8 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
           onClose={handleCloseNotification}
           anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         >
-          <Alert 
-            onClose={handleCloseNotification} 
+          <Alert
+            onClose={handleCloseNotification}
             severity={notification.severity}
             variant="filled"
             sx={{ width: '100%' }}
