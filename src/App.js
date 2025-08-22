@@ -57,7 +57,7 @@ import JoinAdProgram from "./pages/JoinAdProgram";
 import LoginToAdProgram from "./pages/LoginToAdProgram.jsx";
 import AdObject from "./pages/AdObject";
 import DisplayAd from "./pages/DisplayAd.jsx";
-import Ads from "./pages/AdsHeader.jsx";
+import AdsHeader from "./pages/AdsHeader.jsx";
 import AdsActivatePage from "./pages/AdsActivatePage.jsx";
 // import AdHomepage from "./pages/AdHomepage.jsx";
 
@@ -198,7 +198,7 @@ function App() {
             <Route path="/ads-login" element={
               <ProtectedRoute> <LoginToAdProgram /> </ProtectedRoute>} />
             <Route path="/ads-service" element={
-              <ProtectedRoute> <Ads /> </ProtectedRoute>} /> 
+              <ProtectedRoute> <AdsHeader /> </ProtectedRoute>} /> 
             <Route path="/test-ad" element={
               <ProtectedRoute> <AdObject /> </ProtectedRoute>} />
             <Route path="/display-ad" element={<DisplayAd /> } />

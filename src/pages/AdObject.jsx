@@ -135,7 +135,7 @@ const LiveAdvertisement = ({
 
   const handleRewardClick = async () => {
     if (!ad) return;
-
+    console.logs("Ad ID: ", ad )
     try {
       // Fetch quiz question for this ad
       const quizResponse = await fetchRandomQuizQuestion(ad.id);
