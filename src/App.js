@@ -58,6 +58,10 @@ import LoginToAdProgram from "./pages/LoginToAdProgram.jsx";
 import AdObject from "./pages/AdObject";
 import DisplayAd from "./pages/DisplayAd.jsx";
 import Ads from "./pages/AdsHeader.jsx";
+import AdsActivatePage from "./pages/AdsActivatePage.jsx";
+// import AdHomepage from "./pages/AdHomepage.jsx";
+
+
 
 // import Ads from "./components/Ads";
 // import Ads from "../src/components/Ads.js";
@@ -185,8 +189,10 @@ function App() {
               <ProtectedRoute> <AdPreviewPage /> </ProtectedRoute>} />
             <Route path="/preview/pending-ad/" element={
               <ProtectedRoute> <AdPreviewPage /> </ProtectedRoute>} />
-            <Route path="/ads" element={
+            <Route path="/ads-homepage" element={
               <ProtectedRoute> <AdHomepage /> </ProtectedRoute>} />
+            <Route path="/ads-activate" element={
+              <ProtectedRoute> <AdsActivatePage /> </ProtectedRoute>} />
             <Route path="/ads-join" element={
               <ProtectedRoute> <JoinAdProgram /> </ProtectedRoute>} />
             <Route path="/ads-login" element={

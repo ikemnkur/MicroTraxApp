@@ -51,12 +51,12 @@ const NavBar = ({ children }) => {
   const getAdsPath = () => {
     console.log('User Data.Advertising:', userData.advertising);
     if (userData.advertising === "active") {
-      console.log('Ads Path: /ads-service');
-      // window.open("/ads-service", '_blank');
-      return '/ads-service';
+      console.log('Ads Path: /ads-homepage');
+      // window.open("/ads-homepage", '_blank');
+      return '/ads-homepage';
     } else {
-      // console.log('Ads Path: /ads');
-      return '/ads';
+      console.log('Ads Path: /ads-activate');
+      return '/ads-activate';
     }
   };
 
