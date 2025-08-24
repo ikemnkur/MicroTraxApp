@@ -113,7 +113,7 @@ const AdDashboardPage = ({ ads = [], onEditAd }) => {
 
     try {
 
-
+      console.log("Fetching advertiser profile with these user details:", user);
       const response = await fetchAdvertiserProfile(user);
       // await fetchAds(user);
       console.log('Fetch Advertiser Profile response:', response.user);

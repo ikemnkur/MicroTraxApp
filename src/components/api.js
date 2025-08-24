@@ -571,9 +571,92 @@ export const updateAdroute = async (adData) => {
 // ADVERTISER PROFILE MANAGEMENT
 // =================
 
-export const fetchAdvertiserProfile = async () => {
+// // Get user profile
+// app.get('/advertiser/profile/:email', authenticateToken, async (req, res) => {
+//   let email = req.params.email;
+//   try {
+//     console.log("Get advertiser profile for user ID:", req.user.user_id);
+//     const advertisers = await executeQuery(
+//       'SELECT id, name, email, credits, created_at FROM advertisers WHERE user_id = ?',
+//       [req.user.user_id]
+//     );
+//     console.log("Authenticated user email:", req.user);
+//     const advertisers2 = await executeQuery(
+//       'SELECT id, name, email, credits, created_at FROM advertisers WHERE email = ?',
+//       [email]
+//     );
+//     if (advertisers.length === 0 && advertisers2.length === 0) {
+
+
+//       console.log("No advertiser found");
+//       return res.status(404).json({ error: 'User not found' });
+//     }
+
+//     console.log("advertisers profile:", advertisers);
+//     // res.json({ ads });
+//     res.json({ user: advertisers[0] });
+//   } catch (error) {
+//     console.error('Get profile error:', error);
+//     res.status(500).json({ error: 'Internal server error' });
+//   }
+// });
+
+// /**
+//  * Fetches the advertiser profile for a user.
+//  * @param {Object} user - The user object.
+//  * @param {string} user.email - The email of the user (required).
+//  * @returns {Promise<Object>} The advertiser profile data.
+//  */
+// export const fetchAdvertiserProfile = async (user) => {
+//   try {
+//     if (!user || !user.email) {
+//       throw new Error('Invalid user object: missing email');
+//     }
+//     console.log("Fetching advertiser profile for user email: ", user.email);
+//     const response = await api.get(`/ads/advertiser/profile/${user.email}`);
+//     return response.data;
+//   } catch (error) {
+//     console.error('API - Error fetching advertiser profile:', error);
+//     throw error;
+//   }
+// };
+
+// Move this function to ../components/api.js and update its signature to accept a user object
+export const fetchAdvertiserProfile = async (user) => {
+  if (!user || !user.email || !user.token) {
+    throw new Error('Invalid user object: missing email or token');
+  }
+
   try {
-    const response = await api.get('/ads/advertiser/profile');
+    const response = await fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/advertiser/profile`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${user.token}`
+      },
+      body: JSON.stringify({ email: user.email })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to fetch advertiser profile');
+    }
+
+    const data = await response.json();
+    return data; // { user: ... }
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const activateAdvertiserProfile = async (user) => {
+  try {
+    console.log("Activating advertiser profile for user: ", user);
+    const response = await api.put(`/ads/advertiser/profile/activate`,{
+      userdata: user,
+      user_id: user.user_id,
+      email: user.email,
+    });
     return response.data;
   } catch (error) {
     console.error('API - Error fetching advertiser profile:', error);
@@ -582,14 +665,13 @@ export const fetchAdvertiserProfile = async () => {
 };
 
 
-
 // =================
 // ADS MANAGEMENT
 // =================
 
 export const createAdRoute = async (adData) => {
   try {
-    const response = await api.post('/ads/ad/', adData);
+    const response = await api.get(`/advertiser/profile/${user.email}`);
     return response.data;
   } catch (error) {
     console.error('API - Error creating ad:', error);
@@ -597,6 +679,65 @@ export const createAdRoute = async (adData) => {
   }
 };
 
+
+// Example function to upload file to backend:
+// Example function to upload file to backend:
+  // const uploadToBackend = async (file) => {
+  //   const formData = new FormData();
+  //   formData.append('media', file);
+
+  //   try {
+  //     // uploadMediaFiles should return the media link or an object with mediaLink property
+  //     const response = await uploadMediaFiles(formData);
+  //     console.log('Ad Media file uploaded:', response);
+
+  //     // If your backend returns { mediaLink: "..." }
+  //     if (response && response.mediaLink) {
+  //       return response.mediaLink;
+  //     }
+  //     // If your backend returns the link directly
+  //     if (typeof response === 'string') {
+  //       return response;
+  //     }
+  //     throw new Error('Upload failed or invalid response');
+  //   } catch (error) {
+  //     console.error(error);
+  //     throw error;
+  //   }
+  // };
+
+// // Upload media file to backend, accepts FormData directly
+// export const uploadMediaFiles = async (formData) => {
+//   try {
+//     if (!(formData instanceof FormData)) {
+//       throw new Error('Parameter must be FormData.');
+//     }
+//     // const response = await api.post('/upload/adFile', formData, {
+//     //   headers: { 'Content-Type': 'multipart/form-data' },
+//     // });
+//     const response = await api.post('/upload/adFile', formData);
+//     return response.data;
+//   } catch (error) {
+//     console.error('API - Error uploading media file:', error);
+//     throw error;
+//   }
+// };
+
+export const uploadMediaFiles = async (formData) => {
+  const res = await api.post('/upload/adFile', formData, {
+    // Let Axios/browser set the multipart boundary automatically:
+    // headers: { 'Content-Type': undefined },  // <- clears any JSON default
+    //  headers: { 'Content-Type': 'multipart/form-data' },
+     headers: { 'Content-Type': 'application/json' },
+    transformRequest: [(data, headers) => {
+      // Remove any JSON defaults your instance might add
+      delete headers.common?.['Content-Type'];
+      delete headers.post?.['Content-Type'];
+      return data; // keep FormData as-is
+    }],
+  });
+  return res.data;
+};
 
 export const fetchAds = async () => {
   try {

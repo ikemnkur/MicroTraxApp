@@ -76,9 +76,12 @@ const Ads = () => {
     }
 
     try {
+      console.log("Fetching advertiser profile with these user details:", user);
 
-
-      const response = await fetchAdvertiserProfile(user);
+      const response = await fetchAdvertiserProfile({
+        email: user.email,
+        token: user.token
+      });
       // await fetchAds(user);
       console.log('Fetch Advertiser Profile response:', response.user);
       // const data = await response.json();
@@ -109,6 +112,10 @@ const Ads = () => {
       setError('Network error while fetching profile');
     }
   };
+
+
+
+
 
   // Fetch ads from the server
   const ADS_fetchAds = async () => {
@@ -176,6 +183,7 @@ const Ads = () => {
   // Handle saving an ad (create or update)
   const handleSaveAd = async (adData) => {
     try {
+      console.log('Saving ad data (handleSaveAd - AdsHeader.jsx):', adData);
       const method = editingAd ? 'PUT' : 'POST';
       const url = editingAd
         ? `${API_BASE_URL}/ads/ad/${editingAd.id}`

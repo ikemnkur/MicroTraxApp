@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchPreviewAd, fetchAdvertiserProfile } from '../components/api'; // Adjust the import path as necessary
+import { fetchPreviewAd, fetchAdvertiserProfile, activateAdvertiserProfile } from '../components/api'; // Adjust the import path as necessary
 
 const AdServiceActivationPage = ({ authToken, onActivationComplete,  }) => {
   const navigate = useNavigate();
@@ -131,50 +131,53 @@ const AdServiceActivationPage = ({ authToken, onActivationComplete,  }) => {
     
     try {
 
-      setUserStatus({
-        isEnrolled,
-        isLoading: false,
-        userInfo: data.user,
-        error: null
-      });
+      // setUserStatus({
+      //   isEnrolled,
+      //   isLoading: false,
+      //   userInfo: data.user,
+      //   error: null
+      // });
 
       // navigate('/ads-join'); // or '/ads-service'
 
       // // If user doesn't exist in ad system, we might need to create/update their profile
-      // const response = await fetch(`${API_BASE_URL}/ads/user/credits`, {
+      // const response = await fetch(`${API_BASE_URL}/ads/advertiser/profile/activate`, {
       //   method: 'PUT',
       //   headers: {
       //     'Authorization': `Bearer ${token}`,
       //     'Content-Type': 'application/json'
       //   },
       //   body: JSON.stringify({
-      //     operation: 'add',
-      //     amount: 0 // Just to initialize if needed
+      //     userdata: currentUser,
+      //     user_id: currentUser.user_id,
+      //     email: currentUser.email,
       //   })
       // });
 
-      // if (!response.ok) {
-      //   throw new Error('Failed to activate ad service');
-      // }
+      const response = await activateAdvertiserProfile(currentUser);
+
+      if (!response) {
+        throw new Error('Failed to activate ad service');
+      }
 
       // // Refresh user status
       // await checkUserEnrollment();
 
-      // setNotification({
-      //   show: true,
-      //   message: 'Ad service activated successfully! Welcome to the advertiser network.',
-      //   type: 'success'
-      // });
+      setNotification({
+        show: true,
+        message: 'Ad service activated successfully! Welcome to the advertiser network.',
+        type: 'success'
+      });
 
       setTimeout(() => {
-        if (onActivationComplete) {
-          onActivationComplete();
-           navigate('/ads-join'); // or '/ads-service'
-        } else {
-          // Navigate to ads dashboard or join page
+        // if (onActivationComplete) {
+        //   // onActivationComplete();
+        //    navigate('/ads-join'); // or '/ads-service'
+        // } else {
+        //   // Navigate to ads dashboard or join page
           navigate('/ads-join'); // or '/ads-service'
-        }
-      }, 2000);
+        // }
+      }, 1500);
 
     } catch (error) {
       console.error('Activation error:', error);
@@ -375,7 +378,9 @@ const AdServiceActivationPage = ({ authToken, onActivationComplete,  }) => {
                 </p>
                 <button
                   // onClick={() => onActivationComplete && onActivationComplete()}
-                  onClick={() => navigate('/ads-login')}
+                  onClick={() => {
+                    navigate('/ads-login');
+                  }}
                   style={{
                     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                     color: 'white',
@@ -589,7 +594,10 @@ const AdServiceActivationPage = ({ authToken, onActivationComplete,  }) => {
           {/* Activation Button */}
           <div style={{ textAlign: 'center' }}>
             <button
-              onClick={() => navigate('/ads-join')}
+              onClick={() => {
+                handleActivateService();
+                // navigate('/ads-join');
+                }}
               disabled={isActivating}
               style={{
                 background: isActivating 

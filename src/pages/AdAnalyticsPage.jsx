@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const AdAnalyticsPage = ({ ads = [], onEditAd }) => {
   const [selectedAd, setSelectedAd] = useState(null);
-
+  const navigate = useNavigate();
 
   console.log('AdAnalyticsPage ads:', ads);
 
@@ -43,18 +44,18 @@ const AdAnalyticsPage = ({ ads = [], onEditAd }) => {
   // ];
 
   return (
-    <div style={{ 
-      minHeight: '100vh', 
+    <div style={{
+      minHeight: '100vh',
       background: 'linear-gradient(135deg,rgb(210, 216, 247) 0%,rgb(187, 167, 208) 100%)',
       padding: '24px'
     }}>
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div style={{ 
-            width: '80px', 
-            height: '80px', 
-            margin: '0 auto 16px', 
+          <div style={{
+            width: '80px',
+            height: '80px',
+            margin: '0 auto 16px',
             borderRadius: '50%',
             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             display: 'flex',
@@ -66,7 +67,7 @@ const AdAnalyticsPage = ({ ads = [], onEditAd }) => {
           }}>
             📊
           </div>
-          <h1 style={{ 
+          <h1 style={{
             fontSize: '2.5rem',
             fontWeight: 800,
             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -76,12 +77,12 @@ const AdAnalyticsPage = ({ ads = [], onEditAd }) => {
             marginBottom: '8px',
             textShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
           }}>
-            Analytics 
+            Analytics
           </h1>
-          <p style={{ 
-            color: 'rgba(255, 255, 255, 0.9)', 
+          <p style={{
+            color: 'rgba(255, 255, 255, 0.9)',
             fontSize: '1.25rem',
-            maxWidth: '600px', 
+            maxWidth: '600px',
             margin: '0 auto',
             fontWeight: 400,
             textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
@@ -121,9 +122,9 @@ const AdAnalyticsPage = ({ ads = [], onEditAd }) => {
                 e.currentTarget.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.25)';
               }}
             > */}
-              {/* Background decoration */} 
-              
-              {/* <div style={{
+        {/* Background decoration */}
+
+        {/* <div style={{
                 position: 'absolute',
                 top: 0,
                 right: 0,
@@ -189,118 +190,118 @@ const AdAnalyticsPage = ({ ads = [], onEditAd }) => {
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
           overflow: 'hidden'
         }}>
-          <div style={{ 
-            padding: '24px 32px', 
+          <div style={{
+            padding: '24px 32px',
             borderBottom: '2px solid rgba(0, 0, 0, 0.05)',
             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             color: 'white'
           }}>
-            <h2 style={{ 
-              fontSize: '1.5rem', 
-              fontWeight: 'bold', 
+            <h2 style={{
+              fontSize: '1.5rem',
+              fontWeight: 'bold',
               margin: 0
             }}>
               Your Advertisements
             </h2>
           </div>
-          
+
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ 
-              width: '100%', 
+            <table style={{
+              width: '100%',
               borderCollapse: 'collapse'
             }}>
               <thead>
                 <tr style={{ background: 'rgba(0, 0, 0, 0.02)' }}>
-                  <th style={{ 
-                    padding: '16px 24px', 
-                    textAlign: 'left', 
-                    fontSize: '12px', 
-                    fontWeight: 'bold', 
-                    color: 'rgba(0, 0, 0, 0.6)', 
+                  <th style={{
+                    padding: '16px 24px',
+                    textAlign: 'left',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    color: 'rgba(0, 0, 0, 0.6)',
                     textTransform: 'uppercase',
                     letterSpacing: '1px',
                     borderBottom: '2px solid rgba(0, 0, 0, 0.05)'
                   }}>
                     Title
                   </th>
-                  <th style={{ 
-                    padding: '16px 24px', 
-                    textAlign: 'left', 
-                    fontSize: '12px', 
-                    fontWeight: 'bold', 
-                    color: 'rgba(0, 0, 0, 0.6)', 
+                  <th style={{
+                    padding: '16px 24px',
+                    textAlign: 'left',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    color: 'rgba(0, 0, 0, 0.6)',
                     textTransform: 'uppercase',
                     letterSpacing: '1px',
                     borderBottom: '2px solid rgba(0, 0, 0, 0.05)'
                   }}>
                     Format
                   </th>
-                  <th style={{ 
-                    padding: '16px 24px', 
-                    textAlign: 'left', 
-                    fontSize: '12px', 
-                    fontWeight: 'bold', 
-                    color: 'rgba(0, 0, 0, 0.6)', 
+                  <th style={{
+                    padding: '16px 24px',
+                    textAlign: 'left',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    color: 'rgba(0, 0, 0, 0.6)',
                     textTransform: 'uppercase',
                     letterSpacing: '1px',
                     borderBottom: '2px solid rgba(0, 0, 0, 0.05)'
                   }}>
                     Budget
                   </th>
-                  <th style={{ 
-                    padding: '16px 24px', 
-                    textAlign: 'left', 
-                    fontSize: '12px', 
-                    fontWeight: 'bold', 
-                    color: 'rgba(0, 0, 0, 0.6)', 
+                  <th style={{
+                    padding: '16px 24px',
+                    textAlign: 'left',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    color: 'rgba(0, 0, 0, 0.6)',
                     textTransform: 'uppercase',
                     letterSpacing: '1px',
                     borderBottom: '2px solid rgba(0, 0, 0, 0.05)'
                   }}>
                     Spent
                   </th>
-                  <th style={{ 
-                    padding: '16px 24px', 
-                    textAlign: 'left', 
-                    fontSize: '12px', 
-                    fontWeight: 'bold', 
-                    color: 'rgba(0, 0, 0, 0.6)', 
+                  <th style={{
+                    padding: '16px 24px',
+                    textAlign: 'left',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    color: 'rgba(0, 0, 0, 0.6)',
                     textTransform: 'uppercase',
                     letterSpacing: '1px',
                     borderBottom: '2px solid rgba(0, 0, 0, 0.05)'
                   }}>
                     Views
                   </th>
-                  <th style={{ 
-                    padding: '16px 24px', 
-                    textAlign: 'left', 
-                    fontSize: '12px', 
-                    fontWeight: 'bold', 
-                    color: 'rgba(0, 0, 0, 0.6)', 
+                  <th style={{
+                    padding: '16px 24px',
+                    textAlign: 'left',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    color: 'rgba(0, 0, 0, 0.6)',
                     textTransform: 'uppercase',
                     letterSpacing: '1px',
                     borderBottom: '2px solid rgba(0, 0, 0, 0.05)'
                   }}>
                     Completions
                   </th>
-                  <th style={{ 
-                    padding: '16px 24px', 
-                    textAlign: 'left', 
-                    fontSize: '12px', 
-                    fontWeight: 'bold', 
-                    color: 'rgba(0, 0, 0, 0.6)', 
+                  <th style={{
+                    padding: '16px 24px',
+                    textAlign: 'left',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    color: 'rgba(0, 0, 0, 0.6)',
                     textTransform: 'uppercase',
                     letterSpacing: '1px',
                     borderBottom: '2px solid rgba(0, 0, 0, 0.05)'
                   }}>
                     Status
                   </th>
-                  <th style={{ 
-                    padding: '16px 24px', 
-                    textAlign: 'left', 
-                    fontSize: '12px', 
-                    fontWeight: 'bold', 
-                    color: 'rgba(0, 0, 0, 0.6)', 
+                  <th style={{
+                    padding: '16px 24px',
+                    textAlign: 'left',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    color: 'rgba(0, 0, 0, 0.6)',
                     textTransform: 'uppercase',
                     letterSpacing: '1px',
                     borderBottom: '2px solid rgba(0, 0, 0, 0.05)'
@@ -311,9 +312,9 @@ const AdAnalyticsPage = ({ ads = [], onEditAd }) => {
               </thead>
               <tbody>
                 {ads.map((ad) => (
-                  <tr 
-                    key={ad.id} 
-                    style={{ 
+                  <tr
+                    key={ad.id}
+                    style={{
                       borderBottom: '1px solid rgba(0, 0, 0, 0.05)',
                       transition: 'all 0.3s ease'
                     }}
@@ -333,7 +334,7 @@ const AdAnalyticsPage = ({ ads = [], onEditAd }) => {
                       </div>
                     </td>
                     <td style={{ padding: '20px 24px' }}>
-                      <span style={{ 
+                      <span style={{
                         padding: '4px 12px',
                         backgroundColor: 'rgba(102, 126, 234, 0.1)',
                         color: '#667eea',
@@ -407,8 +408,14 @@ const AdAnalyticsPage = ({ ads = [], onEditAd }) => {
                         >
                           View Details
                         </button>
-                        <button 
-                          onClick={() => onEditAd(ad)}
+                        <button
+                          onClick={
+                            () =>  // Optional: navigate to preview of the created ad
+                              setTimeout(() => {
+                                navigate(`/preview-ad/${ad.id}`);
+                              }, 500)
+                            // () => onEditAd(ad)
+                          }
                           style={{
                             padding: '8px',
                             border: 'none',
@@ -430,7 +437,7 @@ const AdAnalyticsPage = ({ ads = [], onEditAd }) => {
                             e.target.style.transform = 'translateY(0)';
                           }}
                         >
-                          ✏️
+                          👁️
                         </button>
                       </div>
                     </td>
@@ -477,9 +484,9 @@ const AdAnalyticsPage = ({ ads = [], onEditAd }) => {
                 justifyContent: 'space-between',
                 alignItems: 'center'
               }}>
-                <h3 style={{ 
-                  fontSize: '1.5rem', 
-                  fontWeight: 'bold', 
+                <h3 style={{
+                  fontSize: '1.5rem',
+                  fontWeight: 'bold',
                   margin: 0
                 }}>
                   {selectedAd.title}
@@ -513,10 +520,10 @@ const AdAnalyticsPage = ({ ads = [], onEditAd }) => {
 
               {/* Modal Content */}
               <div style={{ padding: '32px' }}>
-                <div style={{ 
-                  display: 'grid', 
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-                  gap: '24px', 
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gap: '24px',
                   marginBottom: '32px'
                 }}>
                   <div style={{
@@ -525,10 +532,10 @@ const AdAnalyticsPage = ({ ads = [], onEditAd }) => {
                     borderRadius: '16px',
                     border: '2px solid rgba(102, 126, 234, 0.1)'
                   }}>
-                    <h4 style={{ 
-                      fontSize: '14px', 
-                      fontWeight: 'bold', 
-                      color: 'rgba(0, 0, 0, 0.6)', 
+                    <h4 style={{
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      color: 'rgba(0, 0, 0, 0.6)',
                       marginBottom: '8px',
                       textTransform: 'uppercase',
                       letterSpacing: '0.5px'
@@ -542,17 +549,17 @@ const AdAnalyticsPage = ({ ads = [], onEditAd }) => {
                       <p style={{ margin: '4px 0' }}><strong>Remaining:</strong> {selectedAd.budget - selectedAd.spent} credits</p>
                     </div>
                   </div>
-                  
+
                   <div style={{
                     background: 'rgba(16, 185, 129, 0.05)',
                     padding: '20px',
                     borderRadius: '16px',
                     border: '2px solid rgba(16, 185, 129, 0.1)'
                   }}>
-                    <h4 style={{ 
-                      fontSize: '14px', 
-                      fontWeight: 'bold', 
-                      color: 'rgba(0, 0, 0, 0.6)', 
+                    <h4 style={{
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      color: 'rgba(0, 0, 0, 0.6)',
                       marginBottom: '8px',
                       textTransform: 'uppercase',
                       letterSpacing: '0.5px'
@@ -575,34 +582,34 @@ const AdAnalyticsPage = ({ ads = [], onEditAd }) => {
                   border: '2px solid rgba(245, 158, 11, 0.1)',
                   marginBottom: '32px'
                 }}>
-                  <h4 style={{ 
-                    fontSize: '18px', 
-                    fontWeight: 'bold', 
+                  <h4 style={{
+                    fontSize: '18px',
+                    fontWeight: 'bold',
                     marginBottom: '16px',
                     color: 'rgba(0, 0, 0, 0.8)'
                   }}>
                     Quiz Questions ({selectedAd.quiz?.length || 0})
                   </h4>
                   {selectedAd.quiz?.map((question, index) => (
-                    <div 
-                      key={index} 
-                      style={{ 
-                        background: 'rgba(255, 255, 255, 0.7)', 
-                        padding: '16px', 
-                        borderRadius: '12px', 
+                    <div
+                      key={index}
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.7)',
+                        padding: '16px',
+                        borderRadius: '12px',
                         marginBottom: '12px',
                         border: '1px solid rgba(0, 0, 0, 0.05)'
                       }}
                     >
-                      <p style={{ 
-                        fontWeight: 600, 
+                      <p style={{
+                        fontWeight: 600,
                         marginBottom: '8px',
                         color: 'rgba(0, 0, 0, 0.8)'
                       }}>
                         {index + 1}. {question.question}
                       </p>
-                      <p style={{ 
-                        fontSize: '14px', 
+                      <p style={{
+                        fontSize: '14px',
                         color: 'rgba(0, 0, 0, 0.6)',
                         margin: 0
                       }}>

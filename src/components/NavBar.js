@@ -78,8 +78,8 @@ const NavBar = ({ children }) => {
 
   const unlockPage = location.pathname.startsWith('/unlock');
   const subPage = location.pathname.startsWith('/sub');
-  const previewPage = location.pathname.startsWith('/preview/pending-ad/');
-  const hideNavBar = ['/login', "/help", '/register', '/', '/info', '/create-ad', "/ad-analytics", "/ad-help", '/ads', '/display-ad','/preview-ad', "/ads-service", "/test-ad", "/ads", "/ads-join","/ads-login", "/preview/pending-ad"].includes(location.pathname);
+  const previewPage = location.pathname.startsWith('/preview/pending-ad');
+  const hideNavBar = ['/login', "/help", '/register', '/', '/info', '/create-ad', "/ad-analytics", "/ad-help", '/ads', '/display-ad','/preview-ad','/preview-ad/ad/', "/ads-service", "/test-ad", "/ads", "/ads-join","/ads-login", "/preview/pending-ad"].includes(location.pathname);
 
   function refreshPage() {
     window.location.reload(false);

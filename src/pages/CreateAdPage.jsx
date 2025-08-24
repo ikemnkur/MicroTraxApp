@@ -34,7 +34,7 @@ import {
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 
-import { createAdroute, updateAdroute } from '../components/api'; // Adjust the import path as necessary
+import { createAdroute, updateAdroute, uploadMediaFiles } from '../components/api'; // Adjust the import path as necessary
 import { useNavigate } from 'react-router-dom';
 
 // Lucide React icons  
@@ -95,15 +95,40 @@ const QuestionCard = styled(Card)(({ theme }) => ({
   border: '1px solid rgba(0, 0, 0, 0.08)',
 }));
 
+// Convert a File to a data URL for preview/localStorage
+const fileToDataURL = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);   // e.g. "data:image/png;base64,...."
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+// Get auth token from localStorage if not provided as prop
+const token = localStorage.getItem('token');
+const authToken = localStorage.getItem('authToken') || token; // Use the token from localStorage if authToken prop is not provided
+console.log('Auth Token:', authToken);
+console.log('Token:', token);
+
+
+
 const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
+  const [ad_uuid, setAD_uuid] = useState(uuidv4());
+  const [errors, setErrors] = useState({});
+  const [dragOver, setDragOver] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
   const [formData, setFormData] = useState({
-    ad_uuid: '',
+    ad_uuid: ad_uuid,
     title: '',
     description: '',
     link: '',
     format: 'regular',
-    mediaFile: null,
-    mediaFileLink: "",
+    mediaFile: null,         // File kept in memory until submit
+    mediaFileLink: "",       // Filled *after* we upload on submit
+    mediaDataUrl: '',        // Data URL for preview tab
+    mediaMimeType: '',       // Optional, handy for preview
+    mediaName: '',           // Optional
     budget: 2000,
     reward: 0,
     frequency: 'moderate',
@@ -111,12 +136,6 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
       { question: '', type: 'multiple', options: ['', '', '', ''], correct: 0, answer: '' }
     ]
   });
-
-  const [ad_uuid, setAD_uuid] = useState(uuidv4());
-  const [errors, setErrors] = useState({});
-  const [dragOver, setDragOver] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [notification, setNotification] = useState({ open: false, message: '', severity: 'success' });
 
   const navigate = useNavigate();
 
@@ -130,27 +149,25 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
     formData.append('media', file);
 
     try {
-      const response = await api.post(`${API_BASE_URL}/api/upload`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      // const response = await fetch(`${API_BASE_URL}/api/upload`, {
-      //   method: 'POST',
-      //   body: formData,
-      // headers: { 'Authorization': `Bearer ${token}` } // if needed
-      // });
-      if (!response.ok) throw new Error('Upload failed');
-      const data = await response.json();
-      return data.mediaLink; // Your backend should return the public URL
+      // uploadMediaFiles should return the media link or an object with mediaLink property
+      const response = await uploadMediaFiles(formData);
+      console.log('Ad Media file uploaded:', response);
+
+      // If your backend returns { mediaLink: "..." }
+      if (response && response.mediaLink) {
+        return response.mediaLink;
+      }
+      // If your backend returns the link directly
+      if (typeof response === 'string') {
+        return response;
+      }
+      throw new Error('Upload failed or invalid response');
     } catch (error) {
       console.error(error);
       throw error;
     }
   };
 
-  // Get auth token from localStorage if not provided as prop
-  const token = localStorage.getItem('token');
-  console.log('Auth Token:', authToken);
-  console.log('Token:', token);
 
   useEffect(() => {
     if (editingAd) {
@@ -240,81 +257,91 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
     }));
   };
 
-  //   const uploadToFirebaseStorage = async (file, fileName) => {
-  //     try {
-  //         const gcs = storage.bucket("bucket_name"); // Removed "gs://" from the bucket name
-  //         const storagepath = `storage_folder/${fileName}`;
-  //         const result = await gcs.upload(file, {
-  //             destination: storagepath,
-  //             predefinedAcl: 'publicRead', // Set the file to be publicly readable
-  //             metadata: {
-  //                 contentType: "application/plain", // Adjust the content type as needed
-  //             }
-  //         });
-  //         return result[0].metadata.mediaLink;
-  //     } catch (error) {
-  //         console.log(error);
-  //         throw new Error(error.message);
-  //     }
-  // }
+  // const handleFileUpload = async (e) => {
+  //   const file = e.target.files[0];
+  //   processFile(file);
 
-  // const uploadToFirebaseStorage = async (file, fileName) => {
-  //   try {
-  //     const gcs = storage.bucket("cloutcoinclub_bucket"); // Removed "gs://" from the bucket name
-  //     const storagepath = `storage_folder/${fileName}`;
-  //     const result = await gcs.upload(file, {
-  //       destination: storagepath,
-  //       predefinedAcl: 'publicRead', // Set the file to be publicly readable
-  //       metadata: {
-  //         contentType: "application/plain", // Adjust the content type as needed
-  //       }
-  //     });
-  //     return result[0].metadata.mediaLink;
-  //   } catch (error) {
-  //     console.log(error);
-  //     throw new Error(error.message);
+  // };
+
+  // const handleFileDrop = (e) => {
+  //   e.preventDefault();
+  //   setDragOver(false);
+  //   const file = e.dataTransfer.files[0];
+  //   processFile(file);
+  // };
+
+  // const processFile = async (file) => {
+  //   if (file) {
+  //     const maxSize = formData.format === 'video' ? 2.5 * 1024 * 1024 : 2 * 1024 * 1024;
+  //     if (file.size > maxSize) {
+  //       setErrors(prev => ({
+  //         ...prev,
+  //         mediaFile: `File size must be less than ${formData.format === 'video' ? '2.5MB' : '2MB'}`
+  //       }));
+  //       return;
+  //     }
+
+  //     let link2upload = await uploadToBackend(file);
+  //     console.log("Uploaded File Link: ", link2upload);
+
+  //     setFormData(prev => ({
+  //       ...prev,
+  //       mediaFileLink: link2upload
+  //     }));
+  //     setFormData(prev => ({
+  //       ...prev,
+  //       mediaFile: file
+  //     }));
+  //     setErrors(prev => ({
+  //       ...prev,
+  //       mediaFile: ''
+  //     }));
   //   }
   // };
 
   const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
-    processFile(file);
-
+    const file = e.target.files?.[0];
+    await processFile(file);
   };
 
-  const handleFileDrop = (e) => {
+  const handleFileDrop = async (e) => {
     e.preventDefault();
     setDragOver(false);
-    const file = e.dataTransfer.files[0];
-    processFile(file);
+    const file = e.dataTransfer.files?.[0];
+    await processFile(file);
   };
 
+  // NOTE: no server upload here anymore. Only validate + prepare preview/localStorage.
   const processFile = async (file) => {
-    if (file) {
-      const maxSize = formData.format === 'video' ? 2.5 * 1024 * 1024 : 2 * 1024 * 1024;
-      if (file.size > maxSize) {
-        setErrors(prev => ({
-          ...prev,
-          mediaFile: `File size must be less than ${formData.format === 'video' ? '2.5MB' : '2MB'}`
-        }));
-        return;
-      }
+    if (!file) return;
 
-      let link2upload = await uploadToBackend(file);
-      console.log("Uploaded File Link: ", link2upload);
+    // Size limits (same as before)
+    const maxSize = formData.format === 'video' ? 2.5 * 1024 * 1024 : 2 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setErrors((prev) => ({
+        ...prev,
+        mediaFile: `File size must be less than ${formData.format === 'video' ? '2.5MB' : '2MB'}`
+      }));
+      return;
+    }
 
-      setFormData(prev => ({
+    try {
+      // Prepare preview data URL (safe to put in localStorage; your limits are small)
+      const dataUrl = await fileToDataURL(file);
+
+      setFormData((prev) => ({
         ...prev,
-        mediaFileLink: link2upload
+        mediaFile: file,
+        mediaFileLink: '',        // Clear any prior server link
+        mediaDataUrl: dataUrl,    // For preview tab
+        mediaMimeType: file.type || '',
+        mediaName: file.name || ''
       }));
-      setFormData(prev => ({
-        ...prev,
-        mediaFile: file
-      }));
-      setErrors(prev => ({
-        ...prev,
-        mediaFile: ''
-      }));
+
+      setErrors((prev) => ({ ...prev, mediaFile: '' }));
+    } catch (err) {
+      console.error('Failed to prepare file preview:', err);
+      setErrors((prev) => ({ ...prev, mediaFile: 'Could not read file for preview.' }));
     }
   };
 
@@ -350,169 +377,282 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  // const createAd = async (adData) => {
+  //   const formDataToSend = new FormData();
+
+  //   // Add text fields
+  //   formDataToSend.append('ad_uuid', adData.ad_uuid);
+  //   formDataToSend.append('title', adData.title);
+  //   formDataToSend.append('description', adData.description);
+  //   formDataToSend.append('link', adData.link);
+  //   formDataToSend.append('mediaLink', adData.mediaLink);
+  //   formDataToSend.append('format', adData.format);
+  //   formDataToSend.append('budget', adData.budget.toString());
+  //   formDataToSend.append('reward', adData.reward.toString());
+  //   formDataToSend.append('frequency', adData.frequency);
+
+  //   // Add quiz data as JSON string
+  //   formDataToSend.append('quiz', JSON.stringify(adData.quiz));
+
+  //   // Add media file if present
+  //   if (adData.mediaFile) {
+  //     formDataToSend.append('media', adData.mediaFile);
+  //   }
+
+  //   const response = await createAdroute(formDataToSend);
+  //   console.log('Ad created response:', response);
+  //   // const response = await fetch(`${API_BASE_URL}/api/ads/ad`, {
+  //   //   method: 'POST',
+  //   //   // headers: {
+  //   //   //   'Authorization': `Bearer ${token}`
+  //   //   // },
+  //   //   body: formDataToSend
+  //   // });
+
+  //   // if (!response.ok) {
+  //   //   const errorData = await response.json();
+  //   //   throw new Error(errorData.error || 'Failed to create ad');
+  //   // }
+
+  //   setTimeout(() => {
+  //     navigate(`/preview-ad/ad/${ad_uuid}`);
+  //     return response;
+  //   }, 1000);
+
+  // };
+
+  // const updateAd = async (adId, adData) => {
+  //   const formDataToSend = new FormData();
+
+  //   // Add text fields
+  //   formDataToSend.append('ad_uuid', adData.ad_uuid);
+  //   formDataToSend.append('title', adData.title);
+  //   formDataToSend.append('description', adData.description);
+  //   formDataToSend.append('link', adData.link);
+  //   formDataToSend.append('format', adData.format);
+  //   formDataToSend.append('budget', adData.budget.toString());
+  //   formDataToSend.append('reward', adData.reward.toString());
+  //   formDataToSend.append('frequency', adData.frequency);
+
+  //   // Add quiz data as JSON string
+  //   formDataToSend.append('quiz', JSON.stringify(adData.quiz));
+
+  //   // Add media file if present
+  //   if (adData.mediaFile) {
+  //     formDataToSend.append('media', adData.mediaFile);
+  //   }
+
+  //   const response = await updateAdroute(formDataToSend);
+  //   console.log('Ad updated response:', response);
+
+  //   // const response = await fetch(`${API_BASE_URL}/api/ads/ad/${adId}`, {
+  //   //   method: 'PUT',
+  //   //   headers: {
+  //   //     'Authorization': `Bearer ${token}`
+  //   //   },
+  //   //   body: formDataToSend
+  //   // });
+
+  //   if (!response.ok) {
+  //     const errorData = await response.json();
+  //     throw new Error(errorData.error || 'Failed to update ad');
+  //   }
+
+  //   // setTimeout(() => {
+  //   if (confirm("Do you want a preview of the updated AD?")) {
+  //     navigate(`/preview-ad/ad/${ad_uuid}`);
+  //     return response;
+  //   }
+
+  //   // }, 1000);
+
+  //   // return response.json();
+  // };
+
   const createAd = async (adData) => {
     const formDataToSend = new FormData();
-
-    // Add text fields
     formDataToSend.append('ad_uuid', adData.ad_uuid);
     formDataToSend.append('title', adData.title);
     formDataToSend.append('description', adData.description);
     formDataToSend.append('link', adData.link);
-    formDataToSend.append('mediaLink', adData.mediaLink);
+    formDataToSend.append('mediaLink', adData.mediaLink || ''); // <-- link you just got
     formDataToSend.append('format', adData.format);
-    formDataToSend.append('budget', adData.budget.toString());
-    formDataToSend.append('reward', adData.reward.toString());
+    formDataToSend.append('budget', String(adData.budget));
+    formDataToSend.append('reward', String(adData.reward));
     formDataToSend.append('frequency', adData.frequency);
-
-    // Add quiz data as JSON string
     formDataToSend.append('quiz', JSON.stringify(adData.quiz));
-
-    // Add media file if present
-    if (adData.mediaFile) {
-      formDataToSend.append('media', adData.mediaFile);
-    }
 
     const response = await createAdroute(formDataToSend);
     console.log('Ad created response:', response);
-    // const response = await fetch(`${API_BASE_URL}/api/ads/ad`, {
-    //   method: 'POST',
-    //   // headers: {
-    //   //   'Authorization': `Bearer ${token}`
-    //   // },
-    //   body: formDataToSend
-    // });
 
-    // if (!response.ok) {
-    //   const errorData = await response.json();
-    //   throw new Error(errorData.error || 'Failed to create ad');
-    // }
-
-    setTimeout(() => {
-      navigate(`/preview-ad/ad/${ad_uuid}`);
-      return response;
-    }, 1000);
-
+    // Navigate happens in handleSubmit
+    return response;
   };
 
   const updateAd = async (adId, adData) => {
     const formDataToSend = new FormData();
-
-    // Add text fields
     formDataToSend.append('ad_uuid', adData.ad_uuid);
     formDataToSend.append('title', adData.title);
     formDataToSend.append('description', adData.description);
     formDataToSend.append('link', adData.link);
+    formDataToSend.append('mediaLink', adData.mediaLink || '');
     formDataToSend.append('format', adData.format);
-    formDataToSend.append('budget', adData.budget.toString());
-    formDataToSend.append('reward', adData.reward.toString());
+    formDataToSend.append('budget', String(adData.budget));
+    formDataToSend.append('reward', String(adData.reward));
     formDataToSend.append('frequency', adData.frequency);
-
-    // Add quiz data as JSON string
     formDataToSend.append('quiz', JSON.stringify(adData.quiz));
-
-    // Add media file if present
-    if (adData.mediaFile) {
-      formDataToSend.append('media', adData.mediaFile);
-    }
 
     const response = await updateAdroute(formDataToSend);
     console.log('Ad updated response:', response);
-
-    // const response = await fetch(`${API_BASE_URL}/api/ads/ad/${adId}`, {
-    //   method: 'PUT',
-    //   headers: {
-    //     'Authorization': `Bearer ${token}`
-    //   },
-    //   body: formDataToSend
-    // });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to update ad');
-    }
-
-    // setTimeout(() => {
-    if (confirm("Do you want a preview of the updated AD?")) {
-      navigate(`/preview-ad/ad/${ad_uuid}`);
-      return response;
-    }
-
-    // }, 1000);
-
-    // return response.json();
+    return response;
   };
+
+
+  // const handleSubmit = async () => {
+  //   if (!validateForm()) {
+  //     setNotification({
+  //       open: true,
+  //       message: 'Please fix the errors in the form',
+  //       severity: 'error'
+  //     });
+  //     return;
+  //   }
+
+  //   if (!token) {
+  //     setNotification({
+  //       open: true,
+  //       message: 'Authentication required. Please log in.',
+  //       severity: 'error'
+  //     });
+  //     return;
+  //   }
+
+  //   setLoading(true);
+
+  //   try {
+  //     let result;
+  //     if (editingAd) {
+  //       result = await updateAd(editingAd.id, formData);
+  //       setNotification({
+  //         open: true,
+  //         message: 'Advertisement updated successfully!',
+  //         severity: 'success'
+  //       });
+  //     } else {
+  //       result = await createAd(formData);
+  //       setNotification({
+  //         open: true,
+  //         message: 'Advertisement created successfully!',
+  //         severity: 'success'
+  //       });
+
+  //       // Reset form after successful creation
+  //       setFormData({
+  //         ad_uuid: setAD_uuid(uuidv4()),
+  //         title: '',
+  //         description: '',
+  //         link: '',
+  //         format: 'regular',
+  //         mediaFile: null,
+  //         budget: 2000,
+  //         reward: 0,
+  //         frequency: 'moderate',
+  //         quiz: [
+  //           { question: '', type: 'multiple', options: ['', '', '', ''], correct: 0, answer: '' }
+  //         ]
+  //       });
+  //     }
+
+  //     // Call parent onSave if provided
+  //     if (onSave) {
+  //       onSave(result);
+  //     }
+
+  //   } catch (error) {
+  //     console.error('Error saving ad:', error);
+  //     setNotification({
+  //       open: true,
+  //       message: error.message || 'Failed to save advertisement',
+  //       severity: 'error'
+  //     });
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const handleSubmit = async () => {
     if (!validateForm()) {
-      setNotification({
-        open: true,
-        message: 'Please fix the errors in the form',
-        severity: 'error'
-      });
+      setNotification({ open: true, message: 'Please fix the errors in the form', severity: 'error' });
       return;
     }
-
     if (!token) {
-      setNotification({
-        open: true,
-        message: 'Authentication required. Please log in.',
-        severity: 'error'
-      });
+      setNotification({ open: true, message: 'Authentication required. Please log in.', severity: 'error' });
       return;
     }
 
     setLoading(true);
 
     try {
+      // 1) Ensure we have a mediaLink (upload now if not yet uploaded)
+      let mediaLink = formData.mediaFileLink;
+      if (!mediaLink && formData.mediaFile) {
+        mediaLink = await uploadToBackend(formData.mediaFile); // server returns { mediaLink }
+        setFormData((prev) => ({ ...prev, mediaFileLink: mediaLink }));
+      }
+
+      // 2) Build payload for create/update (no raw File, just link + fields)
+      const adPayload = {
+        ...formData,
+        mediaLink,
+      };
+      delete adPayload.mediaFile; // don't send the file; upload already done
+      delete adPayload.mediaDataUrl; // preview only
+      delete adPayload.mediaMimeType;
+      delete adPayload.mediaName;
+
       let result;
       if (editingAd) {
-        result = await updateAd(editingAd.id, formData);
-        setNotification({
-          open: true,
-          message: 'Advertisement updated successfully!',
-          severity: 'success'
-        });
+        result = await updateAd(editingAd.id, adPayload);
+        setNotification({ open: true, message: 'Advertisement updated successfully!', severity: 'success' });
       } else {
-        result = await createAd(formData);
-        setNotification({
-          open: true,
-          message: 'Advertisement created successfully!',
-          severity: 'success'
-        });
+        result = await createAd(adPayload);
+        setNotification({ open: true, message: 'Advertisement created successfully!', severity: 'success' });
 
-        // Reset form after successful creation
+        // Reset ad_uuid and form (fixing the setAD_uuid() misuse)
+        const newUuid = uuidv4();
+        setAD_uuid(newUuid);
         setFormData({
-          ad_uuid: setAD_uuid(uuidv4()),
+          ad_uuid: newUuid,
           title: '',
           description: '',
           link: '',
           format: 'regular',
           mediaFile: null,
+          mediaFileLink: '',
+          mediaDataUrl: '',
+          mediaMimeType: '',
+          mediaName: '',
           budget: 2000,
           reward: 0,
           frequency: 'moderate',
-          quiz: [
-            { question: '', type: 'multiple', options: ['', '', '', ''], correct: 0, answer: '' }
-          ]
+          quiz: [{ question: '', type: 'multiple', options: ['', '', '', ''], correct: 0, answer: '' }]
         });
       }
 
-      // Call parent onSave if provided
-      if (onSave) {
-        onSave(result);
-      }
+      if (onSave) onSave(result);
 
+      // Optional: navigate to preview of the created ad
+      setTimeout(() => {
+        navigate(`/preview-ad/${ad_uuid}`);
+      }, 500);
     } catch (error) {
       console.error('Error saving ad:', error);
-      setNotification({
-        open: true,
-        message: error.message || 'Failed to save advertisement',
-        severity: 'error'
-      });
+      setNotification({ open: true, message: error.message || 'Failed to save advertisement', severity: 'error' });
     } finally {
       setLoading(false);
     }
   };
+
 
   const goToAdPreview = (adData) => {
     // if (ad?.link) {
@@ -520,52 +660,77 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
     // }
   };
 
+  // const handlePreviewAd = async () => {
+  //   if (!validateForm()) {
+  //     setNotification({
+  //       open: true,
+  //       message: 'Please fix the errors in the form',
+  //       severity: 'error'
+  //     });
+  //     return;
+  //   }
+
+  //   if (!token) {
+  //     setNotification({
+  //       open: true,
+  //       message: 'Authentication required. Please log in.',
+  //       severity: 'error'
+  //     });
+  //     return;
+  //   }
+
+  //   setLoading(true);
+
+  //   try {
+  //     let result;
+
+  //     localStorage.setItem('previewAdData', JSON.stringify(formData));
+  //     // navigate(`/preview/pending-ad/?ad_uuid=${formData.ad_uuid}&title=${encodeURIComponent(formData.title)}&description=${encodeURIComponent(formData.description)}&link=${encodeURIComponent(formData.link)}&format=${formData.format}&budget=${formData.budget}&reward=${formData.reward}&frequency=${formData.frequency}&quiz=${encodeURIComponent(JSON.stringify(formData.quiz))}`);
+  //     // navigate(`/preview/pending-ad/`);
+
+  //     goToAdPreview(formData);
+
+  //     // Call parent onSave if provided
+  //     if (onSave) {
+  //       onSave(result);
+  //     }
+
+  //   } catch (error) {
+  //     console.error('Error saving ad:', error);
+  //     setNotification({
+  //       open: true,
+  //       message: error.message || 'Failed to save advertisement',
+  //       severity: 'error'
+  //     });
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const handlePreviewAd = async () => {
     if (!validateForm()) {
-      setNotification({
-        open: true,
-        message: 'Please fix the errors in the form',
-        severity: 'error'
-      });
+      setNotification({ open: true, message: 'Please fix the errors in the form', severity: 'error' });
       return;
     }
-
     if (!token) {
-      setNotification({
-        open: true,
-        message: 'Authentication required. Please log in.',
-        severity: 'error'
-      });
+      setNotification({ open: true, message: 'Authentication required. Please log in.', severity: 'error' });
       return;
     }
 
     setLoading(true);
-
     try {
-      let result;
-
+      // Persist everything needed by the preview page
       localStorage.setItem('previewAdData', JSON.stringify(formData));
-      // navigate(`/preview/pending-ad/?ad_uuid=${formData.ad_uuid}&title=${encodeURIComponent(formData.title)}&description=${encodeURIComponent(formData.description)}&link=${encodeURIComponent(formData.link)}&format=${formData.format}&budget=${formData.budget}&reward=${formData.reward}&frequency=${formData.frequency}&quiz=${encodeURIComponent(JSON.stringify(formData.quiz))}`);
-      // navigate(`/preview/pending-ad/`);
-
-      goToAdPreview(formData);
-
-      // Call parent onSave if provided
-      if (onSave) {
-        onSave(result);
-      }
-
+      // Open preview
+      window.open("/preview/pending-ad/", "_blank");
     } catch (error) {
-      console.error('Error saving ad:', error);
-      setNotification({
-        open: true,
-        message: error.message || 'Failed to save advertisement',
-        severity: 'error'
-      });
+      console.error('Error preparing preview:', error);
+      setNotification({ open: true, message: error.message || 'Could not open preview', severity: 'error' });
     } finally {
       setLoading(false);
     }
   };
+
 
   const handleCloseNotification = () => {
     setNotification({ ...notification, open: false });
@@ -963,7 +1128,7 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
           </StyledPaper>
 
           {/* Submit Button */}
-          <Box sx={{ position: 'sticky', gap: 10, bottom: 16, zIndex: 10 }}>
+          <Box sx={{ mt: 4 }}>
             <StyledPaper>
               <Button
                 style={{ marginBottom: '10px' }}
@@ -991,7 +1156,7 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
                   : (editingAd ? 'Preview Update Advertisement' : 'Preview New Ad')
                 }
               </Button>
-              {/* <br>2</br> */}
+
               <Button
                 fullWidth
                 variant="contained"
@@ -1019,6 +1184,63 @@ const CreateAdPage = ({ onSave, editingAd = null, authToken }) => {
               </Button>
             </StyledPaper>
           </Box>
+
+          {/* <Box sx={{ position: 'sticky', gap: 10, bottom: 16, zIndex: 10 }}>
+            <StyledPaper>
+              <Button
+                style={{ marginBottom: '10px' }}
+                fullWidth
+                variant="contained"
+                size="large"
+                startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <SaveIcon />}
+                onClick={handlePreviewAd}
+                disabled={loading}
+                sx={{
+                  py: 2,
+                  fontSize: '1.1rem',
+                  fontWeight: 'bold',
+                  background: loading ? 'rgba(25, 118, 210, 0.5)' : 'linear-gradient(135deg, #1976d2, #42a5f5)',
+                  '&:hover': {
+                    background: loading ? 'rgba(25, 118, 210, 0.5)' : 'linear-gradient(135deg, #1565c0, #1976d2)',
+                    transform: loading ? 'none' : 'translateY(-2px)',
+                    boxShadow: loading ? 'none' : 4
+                  },
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                {loading
+                  ? (editingAd ? 'Updating Advertisement...' : 'Creating Advertisement...')
+                  : (editingAd ? 'Preview Update Advertisement' : 'Preview New Ad')
+                }
+              </Button> */}
+          {/* <br>2</br> */}
+          {/* <Button
+                fullWidth
+                variant="contained"
+                size="large"
+                startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <SaveIcon />}
+                onClick={handleSubmit}
+                disabled={loading}
+                sx={{
+                  py: 2,
+                  fontSize: '1.1rem',
+                  fontWeight: 'bold',
+                  background: loading ? 'rgba(62, 210, 25, 0.5)' : 'linear-gradient(135deg, #4ad219ff, #42f57eff)',
+                  '&:hover': {
+                    background: loading ? 'rgba(62, 210, 25, 0.5)' : 'linear-gradient(135deg, #1dc015ff, #2fd219ff)',
+                    transform: loading ? 'none' : 'translateY(-2px)',
+                    boxShadow: loading ? 'none' : 4
+                  },
+                  transition: 'all 0.3s ease'
+                }}
+              >
+                {loading
+                  ? (editingAd ? 'Updating Advertisement...' : 'Creating Advertisement...')
+                  : (editingAd ? 'Update Advertisement' : 'Create Advertisement')
+                }
+              </Button> */}
+          {/* </StyledPaper> */}
+          {/* </Box> */}
         </Stack>
 
         {/* Notification Snackbar */}
