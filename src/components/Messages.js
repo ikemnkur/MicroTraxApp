@@ -1,7 +1,7 @@
+// Messages.js (updated styling + mobile UX)
 import React, { useState, useEffect, useRef } from 'react';
-// import { ArrowForward } from '@mui/material'; // Add this to your imports
-import { useNavigate } from 'react-router-dom'; // Add this if not already imported
-
+import { useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
 
 import {
   Typography, TextField, Button, List, ListItem, ListItemText, ListItemAvatar,
@@ -15,8 +15,9 @@ import {
   Reply as ReplyIcon, Close as CloseIcon, Search as SearchIcon, MoreVert as MoreVertIcon,
   Block as BlockIcon, Delete as DeleteIcon, Schedule as ScheduleIcon, Clear as ClearIcon
 } from '@mui/icons-material';
-import axios from 'axios';
-import { useParams } from 'react-router-dom';
+
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 const Messages = () => {
   const [conversations, setConversations] = useState([]);
@@ -34,7 +35,6 @@ const Messages = () => {
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
 
-
   // New states for user search functionality
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -43,13 +43,14 @@ const Messages = () => {
 
   const messagesEndRef = useRef(null);
   const { username } = useParams();
+  const navigate = useNavigate();
 
   const API_URL = process.env.REACT_APP_API_SERVER_URL || 'http://localhost:5000';
 
-  // Add this inside your component (before the return statement):
-  const navigate = useNavigate();
+  // THEME + MOBILE BREAKPOINT
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
-  // Also update your handleProfileNavigation function:
   const handleProfileNavigation = (username, event) => {
     event.stopPropagation();
     navigate(`/user/${username}`);
@@ -74,7 +75,6 @@ const Messages = () => {
       setFilteredConversations(conversations);
     } else {
       const filtered = conversations.filter(conv => {
-        // console.log('Filtering conversation (otherUser):', conv.otherUser);
         let temp = conv.otherUser.username || conv.otherUser.toLowerCase();
         return temp.includes(conversationSearch.toLowerCase()) ||
           (conv.lastMessage && conv.lastMessage.toLowerCase().includes(conversationSearch.toLowerCase()));
@@ -146,8 +146,6 @@ const Messages = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setCurrentConversation(response.data);
-
-      // Mark messages as read
       await markMessagesAsRead(otherUser);
     } catch (error) {
       if (error.response?.status === 403) {
@@ -174,7 +172,6 @@ const Messages = () => {
   };
 
   const handleSelectUser = (username) => {
-    // get profile picture of the selected user
     const selectedConversation = conversations.find(conv => conv.otherUser.username === username);
     setSelectedUser(username);
     setCurrentUserPic(selectedConversation?.otherUser.profilePic || '');
@@ -289,12 +286,9 @@ const Messages = () => {
     setReplyingTo(message);
   };
 
-  // Updated function to validate user existence
   const validateAndStartConversation = async (username) => {
     try {
       const token = localStorage.getItem('token');
-
-      // Check if user exists
       const response = await axios.get(`${API_URL}/api/user/exists/${username}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -322,9 +316,7 @@ const Messages = () => {
 
   const startNewConversation = async () => {
     const username = selectedSearchUser || searchUsername.trim();
-    if (username) {
-      await validateAndStartConversation(username);
-    }
+    if (username) await validateAndStartConversation(username);
   };
 
   const handleSelectSearchUser = (user) => {
@@ -357,13 +349,9 @@ const Messages = () => {
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
 
-    if (messageDate.toDateString() === today.toDateString()) {
-      return 'Today';
-    } else if (messageDate.toDateString() === yesterday.toDateString()) {
-      return 'Yesterday';
-    } else {
-      return messageDate.toLocaleDateString();
-    }
+    if (messageDate.toDateString() === today.toDateString()) return 'Today';
+    if (messageDate.toDateString() === yesterday.toDateString()) return 'Yesterday';
+    return messageDate.toLocaleDateString();
   };
 
   const formatAutoDeleteTime = (timestamp) => {
@@ -412,7 +400,7 @@ const Messages = () => {
           alignItems: 'flex-end'
         }}>
           <Box sx={{
-            maxWidth: '70%',
+            maxWidth: '80%',
             display: 'flex',
             flexDirection: 'column',
             alignItems: isOwnMessage ? 'flex-end' : 'flex-start'
@@ -441,9 +429,11 @@ const Messages = () => {
             )}
             <Paper sx={{
               p: 1.5,
-              bgcolor: isOwnMessage ? 'primary.main' : 'grey.200',
+              bgcolor: isOwnMessage ? 'primary.main' : '#f1f3f5',
               color: isOwnMessage ? 'white' : 'text.primary',
-              borderRadius: 2,
+              borderRadius: 3,
+              border: isOwnMessage ? 'none' : '1px solid #e9ecef',
+              boxShadow: 'none',
               position: 'relative'
             }}>
               <Typography variant="body1">{msg.text}</Typography>
@@ -451,12 +441,9 @@ const Messages = () => {
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                mt: 0.5
+                mt: 0.75
               }}>
-                <Typography variant="caption" sx={{
-                  opacity: 0.7,
-                  color: isOwnMessage ? 'inherit' : 'text.secondary'
-                }}>
+                <Typography variant="caption" sx={{ opacity: 0.8 }}>
                   {formatTime(msg.timestamp)}
                   {msg.read && isOwnMessage && ' • Read'}
                 </Typography>
@@ -464,14 +451,14 @@ const Messages = () => {
                   <IconButton
                     size="small"
                     onClick={() => handleLikeMessage(msg.id, msg.liked)}
-                    sx={{ color: isOwnMessage ? 'inherit' : 'text.secondary' }}
+                    sx={{ color: 'inherit' }}
                   >
                     {msg.liked ? <FavoriteIcon fontSize="small" /> : <FavoriteBorderIcon fontSize="small" />}
                   </IconButton>
                   <IconButton
                     size="small"
                     onClick={() => handleReply(msg)}
-                    sx={{ color: isOwnMessage ? 'inherit' : 'text.secondary' }}
+                    sx={{ color: 'inherit' }}
                   >
                     <ReplyIcon fontSize="small" />
                   </IconButton>
@@ -493,282 +480,309 @@ const Messages = () => {
   }
 
   return (
-    <Box sx={{ maxWidth: 1200, margin: 'auto', p: 2 }}>
-      <Typography variant="h4" gutterBottom>Messages</Typography>
+    <Box sx={{ maxWidth: 1200, margin: 'auto', p: { xs: 1.5, sm: 2 } }}>
+      {/* Gradient Header to match SendMoney */}
+      <Box sx={{ mb: 2, textAlign: 'center' }}>
+        <Typography
+          variant="h3"
+          component="h1"
+          sx={{
+            fontWeight: 700,
+            background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+            backgroundClip: 'text',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            mb: 0.5
+          }}
+        >
+          Messages
+        </Typography>
+        <Typography variant="h6" color="text.secondary">
+          Chat with other users securely
+        </Typography>
+      </Box>
 
-      <Grid container spacing={2} sx={{ height: '80vh' }}>
+      <Grid container spacing={2} sx={{ height: { xs: 'auto', md: '80vh' } }}>
         {/* Conversations List */}
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <Box sx={{ p: 2 }}>
-              <Button
-                variant="contained"
-                fullWidth
-                onClick={() => setOpenNewChat(true)}
-                sx={{ mb: 2 }}
-              >
-                New Chat
-              </Button>
+        {(!isMobile || !selectedUser) && (
+          <Grid item xs={12} md={4}>
+            <Paper
+              sx={{
+                height: { xs: 'auto', md: '100%' },
+                display: 'flex',
+                flexDirection: 'column',
+                backgroundColor: '#f8f9fa',
+                border: '1px solid #e9ecef'
+              }}
+            >
+              <Box sx={{ p: 2 }}>
+                <Button
+                  variant="contained"
+                  fullWidth
+                  onClick={() => setOpenNewChat(true)}
+                  sx={{ mb: 2, textTransform: 'none', fontWeight: 600 }}
+                >
+                  New Chat
+                </Button>
 
-              {/* Search Bar */}
-              <TextField
-                fullWidth
-                size="small"
-                placeholder="Search conversations..."
-                value={conversationSearch}
-                onChange={(e) => setConversationSearch(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon />
-                    </InputAdornment>
-                  ),
-                  endAdornment: conversationSearch && (
-                    <InputAdornment position="end">
-                      <IconButton size="small" onClick={clearConversationSearch}>
-                        <ClearIcon />
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{ mb: 1 }}
-              />
-            </Box>
-            <Divider />
-            {/* // Modified List component: */}
-            {/* // Updated List component with profile pictures: */}
-            <List sx={{ flexGrow: 1, overflow: 'auto' }}>
-              {filteredConversations.length > 0 ? (
-                filteredConversations.map((conv) => (
-                  <ListItem
-                    button
-                    key={conv.otherUser.username}
-                    selected={selectedUser === conv.otherUser.username}
-                    onClick={() => handleSelectUser(conv.otherUser.username)}
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      '&:hover .profile-arrow': {
-                        opacity: 1,
-                      }
-                    }}
-                  >
-                    <ListItemAvatar>
-                      <Avatar
-                        src={conv.otherUser.profilePic}
-                        alt={conv.otherUser.username}
-                      >
-                        {conv.otherUser.username.charAt(0).toUpperCase()}
-                      </Avatar>
-                    </ListItemAvatar>
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder="Search conversations..."
+                  value={conversationSearch}
+                  onChange={(e) => setConversationSearch(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon />
+                      </InputAdornment>
+                    ),
+                    endAdornment: conversationSearch && (
+                      <InputAdornment position="end">
+                        <IconButton size="small" onClick={clearConversationSearch} aria-label="Clear search">
+                          <ClearIcon />
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Box>
+              <Divider />
+              <List sx={{ flexGrow: 1, overflow: 'auto' }}>
+                {filteredConversations.length > 0 ? (
+                  filteredConversations.map((conv) => (
+                    <ListItem
+                      button
+                      key={conv.otherUser.username}
+                      selected={selectedUser === conv.otherUser.username}
+                      onClick={() => handleSelectUser(conv.otherUser.username)}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        '&:hover .profile-arrow': { opacity: 1 },
+                      }}
+                    >
+                      <ListItemAvatar>
+                        <Avatar
+                          src={conv.otherUser.profilePic}
+                          alt={conv.otherUser.username}
+                          sx={{ border: '2px solid', borderColor: 'primary.light' }}
+                        >
+                          {conv.otherUser.username.charAt(0).toUpperCase()}
+                        </Avatar>
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                              {conv.otherUser.username}
+                            </Typography>
+                            {conv.isBlocked && (<Chip label="Blocked" size="small" color="error" />)}
+                            {conv.pendingResponse && (<Chip label="Waiting" size="small" color="warning" />)}
+                          </Box>
+                        }
+                        secondary={
+                          <Box>
+                            <Typography variant="body2" color="text.secondary">
+                              {conv.lastMessage || 'No messages yet'}
+                            </Typography>
+                            {conv.autoDeleteAt && (
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
+                                <ScheduleIcon fontSize="small" color="action" />
+                                <Typography variant="caption" color="text.secondary">
+                                  Auto-delete in {formatAutoDeleteTime(conv.autoDeleteAt)}
+                                </Typography>
+                              </Box>
+                            )}
+                          </Box>
+                        }
+                      />
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {conv.unreadCount > 0 && (
+                          <Chip label={conv.unreadCount} size="small" color="primary" />
+                        )}
+                        <IconButton
+                          className="profile-arrow"
+                          size="small"
+                          onClick={(event) => handleProfileNavigation(conv.otherUser.username, event)}
+                          sx={{
+                            opacity: 0.7,
+                            transition: 'opacity 0.2s ease',
+                            '&:hover': { opacity: 1, backgroundColor: 'action.hover' }
+                          }}
+                          title={`View ${conv.otherUser.username}'s profile`}
+                        >
+                          <ArrowForwardIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    </ListItem>
+                  ))
+                ) : (
+                  <ListItem>
                     <ListItemText
                       primary={
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Typography variant="subtitle1">
-                            {conv.otherUser.username}
-                          </Typography>
-                          {conv.isBlocked && (
-                            <Chip label="Blocked" size="small" color="error" />
-                          )}
-                          {conv.pendingResponse && (
-                            <Chip label="Waiting" size="small" color="warning" />
-                          )}
-                        </Box>
-                      }
-                      secondary={
-                        <Box>
-                          <Typography variant="body2" color="text.secondary">
-                            {conv.lastMessage || 'No messages yet'}
-                          </Typography>
-                          {conv.autoDeleteAt && (
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
-                              <ScheduleIcon fontSize="small" color="action" />
-                              <Typography variant="caption" color="text.secondary">
-                                Auto-delete in {formatAutoDeleteTime(conv.autoDeleteAt)}
-                              </Typography>
-                            </Box>
-                          )}
-                        </Box>
+                        <Typography variant="body2" color="text.secondary" align="center" sx={{ width: '100%' }}>
+                          {conversationSearch ? 'No conversations found' : 'No conversations yet'}
+                        </Typography>
                       }
                     />
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      {conv.unreadCount > 0 && (
-                        <Chip
-                          label={conv.unreadCount}
-                          size="small"
-                          color="primary"
-                        />
-                      )}
-                      <IconButton
-                        className="profile-arrow"
-                        size="small"
-                        onClick={(event) => handleProfileNavigation(conv.otherUser.username, event)}
-                        sx={{
-                          opacity: 0.7,
-                          transition: 'opacity 0.2s ease',
-                          '&:hover': {
-                            opacity: 1,
-                            backgroundColor: 'action.hover'
-                          }
-                        }}
-                        title={`View ${conv.otherUser.username}'s profile`}
-                      >
-                        <ArrowForwardIcon fontSize="small" />
-                      </IconButton>
-                    </Box>
                   </ListItem>
-                ))
-              ) : (
-                <ListItem>
-                  <ListItemText
-                    primary={
-                      <Typography variant="body2" color="text.secondary" align="center">
-                        {conversationSearch ? 'No conversations found' : 'No conversations yet'}
-                      </Typography>
-                    }
-                  />
-                </ListItem>
-              )}
-            </List>
-          </Paper>
-        </Grid>
+                )}
+              </List>
+            </Paper>
+          </Grid>
+        )}
 
         {/* Messages Area */}
-        <Grid item xs={12} md={8}>
-          <Paper sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            {selectedUser ? (
-              <>
-                {/* Header */}
-                <Box sx={{
-                  p: 2,
-                  borderBottom: 1,
-                  borderColor: 'divider',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center'
-                }}> {/* <ListItemAvatar> */}
-                  <Avatar style={{ marginRight: '-65%' }}
-                    src={currentUserPic}
-                    alt={selectedUser}
-                  >
-                    {selectedUser.charAt(0).toUpperCase()}
-                  </Avatar>
-                  {/* </ListItemAvatar> */}
-                  <Box>
-
-                    <Typography variant="h6">{selectedUser}</Typography>
-                    {currentConversation?.pendingResponse && (
-                      <Typography variant="caption" color="warning.main">
-                        Waiting for response before you can send another message
-                      </Typography>
+        {(!isMobile || selectedUser) && (
+          <Grid item xs={12} md={8}>
+            <Paper sx={{ height: { xs: '70vh', md: '100%' }, display: 'flex', flexDirection: 'column', border: '1px solid #e9ecef' }}>
+              {selectedUser ? (
+                <>
+                  {/* Sticky Header */}
+                  <Box sx={{
+                    p: 2,
+                    borderBottom: '1px solid',
+                    borderColor: 'divider',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1.5,
+                    position: 'sticky',
+                    top: 0,
+                    bgcolor: 'background.paper',
+                    zIndex: 1
+                  }}>
+                    {isMobile && (
+                      <IconButton aria-label="Back to conversations" onClick={() => setSelectedUser(null)}>
+                        <ArrowBackIcon />
+                      </IconButton>
                     )}
-                    {currentConversation?.autoDeleteAt && (
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                        Auto-delete in {formatAutoDeleteTime(currentConversation.autoDeleteAt)}
-                      </Typography>
-                    )}
-                  </Box>
-                  <IconButton onClick={(e) => setMenuAnchor(e.currentTarget)}>
-                    <MoreVertIcon />
-                  </IconButton>
-                </Box>
 
-                {/* Messages */}
-                <Box sx={{
-                  flexGrow: 1,
-                  overflowY: 'auto',
-                  p: 2,
-                  display: 'flex',
-                  flexDirection: 'column'
-                }}>
-                  {currentConversation?.status?.includes('blocked') && (
-                    <Alert severity="warning" sx={{ mb: 2 }}>
-                      This conversation is blocked by {currentConversation.status === 'blocked_by_user1' ?
-                        (currentConversation.user1 === currentUser ? 'you' : currentConversation.user1) :
-                        (currentConversation.user2 === currentUser ? 'you' : currentConversation.user2)
-                      }
-                    </Alert>
-                  )}
+                    <Avatar
+                      src={currentUserPic}
+                      alt={selectedUser}
+                      sx={{ width: 40, height: 40, border: '2px solid', borderColor: 'primary.main' }}
+                    >
+                      {selectedUser.charAt(0).toUpperCase()}
+                    </Avatar>
 
-                  {currentConversation?.messages?.length > 0 ? (
-                    currentConversation.messages.map((msg, index) => renderMessage(msg, index))
-                  ) : (
-                    <Box sx={{
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      height: '100%'
-                    }}>
-                      <Typography color="text.secondary">
-                        No messages yet. Start the conversation!
-                      </Typography>
-                    </Box>
-                  )}
-                  <div ref={messagesEndRef} />
-                </Box>
-
-                {/* Reply Preview */}
-                {replyingTo && (
-                  <Box sx={{ p: 1, bgcolor: 'grey.50', borderTop: 1, borderColor: 'divider' }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Box>
-                        <Typography variant="caption" color="primary">
-                          Replying to {replyingTo.sender}:
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography variant="h6" sx={{ fontWeight: 600, lineHeight: 1.2 }}>{selectedUser}</Typography>
+                      {currentConversation?.pendingResponse && (
+                        <Typography variant="caption" color="warning.main">
+                          Waiting for response before you can send another message
                         </Typography>
-                        <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
-                          {replyingTo.text}
+                      )}
+                      {currentConversation?.autoDeleteAt && (
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                          Auto-delete in {formatAutoDeleteTime(currentConversation.autoDeleteAt)}
+                        </Typography>
+                      )}
+                    </Box>
+
+                    <IconButton onClick={(e) => setMenuAnchor(e.currentTarget)} aria-label="Conversation options">
+                      <MoreVertIcon />
+                    </IconButton>
+                  </Box>
+
+                  {/* Messages */}
+                  <Box sx={{
+                    flexGrow: 1,
+                    overflowY: 'auto',
+                    p: { xs: 1.5, sm: 2 },
+                    backgroundColor: '#f8f9fa'
+                  }}>
+                    {currentConversation?.status?.includes('blocked') && (
+                      <Alert severity="warning" sx={{ mb: 2 }}>
+                        This conversation is blocked by {currentConversation.status === 'blocked_by_user1' ?
+                          (currentConversation.user1 === currentUser ? 'you' : currentConversation.user1) :
+                          (currentConversation.user2 === currentUser ? 'you' : currentConversation.user2)
+                        }
+                      </Alert>
+                    )}
+
+                    {currentConversation?.messages?.length > 0 ? (
+                      currentConversation.messages.map((msg, index) => renderMessage(msg, index))
+                    ) : (
+                      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                        <Typography color="text.secondary">
+                          No messages yet. Start the conversation!
                         </Typography>
                       </Box>
-                      <IconButton size="small" onClick={() => setReplyingTo(null)}>
-                        <CloseIcon />
-                      </IconButton>
-                    </Box>
+                    )}
+                    <div ref={messagesEndRef} />
                   </Box>
-                )}
 
-                {/* Message Input */}
-                {!currentConversation?.status?.includes('blocked') && (
-                  <Box sx={{ p: 2, borderTop: 1, borderColor: 'divider' }}>
-                    <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: 8 }}>
-                      <TextField
-                        fullWidth
-                        value={messageText}
-                        onChange={(e) => setMessageText(e.target.value)}
-                        placeholder={currentConversation?.pendingResponse ?
-                          "Wait for response..." : "Type your message..."
-                        }
-                        variant="outlined"
-                        size="small"
-                        multiline
-                        maxRows={4}
-                        disabled={currentConversation?.pendingResponse}
-                      />
-                      <Button
-                        type="submit"
-                        variant="contained"
-                        endIcon={<SendIcon />}
-                        disabled={!messageText.trim() || currentConversation?.pendingResponse}
-                      >
-                        Send
-                      </Button>
-                    </form>
-                  </Box>
-                )}
-              </>
-            ) : (
-              <Box sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '100%'
-              }}>
-                <Typography variant="h6" color="text.secondary">
-                  Select a conversation to start messaging
-                </Typography>
-              </Box>
-            )}
-          </Paper>
-        </Grid>
+                  {/* Reply Preview */}
+                  {replyingTo && (
+                    <Box sx={{ p: 1, bgcolor: 'grey.50', borderTop: 1, borderColor: 'divider' }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Box>
+                          <Typography variant="caption" color="primary">
+                            Replying to {replyingTo.sender}:
+                          </Typography>
+                          <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
+                            {replyingTo.text}
+                          </Typography>
+                        </Box>
+                        <IconButton size="small" onClick={() => setReplyingTo(null)} aria-label="Cancel reply">
+                          <CloseIcon />
+                        </IconButton>
+                      </Box>
+                    </Box>
+                  )}
+
+                  {/* Sticky Input (hidden if blocked) */}
+                  {!currentConversation?.status?.includes('blocked') && (
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 2,
+                        borderTop: '1px solid',
+                        borderColor: 'divider',
+                        position: 'sticky',
+                        bottom: 0,
+                        bgcolor: 'background.paper',
+                        pb: 'max(16px, env(safe-area-inset-bottom))'
+                      }}
+                    >
+                      <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: 8 }}>
+                        <TextField
+                          fullWidth
+                          value={messageText}
+                          onChange={(e) => setMessageText(e.target.value)}
+                          placeholder={currentConversation?.pendingResponse ?
+                            "Wait for response..." : "Type your message..."
+                          }
+                          variant="outlined"
+                          size="small"
+                          multiline
+                          maxRows={4}
+                          disabled={currentConversation?.pendingResponse}
+                        />
+                        <Button
+                          type="submit"
+                          variant="contained"
+                          endIcon={<SendIcon />}
+                          disabled={!messageText.trim() || currentConversation?.pendingResponse}
+                          sx={{ textTransform: 'none', fontWeight: 600 }}
+                        >
+                          Send
+                        </Button>
+                      </form>
+                    </Paper>
+                  )}
+                </>
+              ) : (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                  <Typography variant="h6" color="text.secondary">
+                    Select a conversation to start messaging
+                  </Typography>
+                </Box>
+              )}
+            </Paper>
+          </Grid>
+        )}
       </Grid>
 
       {/* Context Menu */}
@@ -797,9 +811,7 @@ const Messages = () => {
         onClose={handleCloseNewChat}
         maxWidth="sm"
         fullWidth
-        PaperProps={{
-          sx: { minHeight: '60vh', maxHeight: '80vh' }
-        }}
+        PaperProps={{ sx: { minHeight: '60vh', maxHeight: '80vh' } }}
       >
         <DialogTitle>Start New Conversation</DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -829,20 +841,12 @@ const Messages = () => {
             sx={{ mb: 2 }}
           />
 
-          {/* Search Results */}
           {searchResults.length > 0 && (
             <Box sx={{ flexGrow: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
               <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>
                 Search Results ({searchResults.length})
               </Typography>
-              <Paper
-                variant="outlined"
-                sx={{
-                  flexGrow: 1,
-                  overflow: 'auto',
-                  maxHeight: '300px'
-                }}
-              >
+              <Paper variant="outlined" sx={{ flexGrow: 1, overflow: 'auto', maxHeight: '300px' }}>
                 <List dense>
                   {searchResults.map((user) => (
                     <ListItem
@@ -851,14 +855,10 @@ const Messages = () => {
                       selected={selectedSearchUser === user.username}
                       onClick={() => handleSelectSearchUser(user)}
                       sx={{
-                        '&:hover': {
-                          backgroundColor: 'action.hover',
-                        },
+                        '&:hover': { backgroundColor: 'action.hover' },
                         '&.Mui-selected': {
                           backgroundColor: 'primary.light',
-                          '&:hover': {
-                            backgroundColor: 'primary.light',
-                          },
+                          '&:hover': { backgroundColor: 'primary.light' },
                         },
                       }}
                     >
@@ -872,11 +872,7 @@ const Messages = () => {
                         </Avatar>
                       </ListItemAvatar>
                       <ListItemText
-                        primary={
-                          <Typography variant="subtitle1" fontWeight="medium">
-                            {user.username}
-                          </Typography>
-                        }
+                        primary={<Typography variant="subtitle1" fontWeight="medium">{user.username}</Typography>}
                         secondary={
                           <Box>
                             {user.firstName && user.lastName && (
@@ -902,15 +898,7 @@ const Messages = () => {
                         }
                       />
                       {user.isOnline && (
-                        <Box
-                          sx={{
-                            width: 8,
-                            height: 8,
-                            borderRadius: '50%',
-                            backgroundColor: 'success.main',
-                            ml: 1,
-                          }}
-                        />
+                        <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'success.main', ml: 1 }} />
                       )}
                     </ListItem>
                   ))}
@@ -919,7 +907,6 @@ const Messages = () => {
             </Box>
           )}
 
-          {/* No Results Message */}
           {searchUsername.length >= 3 && !searchLoading && searchResults.length === 0 && !searchError && (
             <Box sx={{ textAlign: 'center', py: 3 }}>
               <Typography variant="body2" color="text.secondary">
@@ -928,7 +915,6 @@ const Messages = () => {
             </Box>
           )}
 
-          {/* Help Text */}
           {searchUsername.length === 0 && (
             <Box sx={{ textAlign: 'center', py: 3 }}>
               <Typography variant="body2" color="text.secondary">
@@ -938,9 +924,7 @@ const Messages = () => {
           )}
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 3 }}>
-          <Button onClick={handleCloseNewChat}>
-            Cancel
-          </Button>
+          <Button onClick={handleCloseNewChat}>Cancel</Button>
           <Button
             onClick={startNewConversation}
             variant="contained"
@@ -951,7 +935,7 @@ const Messages = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar for notifications */}
+      {/* Snackbar */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}

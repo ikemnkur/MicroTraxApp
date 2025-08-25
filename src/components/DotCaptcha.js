@@ -30,8 +30,8 @@ const DotCaptcha = ({ onSuccess, onFailure }) => {
       newBalls.push({
         x: Math.random() * (canvas.width - 2 * radius) + radius,
         y: Math.random() * (canvas.height - 2 * radius) + radius,
-        vx: (Math.random() - 0.5) * 2,
-        vy: (Math.random() - 0.5) * 2,
+        vx: (Math.random() - 0.5) * 1,
+        vy: (Math.random() - 0.5) * 1,
         color: colors[Math.floor(Math.random() * colors.length)],
         radius,
       });
@@ -128,8 +128,8 @@ const DotCaptcha = ({ onSuccess, onFailure }) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     // Set canvas dimensions
-    canvas.width = 300;
-    canvas.height = 150;
+    canvas.width = 400;
+    canvas.height = 250;
 
     // Initialize balls and select target color/count
     initializeBalls();

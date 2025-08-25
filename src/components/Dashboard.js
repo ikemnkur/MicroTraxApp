@@ -1,214 +1,20 @@
-// // In Dashboard.js
-// import React, { useState, useEffect } from 'react';
-// import { useNavigate } from 'react-router-dom';
-// import { Typography, Grid, Paper, Box, CircularProgress, Snackbar } from '@mui/material';
-// import { fetchDashboardData } from './api';
-// import { fetchUserProfile } from './api';
-// import Notifications from './Notifications'; // Import the Notifications component
-
-// const Dashboard = () => {
-//   const [dashboardData, setDashboardData] = useState(null);
-//   const [profile, setProfile] = useState(null);
-//   const [isLoading, setIsLoading] = useState(true);
-//   const [error, setError] = useState(null);
-//   const [openSnackbar, setOpenSnackbar] = useState(false);
-//   const [userData, setUserData] = useState({
-//     username: '',
-//     email: '',
-//     firstName: '',
-//     lastName: '',
-//     phoneNumber: '',
-//     birthDate: '',
-//     encryptionKey: '',
-//     accountTier: 1,
-//     profilePicture: null
-//   });
-//   const [tier, setTier] = useState(true);
-//   const navigate = useNavigate();
-
-
-//   console.log("dashboard data: ", dashboardData)
-
-
-//   useEffect(() => {
-//     const loadUserProfile = async () => {
-//       try {
-//         const profile = await fetchUserProfile();
-//         setProfile(profile);
-//         const updatedUserData = {
-//           ...profile,
-//           birthDate: profile.birthDate ? profile.birthDate.split('T')[0] : '',
-//         };
-
-//         setUserData(updatedUserData);
-//         localStorage.setItem("userdata", JSON.stringify(updatedUserData));
-
-//         console.log("Account Tier: ", profile.accountTier);
-//         setTier(parseInt(profile.accountTier));
-
-//       } catch (error) {
-//         console.error('DashBrdPG - Error fetching user profile:', error);
-//         setSnackbarMessage(error.response?.data?.message || 'Failed to load user profile, refresh page or login again');
-//         setOpenSnackbar(true);
-//         if (error.response?.status === 401) {
-//           // Unauthorized, token might be expired
-//           setTimeout(() => navigate('/login'), 500);
-//         }
-//       }
-//     };
-
-//     loadUserProfile();
-//   }, [navigate]);
-
-
-
-//   useEffect(() => {
-//     const loadDashboardData = async () => {
-//       try {
-//         const data = await fetchDashboardData();
-//         setDashboardData(data);
-//       } catch (err) {
-//         setError('Failed to load dashboard data, Please Re-Login');
-//         // setTimeout(() => {
-//         //   navigate("/login");
-//         //   setOpenSnackbar(true);
-//         // }, 500)
-//       } finally {
-//         setIsLoading(false);
-//       }
-//     };
-
-//     loadDashboardData();
-//   }, []);
-
-//   if (isLoading) {
-//     return <CircularProgress />;
-//   }
-
-//   if (error) {
-//     return <Typography color="error">{error}</Typography>;
-//   }
-
-//   return (
-//     <Box>
-//       <Typography variant="h4" gutterBottom>
-//         Dashboard
-//       </Typography>
-//       <Grid container spacing={3}>
-//         <Grid item xs={12} md={4}>
-//           <Paper sx={{ p: 2 }}>
-//             <Typography variant="h5" gutterBottom>
-//               Balance: {dashboardData?.balance ?? 'N/A'}₡ 
-//             </Typography>
-//             <Typography variant="h6">
-//               {/* ${dashboardData?.balance?.toFixed(2) ?? 'N/A'} */}
-//               {/* {dashboardData?.balance ?? 'N/A'}₡  */}
-//               <Typography variant="h6">Spendable: {dashboardData?. spendable ?? 0}</Typography>
-//               <Typography variant="h6"> Redeemable: {dashboardData?.redeemable ?? 0} </Typography>
-
-
-
-//             </Typography>
-//           </Paper>
-//         </Grid>
-//         {/* <Grid item xs={12} md={4}>
-//           <Paper sx={{ p: 2 }}>
-//             <Typography variant="h6" gutterBottom>
-//               Account Tier
-//             </Typography>
-//             <Typography variant="h4">
-//               Tier {dashboardData?.accountTier ?? 'N/A'}
-//             </Typography>
-//           </Paper>
-//         </Grid> */}
-//         <Grid item xs={12} md={4}>
-//           <Paper sx={{ p: 2 }}>
-//             <Typography variant="h6" gutterBottom>
-//               Transactions Limits
-//             </Typography>
-//             <Typography>
-//               Times Sent: {dashboardData?.sentTransactions ?? 0} / {dashboardData?.dailyLimit ?? 'N/A'}
-//               {/* <Typography>
-//                 Times: {dashboardData?.sentTransactions ?? 0} / {dashboardData?.dailyLimit ?? 'N/A'}
-//               </Typography> */}
-//             </Typography>
-//             <Typography>
-//               Times Received: {dashboardData?.receivedTransactions ?? 0} / {dashboardData?.dailyLimit ?? 'N/A'}
-//               {/* <Typography>
-//                 Times: {dashboardData?.sentTransactions ?? 0} / {dashboardData?.dailyLimit ?? 'N/A'}
-//               </Typography> */}
-//             </Typography>
-
-//           </Paper>
-//         </Grid>
-//         {/* <Grid item xs={12} md={4}>
-//           <Paper sx={{ p: 2 }}>
-//             <Typography variant="h6" gutterBottom>
-//               Subscriptions
-//             </Typography>
-//             <Typography variant="h4">
-//               Count: {profile?.subscriptions ?? 'N/A'}
-//             </Typography>
-//           </Paper>
-//         </Grid> */}
-//         {/* <Grid item xs={12} md={4}>
-//           <Paper sx={{ p: 2 }}>
-//             <Typography variant="h6" gutterBottom>
-//               Unlocked Content
-//             </Typography>
-//             <Typography variant="h4">
-//               Count: {profile?.unlocks ?? 'N/A'}
-//             </Typography>
-//           </Paper>
-//         </Grid> */}
-//         {/* <Grid item xs={12} md={4}>
-//           <Paper sx={{ p: 2 }}>
-//             <Typography variant="h6" gutterBottom>
-//               Account Tier
-//             </Typography>
-//             <Typography variant="h4">
-//               Tier {dashboardData?.accountTier ?? 'N/A'}
-//             </Typography>
-//           </Paper>
-//         </Grid> */}
-
-//         <Grid item xs={12} md={4}>
-//           <Paper sx={{ p: 2 }}>
-//             <Typography variant="h6" gutterBottom>
-//               Recent Transactions
-//             </Typography>
-//             <Typography>
-//               Sent: {dashboardData?.sentTransactions ?? 0}₡
-//             </Typography>
-//             <Typography>
-//               Received: {dashboardData?.sentTransactions ?? 0}₡
-//             </Typography>
-
-//           </Paper>
-//         </Grid>
-
-//       </Grid>
-//        {/* Insert Notifications component below the cards */}
-//        <Notifications />
-//       <Snackbar
-//         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-//         open={openSnackbar}
-//         autoHideDuration={3000}
-//         onClose={() => setOpenSnackbar(false)}
-//         message="Link copied to clipboard!"
-//       />
-//     </Box>
-//   );
-// };
-
-// export default Dashboard;
-
-// Dashboard.js
+// Dashboard.js (updated styling + mobile-friendly layout to match SendMoney)
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Typography, Grid, Paper, Box, CircularProgress, Snackbar } from '@mui/material';
-import { fetchDashboardData } from './api';
-import { fetchUserProfile } from './api';
+import {
+  Typography,
+  Grid,
+  Paper,
+  Box,
+  CircularProgress,
+  Snackbar,
+  Alert,
+  Button,
+  Divider,
+  Chip,
+  LinearProgress,
+} from '@mui/material';
+import { fetchDashboardData, fetchUserProfile } from './api';
 import Notifications from './Notifications';
 
 const Dashboard = () => {
@@ -229,8 +35,21 @@ const Dashboard = () => {
     accountTier: 1,
     profilePicture: null
   });
-  const [tier, setTier] = useState(true);
+  const [tier, setTier] = useState(1);
   const navigate = useNavigate();
+
+  // Helpers
+  const formatCoins = (n) =>
+    new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(
+      Number.isFinite(+n) ? +n : 0
+    );
+
+  const safeRatio = (num, den) => {
+    const n = Number.isFinite(+num) ? +num : 0;
+    const d = Number.isFinite(+den) && +den > 0 ? +den : 1;
+    const r = Math.min(100, Math.max(0, (n / d) * 100));
+    return r;
+  };
 
   useEffect(() => {
     const loadUserProfile = async () => {
@@ -246,14 +65,12 @@ const Dashboard = () => {
         setUserData(updatedUserData);
         localStorage.setItem('userdata', JSON.stringify(updatedUserData));
 
-        // Convert account tier to int and store
         setTier(parseInt(profileRes.accountTier));
       } catch (err) {
         console.error('DashBrdPG - Error fetching user profile:', err);
         setSnackbarMessage(err.response?.data?.message || 'Failed to load user profile, refresh page or login again');
         setOpenSnackbar(true);
         if (err.response?.status === 401) {
-          // Unauthorized, token might be expired
           setTimeout(() => navigate('/login'), 500);
         }
       }
@@ -266,8 +83,7 @@ const Dashboard = () => {
     const loadDashboardData = async () => {
       try {
         const data = await fetchDashboardData();
-        localStorage.setItem('dashboardData', JSON.stringify(data)); // Store dashboard data in localStorage
-        console.log('Fetched dashboard data:', data); // Debug log
+        localStorage.setItem('dashboardData', JSON.stringify(data));
         setDashboardData(data);
       } catch (err) {
         setError('Failed to load dashboard data, Please Re-Login');
@@ -278,76 +94,189 @@ const Dashboard = () => {
     loadDashboardData();
   }, []);
 
+  // Derived amounts
+  const spendable = Number(dashboardData?.spendable ?? 0);
+  const redeemable = Number(dashboardData?.redeemable ?? 0);
+  const totalBalance = spendable + redeemable;
+
+  const sentTimes = Number(dashboardData?.sentTransactions ?? 0);
+  const recvTimes = Number(dashboardData?.receivedTransactions ?? 0);
+  const dailyTxLimit = Number(dashboardData?.dailyLimit ?? 0);
+
+  const sent24h = Number(dashboardData?.totalAmountSentLast24Hours ?? 0);
+  const recv24h = Number(dashboardData?.totalAmountReceivedLast24Hours ?? 0);
+  const dailyCoinLimit = Number(dashboardData?.dailyCoinLimit ?? 0);
+
+  const cardSx = {
+    p: { xs: 2, sm: 2.5 },
+    backgroundColor: '#f8f9fa',
+    border: '1px solid #e9ecef',
+    borderRadius: 2,
+    boxShadow: 'none',
+  };
+
   if (isLoading) {
-    return <CircularProgress />;
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
   if (error) {
-    return <Typography color="error">{error}</Typography>;
+    return (
+      <Box sx={{ maxWidth: 1200, mx: 'auto', p: { xs: 1.5, sm: 2 } }}>
+        <Alert severity="error">{error}</Alert>
+      </Box>
+    );
   }
 
   return (
-    <Box>
-      <Typography variant="h4" gutterBottom>
-        Dashboard
-      </Typography>
+    <Box sx={{ maxWidth: 1200, mx: 'auto', p: { xs: 1.5, sm: 2 } }}>
+      {/* Gradient Header (matches SendMoney style) */}
+      <Box sx={{ mb: 2, textAlign: 'center' }}>
+        <Typography
+          variant="h3"
+          component="h1"
+          sx={{
+            fontWeight: 700,
+            background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+            backgroundClip: 'text',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            mb: 0.5
+          }}
+        >
+          Dashboard
+        </Typography>
+        <Typography variant="h6" color="text.secondary">
+          Overview of your wallet and activity
+        </Typography>
+      </Box>
 
-      <Grid container spacing={3}>
-        {/* Balance, spendable, redeemable */}
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h5" gutterBottom>
-              Balance: {(dashboardData?.spendable + dashboardData?.redeemable) ?? 'N/A'}₡
+      <Grid container spacing={2.5}>
+        {/* Wallet Overview */}
+        <Grid item xs={12} sm={6} md={4}>
+          <Paper sx={cardSx}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+              <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                Wallet
+              </Typography>
+              <Chip label={`Tier ${tier || 1}`} color="primary" size="small" />
+            </Box>
+
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+              Current total balance
             </Typography>
-            <Typography variant="h6">
-              Spendable: {dashboardData?.spendable ?? 0}₡
+            <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
+              ₡{formatCoins(totalBalance)}
             </Typography>
-            <Typography variant="h6">
-              Redeemable: {dashboardData?.redeemable ?? 0}₡
-            </Typography>
+
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, mb: 2 }}>
+              <Paper sx={{ p: 1.25, borderRadius: 1.5, border: '1px solid #e9ecef', boxShadow: 'none' }}>
+                <Typography variant="caption" color="text.secondary">Spendable</Typography>
+                <Typography variant="h6">₡{formatCoins(spendable)}</Typography>
+              </Paper>
+              <Paper sx={{ p: 1.25, borderRadius: 1.5, border: '1px solid #e9ecef', boxShadow: 'none' }}>
+                <Typography variant="caption" color="text.secondary">Redeemable</Typography>
+                <Typography variant="h6">₡{formatCoins(redeemable)}</Typography>
+              </Paper>
+            </Box>
+
+            <Divider sx={{ my: 1.5 }} />
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button
+                fullWidth
+                variant="contained"
+                onClick={() => navigate('/send-money')}
+                sx={{ textTransform: 'none', fontWeight: 600 }}
+              >
+                Send Coins
+              </Button>
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={() => navigate(`/user/${userData?.username || ''}`)}
+                sx={{ textTransform: 'none', fontWeight: 600 }}
+              >
+                View Profile
+              </Button>
+            </Box>
           </Paper>
         </Grid>
 
-        {/* Transaction limits */}
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Transaction Limits
+        {/* Transaction Limits */}
+        <Grid item xs={12} sm={6} md={4}>
+          <Paper sx={cardSx}>
+            <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+              Transaction Limits (Today)
             </Typography>
-            <Typography>
-              Times Sent Today: {dashboardData?.sentTransactions ?? 0} / {dashboardData?.dailyLimit ?? 'N/A'}
+
+            <Typography variant="body2" sx={{ mb: 0.5 }}>
+              Times Sent: {sentTimes} / {dailyTxLimit || '—'}
             </Typography>
-            <Typography>
-              {/* Coins Sent Today: {dashboardData?.sentTransactions ?? 0} / {dashboardData?.dailyCoinLimit ?? 'N/A'} */}
+            <LinearProgress
+              variant="determinate"
+              value={safeRatio(sentTimes, dailyTxLimit)}
+              sx={{ height: 8, borderRadius: 1, mb: 1.5 }}
+            />
+
+            <Typography variant="body2" sx={{ mb: 0.5 }}>
+              Times Received: {recvTimes} / {dailyTxLimit || '—'}
             </Typography>
-            <Typography>
-              Times Received Today: {dashboardData?.receivedTransactions ?? 0} / {dashboardData?.dailyLimit ?? 'N/A'}
-            </Typography>
-            <Typography>
-              {/* Coins Received Today: {dashboardData?.sentTransactions ?? 0} / {dashboardData?.dailyCoinLimit ?? 'N/A'} */}
-            </Typography>
+            <LinearProgress
+              variant="determinate"
+              value={safeRatio(recvTimes, dailyTxLimit)}
+              sx={{ height: 8, borderRadius: 1 }}
+            />
           </Paper>
         </Grid>
 
-        {/* Recent transactions */}
+        {/* Last 24h Summary */}
         <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Recent Transactions
+          <Paper sx={cardSx}>
+            <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+              Last 24 Hours
             </Typography>
-            <Typography>
-              Sent in last 24h: {dashboardData?.totalAmountSentLast24Hours ?? 0} / {dashboardData?.dailyCoinLimit ?? 'N/A'}₡
-            </Typography>
-            <Typography>
-              Received in last 24h: {dashboardData?.totalAmountReceivedLast24Hours ?? 0} / {dashboardData?.dailyCoinLimit ?? 'N/A'}₡
 
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+              Sent
             </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+              <Typography variant="h6">₡{formatCoins(sent24h)}</Typography>
+              <Typography variant="caption" color="text.secondary">
+                limit: ₡{formatCoins(dailyCoinLimit || 0)}
+              </Typography>
+            </Box>
+            <LinearProgress
+              variant="determinate"
+              value={safeRatio(sent24h, dailyCoinLimit)}
+              sx={{ height: 8, borderRadius: 1, mb: 1.5 }}
+            />
+
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+              Received
+            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+              <Typography variant="h6">₡{formatCoins(recv24h)}</Typography>
+              <Typography variant="caption" color="text.secondary">
+                limit: ₡{formatCoins(dailyCoinLimit || 0)}
+              </Typography>
+            </Box>
+            <LinearProgress
+              variant="determinate"
+              value={safeRatio(recv24h, dailyCoinLimit)}
+              sx={{ height: 8, borderRadius: 1 }}
+            />
           </Paper>
         </Grid>
       </Grid>
 
-      {/* Insert Notifications component below the cards */}
-      <Notifications />
+      {/* Notifications below the cards */}
+      <Box sx={{ mt: 2.5 }}>
+        <Notifications />
+      </Box>
+
       <Snackbar
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         open={openSnackbar}

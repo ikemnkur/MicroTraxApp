@@ -43,17 +43,7 @@ import { fetchUserProfile } from './api';
 const drawerWidth = 190;
 const collapsedDrawerWidth = 40;
 
-const enterFullScreen = () => {
-        if (document.documentElement.requestFullscreen) {
-          document.documentElement.requestFullscreen();
-        } else if (document.documentElement.mozRequestFullScreen) { // Firefox
-          document.documentElement.mozRequestFullScreen();
-        } else if (document.documentElement.webkitRequestFullscreen) { // Chrome, Safari, Opera
-          document.documentElement.webkitRequestFullscreen();
-        } else if (document.documentElement.msRequestFullscreen) { // IE/Edge
-          document.documentElement.msRequestFullscreen();
-        }
-};
+
 
 
 const NavBar = ({ children }) => {
@@ -61,6 +51,36 @@ const NavBar = ({ children }) => {
   const [userData, setUserData] = useState(JSON.parse(localStorage.getItem('userdata')) || {});
   const navigate = useNavigate();
   const location = useLocation();
+  const [isFullScreen, setIsFullScreen] = useState(false);
+
+  const enterFullScreen = () => {
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen();
+    } else if (document.documentElement.mozRequestFullScreen) { // Firefox
+      document.documentElement.mozRequestFullScreen();
+    } else if (document.documentElement.webkitRequestFullscreen) { // Chrome, Safari, Opera
+      document.documentElement.webkitRequestFullscreen();
+    } else if (document.documentElement.msRequestFullscreen) { // IE/Edge
+      document.documentElement.msRequestFullscreen();
+    }
+
+    setIsFullScreen(true);
+  };
+
+  const exitFullScreen = () => {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.mozCancelFullScreen) { // Firefox
+      document.mozCancelFullScreen();
+    } else if (document.webkitExitFullscreen) { // Chrome, Safari, Opera
+      document.webkitExitFullscreen();
+    } else if (document.msExitFullscreen) { // IE/Edge
+      document.msExitFullscreen();
+    }
+
+    setIsFullScreen(false);
+  };
+
 
   // Calculate ads path based on current user data
   const getAdsPath = () => {
@@ -94,7 +114,7 @@ const NavBar = ({ children }) => {
   const unlockPage = location.pathname.startsWith('/unlock');
   const subPage = location.pathname.startsWith('/sub');
   const previewPage = location.pathname.startsWith('/preview/pending-ad');
-  const hideNavBar = ['/login', "/help", '/register', '/', '/info', '/create-ad', "/ad-analytics", "/ad-help", '/ads', '/display-ad','/preview-ad','/preview-ad/ad/', "/ads-service", "/test-ad", "/ads", "/ads-join","/ads-login", "/preview/pending-ad"].includes(location.pathname);
+  const hideNavBar = ['/login', "/help", '/register', '/', '/info', '/create-ad', "/ad-analytics", "/ad-help", '/ads', '/display-ad', '/preview-ad', '/preview-ad/ad/', "/ads-service", "/test-ad", "/ads", "/ads-join", "/ads-login", "/preview/pending-ad"].includes(location.pathname);
 
   function refreshPage() {
     window.location.reload(false);
@@ -109,7 +129,7 @@ const NavBar = ({ children }) => {
 
     // Listen for storage events (when localStorage is changed in another tab)
     window.addEventListener('storage', handleStorageChange);
-    
+
     // Listen for custom events (when localStorage is changed in the same tab)
     window.addEventListener('localStorageChange', handleStorageChange);
 
@@ -133,16 +153,16 @@ const NavBar = ({ children }) => {
           accountTier: profile.accountTier || 1,
           encryptionKey: profile.encryptionKey || '',
         };
-        
+
         // Update local state
         setUserData(updatedUserData);
-        
+
         // Update localStorage
         localStorage.setItem('userdata', JSON.stringify(updatedUserData));
-        
+
         // Dispatch custom event to notify other components
         window.dispatchEvent(new Event('localStorageChange'));
-        
+
       } catch (err) {
         console.log('Error: ', err);
         setTimeout(() => {
@@ -172,18 +192,20 @@ const NavBar = ({ children }) => {
             aria-label="toggle drawer"
             onClick={() => setOpen(!open)}
             edge="start"
-            sx={{ mr: 1 }}
+            sx={{ mr: 2, p: 1.5, fontSize: 32 }}
+            size="large"
           >
-            {open ? <ChevronLeftIcon /> : <MenuIcon />}
+            {open ? <ChevronLeftIcon fontSize="large" /> : <MenuIcon fontSize="large" />}
           </IconButton>
           <IconButton
             color="inherit"
             aria-label="toggle full screen"
-            onClick={enterFullScreen}
+            onClick={() => (isFullScreen ? exitFullScreen() : enterFullScreen() )}
             edge="start"
-            sx={{ mr: 1 }}
+            sx={{ mr: 2, p: 1.5, fontSize: 32 }}
+            size="large"
           >
-            {open ? <FullscreenExitIcon /> : <FullscreenIcon />}
+            {open ? <FullscreenExitIcon fontSize="large" /> : <FullscreenIcon fontSize="large" />}
           </IconButton>
           <Typography
             variant="h6"
@@ -193,14 +215,29 @@ const NavBar = ({ children }) => {
           >
             Clout Coin
           </Typography>
-          <IconButton color="inherit" onClick={() => navigate('/settings')}>
-            <SettingsIcon />
+          <IconButton
+            color="inherit"
+            onClick={() => navigate('/settings')}
+            sx={{ mx: 1.5, p: 1.5, fontSize: 32 }}
+            size="large"
+          >
+            <SettingsIcon fontSize="large" />
           </IconButton>
-          <IconButton color="inherit" onClick={() => navigate('/account')}>
-            <AccountCircle />
+          <IconButton
+            color="inherit"
+            onClick={() => navigate('/account')}
+            sx={{ mx: 1.5, p: 1.5, fontSize: 32 }}
+            size="large"
+          >
+            <AccountCircle fontSize="large" />
           </IconButton>
-          <IconButton color="inherit" onClick={() => navigate('/login')}>
-            <LogoutOutlined />
+          <IconButton
+            color="inherit"
+            onClick={() => navigate('/login')}
+            sx={{ mx: 1.5, p: 1.5, fontSize: 32 }}
+            size="large"
+          >
+            <LogoutOutlined fontSize="large" />
           </IconButton>
         </Toolbar>
       </AppBar>
@@ -240,7 +277,7 @@ const NavBar = ({ children }) => {
                       px: '5px',
                     }}
                   >
-                    {item.icon}
+                    {React.cloneElement(item.icon, { fontSize: 'large' })}
                   </ListItemIcon>
                   <ListItemText
                     primary={open ? item.text : ''}

@@ -1,3 +1,4 @@
+// Search4User.js (styled to match SendMoney/Dashboard)
 import React, { useState, useEffect } from 'react';
 import {
   Typography,
@@ -14,6 +15,7 @@ import {
   Divider,
   InputAdornment,
   Chip,
+  Grid,
 } from '@mui/material';
 import { Search as SearchIcon, FilterList, Favorite as FavoriteIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -27,7 +29,7 @@ const Search4User = () => {
   const [isLoadingFavorites, setIsLoadingFavorites] = useState(false);
   const [error, setError] = useState(null);
   const [favoritesError, setFavoritesError] = useState(null);
-  
+
   const [userData, setUserData] = useState(null);
 
   // Favorites state
@@ -38,7 +40,16 @@ const Search4User = () => {
 
   const navigate = useNavigate();
 
-  // Load user data and favorites on component mount
+  // Shared card style (soft, bordered)
+  const cardSx = {
+    p: { xs: 2, sm: 2.5 },
+    backgroundColor: '#f8f9fa',
+    border: '1px solid #e9ecef',
+    borderRadius: 2,
+    boxShadow: 'none',
+  };
+
+  // Load user data and favorites on mount
   useEffect(() => {
     const loadUserDataAndFavorites = async () => {
       try {
@@ -46,37 +57,26 @@ const Search4User = () => {
         if (tempdata) {
           const tempuserdata = JSON.parse(tempdata);
           setUserData(tempuserdata);
-          
-          // Now load favorites using the parsed user data
           await loadFavoriteUsers(tempuserdata);
-          
-          console.log("tempdata: ", tempuserdata);
-          console.log('User Data:', tempuserdata);
-          console.log('User Data Favorites:', tempuserdata.favorites);
         }
       } catch (error) {
         console.error('Error loading user data:', error);
         setIsLoadingFavoritesList(false);
       }
     };
-
     loadUserDataAndFavorites();
   }, []);
 
-  // Function to load a sample of favorite users
+  // Load a sample or real favorite users
   const loadFavoriteUsers = async (userDataParam = null) => {
     setIsLoadingFavoritesList(true);
     try {
-      // Use the passed parameter or the state userData
       const currentUserData = userDataParam || userData;
-      
       if (!currentUserData) {
-        console.log('No user data available');
         setFavoriteUsers([]);
         return;
       }
 
-      // Sample fallback data (in case userData.favorites is empty or undefined)
       const sampleFavorites = [
         {
           user_id: 'sdafdscvrwd56cd6cf-897c-4d96-822c-118adfgs9c8',
@@ -98,13 +98,12 @@ const Search4User = () => {
         }
       ];
 
-      // Use userData.favorites if available, otherwise use sample data
-      const favoritesToSet = currentUserData.favorites && Array.isArray(currentUserData.favorites) && currentUserData.favorites.length > 0
-        ? currentUserData.favorites
-        : sampleFavorites;
+      const favoritesToSet =
+        currentUserData.favorites && Array.isArray(currentUserData.favorites) && currentUserData.favorites.length > 0
+          ? currentUserData.favorites
+          : sampleFavorites;
 
       setFavoriteUsers(favoritesToSet);
-      console.log('Favorites loaded:', favoritesToSet);
     } catch (err) {
       console.error('Error loading favorite users:', err);
       setFavoriteUsers([]);
@@ -113,34 +112,24 @@ const Search4User = () => {
     }
   };
 
-  // Handle main database user search
+  // Main user search
   const handleSearch = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
 
     try {
-      // Search for users in the database
       if (searchTerm.length < 4) {
-        setError('Enter more than 4 characters to start search.');
+        setError('Enter at least 4 characters to search.');
         setSearchResults([]);
       } else {
         let results = await searchUsers(searchTerm);
-
-        // Ensure results is an array
-        if (!Array.isArray(results)) {
-          console.error('Search results is not an array:', results);
-          results = [];
-        }
-
-        // Add avatars if needed
+        if (!Array.isArray(results)) results = [];
         const resultsWithAvatars = results.map((user) => ({
           ...user,
           avatar: user.avatar || `https://mui.com/static/images/avatar/${randomIntFromInterval(1, 5)}.jpg`,
         }));
-
         setSearchResults(resultsWithAvatars);
-        console.log('search results: ', resultsWithAvatars);
       }
     } catch (err) {
       console.error('Error searching users:', err);
@@ -151,43 +140,27 @@ const Search4User = () => {
     }
   };
 
-  // Handle favorites search input change
-  const handleFavoritesInputChange = (e) => {
-    setFavoritesSearchTerm(e.target.value);
-  };
+  // Favorites search
+  const handleFavoritesInputChange = (e) => setFavoritesSearchTerm(e.target.value);
 
-  // Handle favorites search request
   const handleFavoritesSearch = async (e) => {
-    // Prevent form submission if this is triggered from a form
-    if (e && e.preventDefault) {
-      e.preventDefault();
-    }
+    if (e && e.preventDefault) e.preventDefault();
 
     setIsLoadingFavorites(true);
     setFavoritesError(null);
 
     try {
-      // Search for favorite users in the database
       if (favoritesSearchTerm.length < 4) {
-        setFavoritesError('Enter more than 4 characters to start search.');
+        setFavoritesError('Enter at least 4 characters to search favorites.');
         setFavoritesSearchResults([]);
       } else {
         let results = await searchFavorites(favoritesSearchTerm);
-
-        // Ensure results is an array
-        if (!Array.isArray(results)) {
-          console.error('Favorites search results is not an array:', results);
-          results = [];
-        }
-
-        // Add avatars if needed
+        if (!Array.isArray(results)) results = [];
         const resultsWithAvatars = results.map((fav) => ({
           ...fav,
           avatar: fav.avatar || fav.profilePic || `https://mui.com/static/images/avatar/${randomIntFromInterval(1, 5)}.jpg`,
         }));
-
         setFavoritesSearchResults(resultsWithAvatars);
-        console.log('favorites search results: ', resultsWithAvatars);
       }
     } catch (err) {
       console.error('Error searching favorites:', err);
@@ -198,47 +171,65 @@ const Search4User = () => {
     }
   };
 
-  // Effect to handle favorites search when search term changes
+  // Debounce favorites search
   useEffect(() => {
-    // If search term is empty, clear results
     if (!favoritesSearchTerm || favoritesSearchTerm.length < 4) {
       setFavoritesSearchResults([]);
       return;
     }
-
-    // Debounce search to reduce API calls
     const delayDebounceFn = setTimeout(() => {
       handleFavoritesSearch();
     }, 500);
-
     return () => clearTimeout(delayDebounceFn);
   }, [favoritesSearchTerm]);
 
-  // Function to generate a random integer between min and max (inclusive)
+  // Utils
   function randomIntFromInterval(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
   }
 
   function gotoUserProfile(user) {
-    console.log('User: ', user);
-    // navigate(`/user/${user.user_id}`);
     navigate(`/user/${user.username}`);
   }
 
   function gotofavProfile(fav) {
-    console.log('Favorite: ', fav);
-    // navigate(`/user/${fav.user_id}`);
     navigate(`/user/${fav.username}`);
   }
 
   return (
-    <>
-      {/* Global User Search Section */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Search Users
+    <Box sx={{ maxWidth: 700, mx: 'auto', p: { xs: 1.5, sm: 2 } }}>
+      {/* Gradient Header */}
+      <Box sx={{ mb: 2, textAlign: 'center' }}>
+        <Typography
+          variant="h3"
+          component="h1"
+          sx={{
+            fontWeight: 700,
+            background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+            backgroundClip: 'text',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            mb: 0.5
+          }}
+        >
+          Find People
         </Typography>
-        <Paper sx={{ p: 2, mb: 2 }}>
+        <Typography variant="h6" color="text.secondary">
+          Search all users and manage your favorites
+        </Typography>
+      </Box>
+
+      {/* Stack vertically instead of side by side */}
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        {/* Global User Search */}
+        <Paper sx={cardSx}>
+          <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+            Global Search
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            Enter at least 4 characters to search by username
+          </Typography>
+
           <form onSubmit={handleSearch}>
             <TextField
               label="Search all users by username"
@@ -258,160 +249,201 @@ const Search4User = () => {
               type="submit"
               variant="contained"
               disabled={isLoading}
-              sx={{ mt: 1 }}
+              startIcon={isLoading ? <CircularProgress size={16} /> : <SearchIcon />}
+              sx={{ mt: 1, textTransform: 'none', fontWeight: 600 }}
             >
-              Search
+              {isLoading ? 'Searching...' : 'Search'}
             </Button>
           </form>
-        </Paper>
-        {isLoading && <CircularProgress />}
-        {error && <Typography color="error">{error}</Typography>}
 
-        <Paper sx={{ maxHeight: 300, overflow: 'auto' }}>
-          <List>
-            {searchResults.length > 0 ? (
-              searchResults.map((user) => (
-                <ListItem key={user.id || `search-${Math.random()}`} button onClick={() => gotoUserProfile(user)}>
-                  <ListItemAvatar>
-                    <Avatar src={user.profilePic || user.avatar} alt={user.username} />
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={user.username}
-                    secondary={user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : ""}
-                  />
-                </ListItem>
-              ))
-            ) : (
-              <ListItem>
-                <ListItemText primary={searchTerm ? "No users found" : "Search for users above"} />
-              </ListItem>
-            )}
-          </List>
-        </Paper>
-      </Box>
-
-      {/* Divider between sections */}
-      <Divider sx={{ my: 3 }} />
-
-      {/* Favorites Section */}
-      <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-          <Typography variant="h4">
-            Your Favorites
-          </Typography>
-          <FavoriteIcon color="error" />
-        </Box>
-
-        {/* Search Favorites */}
-        <Paper sx={{ p: 2, mb: 2 }}>
-          <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
-            Search Favorites
-          </Typography>
-          <TextField
-            label="Search your favorites"
-            fullWidth
-            value={favoritesSearchTerm}
-            onChange={handleFavoritesInputChange}
-            margin="normal"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <FilterList />
-                </InputAdornment>
-              ),
-            }}
-          />
-          <Typography variant="caption" color="text.secondary">
-            Enter at least 4 characters to search your favorites
-          </Typography>
-        </Paper>
-
-        {isLoadingFavorites && <CircularProgress />}
-        {favoritesError && <Typography color="error">{favoritesError}</Typography>}
-
-        <Paper sx={{ p: 1, mb: 1, maxHeight: 300, overflow: 'auto' }}>
-          <List>
-            {Array.isArray(favoritesSearchResults) && favoritesSearchResults.length > 0 ? (
-              favoritesSearchResults.map((fav) => (
-                <ListItem key={fav.id || fav.user_id || `fav-${Math.random()}`} button onClick={() => gotofavProfile(fav)}>
-                  <ListItemAvatar>
-                    <Avatar src={fav.profilePic || fav.avatar} alt={fav.username || fav.favname || 'Favorite'} />
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={fav.username || fav.favname || 'Unnamed Favorite'}
-                    secondary={fav.firstName && fav.lastName ? `${fav.firstName} ${fav.lastName}` : ""}
-                  />
-                </ListItem>
-              ))
-            ) : (
-              <ListItem>
-                <ListItemText primary={
-                  favoritesSearchTerm && favoritesSearchTerm.length >= 4
-                    ? "No favorites match your search"
-                    : "Enter at least 4 characters to search your favorites"
-                } />
-              </ListItem>
-            )}
-          </List>
-        </Paper>
-
-        {/* Favorite Users List */}
-        <Paper sx={{ p: 2, mb: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-            <Typography variant="h6" color="text.secondary">
-              Favorite Users
+          {error && (
+            <Typography color="error" sx={{ mt: 1 }}>
+              {error}
             </Typography>
-            <Chip
-              label={`${favoriteUsers.length} favorites`}
-              size="small"
-              color="primary"
-              variant="outlined"
-            />
-          </Box>
+          )}
 
-          {isLoadingFavoritesList ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
-              <CircularProgress size={24} />
-            </Box>
-          ) : (
+          <Divider sx={{ my: 2 }} />
+
+          <Paper
+            variant="outlined"
+            sx={{ p: 1, maxHeight: { xs: 280, sm: 340 }, overflow: 'auto', backgroundColor: '#fff' }}
+          >
             <List sx={{ py: 0 }}>
-              {favoriteUsers.length > 0 ? (
-                favoriteUsers.map((fav) => (
+              {searchResults.length > 0 ? (
+                searchResults.map((user) => (
                   <ListItem
-                    key={fav.user_id}
+                    key={user.id || user.username}
                     button
-                    onClick={() => gotofavProfile(fav)}
+                    onClick={() => gotoUserProfile(user)}
                     sx={{
                       borderRadius: 1,
                       mb: 0.5,
-                      '&:hover': {
-                        backgroundColor: 'action.hover',
-                      }
+                      '&:hover': { backgroundColor: 'action.hover' }
                     }}
                   >
                     <ListItemAvatar>
-                      <Avatar src={fav.profilePic} alt={fav.username} />
+                      <Avatar src={user.profilePic || user.avatar} alt={user.username} />
                     </ListItemAvatar>
                     <ListItemText
-                      primary={fav.username}
-                      secondary={fav.bio || "No bio available"}
+                      primary={<Typography sx={{ fontWeight: 600 }}>{user.username}</Typography>}
+                      secondary={
+                        user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : ''
+                      }
                     />
-                    <FavoriteIcon color="error" fontSize="small" />
                   </ListItem>
                 ))
               ) : (
                 <ListItem>
                   <ListItemText
-                    primary="No favorite users yet"
-                    secondary="Users you favorite will appear here"
+                    primary={searchTerm ? 'No users found' : 'Search for users above'}
                   />
                 </ListItem>
               )}
             </List>
-          )}
+          </Paper>
+        </Paper>
+
+        {/* Favorites */}
+        <Paper sx={cardSx}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>
+              Your Favorites
+            </Typography>
+            <FavoriteIcon color="error" fontSize="small" />
+            <Chip
+              label={`${favoriteUsers.length} favorites`}
+              size="small"
+              color="primary"
+              variant="outlined"
+              sx={{ ml: 'auto' }}
+            />
+          </Box>
+
+          {/* Search Favorites */}
+          <Paper variant="outlined" sx={{ p: 2, mb: 2, backgroundColor: '#fff' }}>
+            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+              Search Favorites
+            </Typography>
+            <TextField
+              label="Search your favorites"
+              fullWidth
+              value={favoritesSearchTerm}
+              onChange={handleFavoritesInputChange}
+              margin="normal"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <FilterList />
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <Typography variant="caption" color="text.secondary">
+              Enter at least 4 characters to search your favorites
+            </Typography>
+
+            {isLoadingFavorites && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 1.5 }}>
+                <CircularProgress size={18} />
+              </Box>
+            )}
+            {favoritesError && (
+              <Typography color="error" sx={{ mt: 1 }}>
+                {favoritesError}
+              </Typography>
+            )}
+
+            {/* Favorites search results */}
+            <Paper
+              variant="outlined"
+              sx={{ p: 1, mt: 2, maxHeight: 240, overflow: 'auto', backgroundColor: '#fff' }}
+            >
+              <List sx={{ py: 0 }}>
+                {Array.isArray(favoritesSearchResults) && favoritesSearchResults.length > 0 ? (
+                  favoritesSearchResults.map((fav) => (
+                    <ListItem
+                      key={fav.id || fav.user_id || fav.username}
+                      button
+                      onClick={() => gotofavProfile(fav)}
+                      sx={{
+                        borderRadius: 1,
+                        mb: 0.5,
+                        '&:hover': { backgroundColor: 'action.hover' }
+                      }}
+                    >
+                      <ListItemAvatar>
+                        <Avatar src={fav.profilePic || fav.avatar} alt={fav.username || 'Favorite'} />
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={<Typography sx={{ fontWeight: 600 }}>{fav.username || 'Unnamed Favorite'}</Typography>}
+                        secondary={fav.firstName && fav.lastName ? `${fav.firstName} ${fav.lastName}` : ''}
+                      />
+                      <FavoriteIcon color="error" fontSize="small" />
+                    </ListItem>
+                  ))
+                ) : (
+                  <ListItem>
+                    <ListItemText
+                      primary={
+                        favoritesSearchTerm && favoritesSearchTerm.length >= 4
+                          ? 'No favorites match your search'
+                          : 'Enter at least 4 characters to search your favorites'
+                      }
+                    />
+                  </ListItem>
+                )}
+              </List>
+            </Paper>
+          </Paper>
+
+          {/* Favorite Users List */}
+          <Paper variant="outlined" sx={{ p: 2, backgroundColor: '#fff' }}>
+            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+              Favorite Users
+            </Typography>
+
+            {isLoadingFavoritesList ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                <CircularProgress size={24} />
+              </Box>
+            ) : (
+              <List sx={{ py: 0, maxHeight: 300, overflow: 'auto' }}>
+                {favoriteUsers.length > 0 ? (
+                  favoriteUsers.map((fav) => (
+                    <ListItem
+                      key={fav.user_id || fav.username}
+                      button
+                      onClick={() => gotofavProfile(fav)}
+                      sx={{
+                        borderRadius: 1,
+                        mb: 0.5,
+                        '&:hover': { backgroundColor: 'action.hover' }
+                      }}
+                    >
+                      <ListItemAvatar>
+                        <Avatar src={fav.profilePic} alt={fav.username} />
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={<Typography sx={{ fontWeight: 600 }}>{fav.username}</Typography>}
+                        secondary={fav.bio || 'No bio available'}
+                      />
+                      <FavoriteIcon color="error" fontSize="small" />
+                    </ListItem>
+                  ))
+                ) : (
+                  <ListItem>
+                    <ListItemText
+                      primary="No favorite users yet"
+                      secondary="Users you favorite will appear here"
+                    />
+                  </ListItem>
+                )}
+              </List>
+            )}
+          </Paper>
         </Paper>
       </Box>
-    </>
+    </Box>
   );
 };
 
