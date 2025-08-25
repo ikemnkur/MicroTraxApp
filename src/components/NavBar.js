@@ -32,6 +32,8 @@ import {
   LogoutOutlined,
 
 } from '@mui/icons-material';
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
 
 import InfoIcon from '@mui/icons-material/Info';
 import HelpIcon from '@mui/icons-material/Help';
@@ -40,6 +42,19 @@ import { fetchUserProfile } from './api';
 
 const drawerWidth = 190;
 const collapsedDrawerWidth = 40;
+
+const enterFullScreen = () => {
+        if (document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen();
+        } else if (document.documentElement.mozRequestFullScreen) { // Firefox
+          document.documentElement.mozRequestFullScreen();
+        } else if (document.documentElement.webkitRequestFullscreen) { // Chrome, Safari, Opera
+          document.documentElement.webkitRequestFullscreen();
+        } else if (document.documentElement.msRequestFullscreen) { // IE/Edge
+          document.documentElement.msRequestFullscreen();
+        }
+};
+
 
 const NavBar = ({ children }) => {
   const [open, setOpen] = useState(true);
@@ -160,6 +175,15 @@ const NavBar = ({ children }) => {
             sx={{ mr: 1 }}
           >
             {open ? <ChevronLeftIcon /> : <MenuIcon />}
+          </IconButton>
+          <IconButton
+            color="inherit"
+            aria-label="toggle full screen"
+            onClick={enterFullScreen}
+            edge="start"
+            sx={{ mr: 1 }}
+          >
+            {open ? <FullscreenExitIcon /> : <FullscreenIcon />}
           </IconButton>
           <Typography
             variant="h6"
