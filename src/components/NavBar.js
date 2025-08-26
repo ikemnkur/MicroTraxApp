@@ -192,7 +192,7 @@ const NavBar = ({ children }) => {
             aria-label="toggle drawer"
             onClick={() => setOpen(!open)}
             edge="start"
-            sx={{ mr: 2, p: 1.5, fontSize: 32 }}
+            sx={{ mx: 1.5, p: 1.5, fontSize: 32 }}
             size="large"
           >
             {open ? <ChevronLeftIcon fontSize="large" /> : <MenuIcon fontSize="large" />}
@@ -202,7 +202,7 @@ const NavBar = ({ children }) => {
             aria-label="toggle full screen"
             onClick={() => (isFullScreen ? exitFullScreen() : enterFullScreen() )}
             edge="start"
-            sx={{ mr: 2, p: 1.5, fontSize: 32 }}
+            sx={{ mx: 1.5, p: 1.5, fontSize: 32 }}
             size="large"
           >
             {open ? <FullscreenExitIcon fontSize="large" /> : <FullscreenIcon fontSize="large" />}
@@ -218,7 +218,7 @@ const NavBar = ({ children }) => {
           <IconButton
             color="inherit"
             onClick={() => navigate('/settings')}
-            sx={{ mx: 1.5, p: 1.5, fontSize: 32 }}
+            sx={{ mr: 2, p: 1.5, fontSize: 32 }}
             size="large"
           >
             <SettingsIcon fontSize="large" />
@@ -226,7 +226,7 @@ const NavBar = ({ children }) => {
           <IconButton
             color="inherit"
             onClick={() => navigate('/account')}
-            sx={{ mx: 1.5, p: 1.5, fontSize: 32 }}
+            sx={{ mr: 2, p: 1.5, fontSize: 32 }}
             size="large"
           >
             <AccountCircle fontSize="large" />
@@ -234,7 +234,7 @@ const NavBar = ({ children }) => {
           <IconButton
             color="inherit"
             onClick={() => navigate('/login')}
-            sx={{ mx: 1.5, p: 1.5, fontSize: 32 }}
+            sx={{ mr: 2, p: 1.5, fontSize: 32 }}
             size="large"
           >
             <LogoutOutlined fontSize="large" />

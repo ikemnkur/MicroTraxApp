@@ -128,8 +128,8 @@ const DotCaptcha = ({ onSuccess, onFailure }) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     // Set canvas dimensions
-    canvas.width = 400;
-    canvas.height = 250;
+    canvas.width = 300;
+    canvas.height = 200;
 
     // Initialize balls and select target color/count
     initializeBalls();
