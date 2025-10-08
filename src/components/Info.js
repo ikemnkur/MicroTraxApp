@@ -299,18 +299,55 @@ const Info = () => {
         </Paper>
       </Box>
 
-      {/* Support Section */}
-      <Box sx={{ textAlign: 'center' }}>
-        <Typography variant="h4" gutterBottom>
-          Need Help?
-        </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
-          <Typography variant="body1">Submit a support ticket</Typography>
-          <Button variant="contained" onClick={handleOpenSupportModal}>
-            Support
-          </Button>
-        </Box>
-      </Box>
+      
+            {/* Support Section */}
+            <Box
+                sx={{
+                    textAlign: 'center',
+                    backgroundColor: '#ddeff0ff',
+                    p: 4,
+                    borderRadius: 2,
+                    border: '2px solid #0080ffff',
+                    boxShadow: '0 4px 20px rgba(0, 211, 230, 0.2)',
+                }}
+            >
+                <Typography
+                    variant="h4"
+                    gutterBottom
+                    sx={{
+                        color: '#00a6ffff',
+                        fontWeight: 'bold',
+                        textShadow: '0 0 10px rgba(0, 140, 255, 0.5)',
+                        mb: 3
+                    }}
+                >
+                    Tell us what you think! Give us Feedback?
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+                    <Typography
+                        variant="body1"
+                        sx={{ color: '#171616ff' }}
+                    >
+                        Submit a feedback ticket
+                    </Typography>
+                    <Button
+                        variant="contained"
+                        onClick={handleOpenSupportModal}
+                        sx={{
+                            backgroundColor: '#009de6ff',
+                            color: '#000000',
+                            fontWeight: 'bold',
+                            '&:hover': {
+                                backgroundColor: '#00c853',
+                                boxShadow: '0 0 15px rgba(0, 211, 230, 0.5)'
+                            }
+                        }}
+                    >
+                        Feedback
+                    </Button>
+                </Box>
+            </Box>
+
 
 
 <Divider sx={{ my: 4 }} />
@@ -378,85 +415,176 @@ const Info = () => {
       {/* </Paper> */} 
 
       {/* Support Ticket Modal */}
-      <Modal
-        open={openSupportModal}
-        onClose={handleCloseSupportModal}
-        aria-labelledby="support-modal-title"
-        aria-describedby="support-modal-description"
-      >
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            bgcolor: 'background.paper',
-            boxShadow: 24,
-            p: 4,
-            width: { xs: '90%', sm: '400px' },
-            borderRadius: 2,
-          }}
-        >
-          <Typography id="support-modal-title" variant="h6" gutterBottom>
-            Submit a Support Ticket
-          </Typography>
-          <Select
-            fullWidth
-            value={supportProblemType}
-            onChange={(e) => setSupportProblemType(e.target.value)}
-            displayEmpty
-            sx={{ mb: 2 }}
-          >
-            <MenuItem value="" disabled>
-              Select Problem Type
-            </MenuItem>
-            <MenuItem value="account-issue">Account Issue</MenuItem>
-            <MenuItem value="billing-issue">Billing Issue</MenuItem>
-            <MenuItem value="report-scammer">Report Scammer</MenuItem>
-            <MenuItem value="other">Other</MenuItem>
-          </Select>
-          <TextField
-            label="Title"
-            fullWidth
-            value={supportTitle}
-            onChange={(e) => setSupportTitle(e.target.value)}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            label="Message"
-            fullWidth
-            multiline
-            rows={3}
-            value={supportMessage}
-            onChange={(e) => setSupportMessage(e.target.value)}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            label="Email or Other Contact Info"
-            fullWidth
-            value={supportContactInfo}
-            onChange={(e) => setSupportContactInfo(e.target.value)}
-            sx={{ mb: 2 }}
-          />
+            <Modal
+                open={openSupportModal}
+                onClose={handleCloseSupportModal}
+                aria-labelledby="support-modal-title"
+                aria-describedby="support-modal-description"
+            >
+                <Box
+                    sx={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        bgcolor: '#defdfdff', // Dark background
+                        color: '#000000ff', // White text
+                        border: '2px solid #008cffff', // Gold border
+                        boxShadow: '0 8px 32px rgba(0, 81, 255, 0.3)',
+                        p: 4,
+                        width: { xs: '90%', sm: '400px' },
+                        borderRadius: 2,
+                    }}
+                >
+                    <Typography
+                        id="support-modal-title"
+                        variant="h6"
+                        gutterBottom
+                        sx={{
+                            color: '#0077ffff',
+                            fontWeight: 'bold',
+                            mb: 3
+                        }}
+                    >
+                        Submit Feedback
+                    </Typography>
+                    <Select
+                        fullWidth
+                        value={supportProblemType}
+                        onChange={(e) => setSupportProblemType(e.target.value)}
+                        displayEmpty
+                        sx={{
+                            mb: 2,
+                            backgroundColor: '#ffffffff',
+                            color: '#000000ff',
+                            '& .MuiOutlinedInput-notchedOutline': {
+                                borderColor: '#0077ffff',
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                                borderColor: '#4e86ffff',
+                            },
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                borderColor: '#0077ffff',
+                            },
+                            '& .MuiSvgIcon-root': {
+                                color: '#0077ffff',
+                            }
+                        }}
+                    >
+                        <MenuItem value="" disabled>
+                            Select Feedback Type
+                        </MenuItem>
+                        <MenuItem value="improvement-issue">Improvement/Tips</MenuItem>
+                        <MenuItem value="account-issue">Bugs/App Issues</MenuItem>
+                        <MenuItem value="account-issue">Account Issue</MenuItem>
+                        <MenuItem value="billing-issue">Billing Issue</MenuItem>
+                        <MenuItem value="report-scammer">Report Scammer/Abuse</MenuItem>
+                        <MenuItem value="other">Other</MenuItem>
+                    </Select>
+                    <TextField
+                        label="Title"
+                        fullWidth
+                        value={supportTitle}
+                        onChange={(e) => setSupportTitle(e.target.value)}
+                        sx={{
+                            mb: 2,
+                            '& .MuiInputLabel-root': { color: '#0077ffff' },
+                            '& .MuiInputLabel-root.Mui-focused': { color: '#0077ffff' },
+                            '& .MuiOutlinedInput-root': {
+                                backgroundColor: '#ffffffff',
+                                color: '#000000ff',
+                                '& fieldset': { borderColor: '#0077ffff' },
+                                '&:hover fieldset': { borderColor: '#4e86ffff' },
+                                '&.Mui-focused fieldset': { borderColor: '#0077ffff' },
+                            }
+                        }}
+                    />
+                    <TextField
+                        label="Message"
+                        fullWidth
+                        multiline
+                        rows={3}
+                        value={supportMessage}
+                        onChange={(e) => setSupportMessage(e.target.value)}
+                        sx={{
+                            mb: 2,
+                            '& .MuiInputLabel-root': { color: '#0077ffff' },
+                            '& .MuiInputLabel-root.Mui-focused': { color: '#0077ffff' },
+                            '& .MuiOutlinedInput-root': {
+                                backgroundColor: '#ffffffff',
+                                color: '#040404ff',
+                                '& fieldset': { borderColor: '#0077ffff' },
+                                '&:hover fieldset': { borderColor: '#4e86ffff' },
+                                '&.Mui-focused fieldset': { borderColor: '#0077ffff' },
+                            }
+                        }}
+                    />
+                    <TextField
+                        label="Email or Other Contact Info"
+                        fullWidth
+                        value={supportContactInfo}
+                        onChange={(e) => setSupportContactInfo(e.target.value)}
+                        sx={{
+                            mb: 2,
+                            '& .MuiInputLabel-root': { color: '#0077ffff' },
+                            '& .MuiInputLabel-root.Mui-focused': { color: '#0077ffff' },
+                            '& .MuiOutlinedInput-root': {
+                                backgroundColor: '#ffffffff',
+                                color: '#0a0a0aff',
+                                '& fieldset': { borderColor: '#0077ffff' },
+                                '&:hover fieldset': { borderColor: '#4e86ffff' },
+                                '&.Mui-focused fieldset': { borderColor: '#0077ffff' },
+                            }
+                        }}
+                    />
 
-          <TextField
-            label="Username"
-            fullWidth
-            value={supportUsername}
-            onChange={(e) => setSupportUsername(e.target.value)}
-            sx={{ mb: 2 }}
-          />
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-            <Button variant="text" onClick={handleCloseSupportModal}>
-              Cancel
-            </Button>
-            <Button variant="contained" onClick={handleSubmitSupportTicket}>
-              Submit
-            </Button>
-          </Box>
-        </Box>
-      </Modal>
-
+                    <TextField
+                        label="Username"
+                        fullWidth
+                        value={supportUsername}
+                        onChange={(e) => setSupportUsername(e.target.value)}
+                        sx={{
+                            mb: 2,
+                            '& .MuiInputLabel-root': { color: '#0077ffff' },
+                            '& .MuiInputLabel-root.Mui-focused': { color: '#0077ffff' },
+                            '& .MuiOutlinedInput-root': {
+                                backgroundColor: '#ffffffff',
+                                color: '#2f2f2fff',
+                                '& fieldset': { borderColor: '#0077ffff' },
+                                '&:hover fieldset': { borderColor: '#4e86ffff' },
+                                '&.Mui-focused fieldset': { borderColor: '#0077ffff' },
+                            }
+                        }}
+                    />
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+                        <Button
+                            variant="text"
+                            onClick={handleCloseSupportModal}
+                            sx={{
+                                color: '#e0e0e0',
+                                '&:hover': { backgroundColor: 'rgba(224, 224, 224, 0.1)' }
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="contained"
+                            onClick={handleSubmitSupportTicket}
+                            sx={{
+                                backgroundColor: '#0096e6ff',
+                                color: '#000000',
+                                fontWeight: 'bold',
+                                '&:hover': {
+                                    backgroundColor: '#0089c8ff',
+                                    boxShadow: '0 0 15px rgba(0, 146, 230, 0.5)'
+                                }
+                            }}
+                        >
+                            Submit
+                        </Button>
+                    </Box>
+                </Box>
+            </Modal>
 
      
 

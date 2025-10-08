@@ -429,7 +429,7 @@ const YourStuff = () => {
       </Paper>
 
       {/* Subscriptions */}
-      <Paper sx={{ p: { xs: 2, md: 3 }, mb: 3, border: '1px solid #e9ecef', backgroundColor: '#f8f9fa', borderRadius: 2 }}>
+      {/* <Paper sx={{ p: { xs: 2, md: 3 }, mb: 3, border: '1px solid #e9ecef', backgroundColor: '#f8f9fa', borderRadius: 2 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0 }}>
           <Typography variant="h5" sx={{ fontWeight: 600, mb: 2 }}>Your Subscriptions... </Typography><strong>New Features Coming Soon</strong>
         </div>
@@ -496,7 +496,7 @@ const YourStuff = () => {
             </TableBody>
           </Table>
         </TableContainer>
-      </Paper>
+      </Paper> */}
 
       {/* View Content Dialog */}
       <Dialog open={openViewDialog} onClose={handleCloseViewDialog} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: 2 } }}>

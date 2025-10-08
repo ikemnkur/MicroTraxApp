@@ -1,21 +1,11 @@
-// import React, { useState, useEffect } from 'react';
-// import { useLocation, useNavigate } from 'react-router-dom';
-// import { PhotoCamera } from '@mui/icons-material';
-// // import { Container, Stack, Typography, Card, CardContent, Divider, Skeleton } from '@mui/material';
-// // import api from '../api/client';
-// import { uploadTransactionScreenshot } from './api';
-// import { useToast } from './contexts/ToastContext';
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { PhotoCamera } from '@mui/icons-material';
 import {
   Container,
-  Stack,
   Typography,
   Card,
   CardContent,
-  Divider,
-  Skeleton,
   Grid,
   Chip,
   Paper,
@@ -28,40 +18,36 @@ import {
 } from '@mui/material';
 import {
   ArrowBackIos,
-  ArrowForwardIos,
-  NavigateBefore,
-  NavigateNext
+  ArrowForwardIos
 } from '@mui/icons-material';
-import { uploadTransactionScreenshot } from './api';
+import { uploadTransactionScreenshot, } from './api';
+
 import { useToast } from './contexts/ToastContext';
 
-export function CryptoCheckoutForm({ setCoins }) {
+const api = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  withCredentials: true // Add this line
+});
 
-  // Wallet address mappings from your original code
+export function CryptoCheckoutForm({ setCoins }) {
+  // ... all existing state and configuration remain the same ...
   const walletAddressMap = {
     BTC: 'bc1q4j9e7equq4xvlyu7tan4gdmkvze7wc0egvykr6',
     LTC: 'ltc1qgg5aggedmvjx0grd2k5shg6jvkdzt9dtcqa4dh',
     SOL: 'qaSpvAumg2L3LLZA8qznFtbrRKYMP1neTGqpNgtCPaU',
     ETH: '0x9a61f30347258A3D03228F363b07692F3CBb7f27',
-    XMR: '44X8AgosuXFCuRmBoDRc66Vw1FeCaL6vRiKRqrmqXeJdeKAciYuyaJj7STZnHMg7x8icHJL6M1hzeAPqSh8NSC1GGC9bkCp',
+    // XMR: '44X8AgosuXFCuRmBoDRc66Vw1FeCaL6vRiKRqrmqXeJdeKAciYuyaJj7STZnHMg7x8icHJL6M1hzeAPqSh8NSC1GGC9bkCp',
   };
 
-  // Deposit wallet address mappings with blockchain info
-  const depositWalletAddressMap = {
-    BTC: { address: 'bc1q4j9e7equq4xvlyu7tan4gdmkvze7wc0egvykr6', blockchain: 'bitcoin' },
-    LTC: { address: 'ltc1qgg5aggedmvjx0grd2k5shg6jvkdzt9dtcqa4dh', blockchain: 'litecoin' },
-    SOL: { address: 'qaSpvAumg2L3LLZA8qznFtbrRKYMP1neTGqpNgtCPaU', blockchain: 'solana' },
-    ETH: { address: '0x9a61f30347258A3D03228F363b07692F3CBb7f27', blockchain: 'ethereum' },
-    XMR: { address: '44X8AgosuXFCuRmBoDRc66Vw1FeCaL6vRiKRqrmqXeJdeKAciYuyaJj7STZnHMg7x8icHJL6M1hzeAPqSh8NSC1GGC9bkCp', blockchain: 'monero' },
-  };
-
-  // Currency ID mapping for CoinGecko API
   const currencyIdMap = {
     BTC: 'bitcoin',
     ETH: 'ethereum',
     LTC: 'litecoin',
     SOL: 'solana',
-    XMR: 'monero'
+    // XMR: 'monero'
   };
 
   const [balance, setBalance] = useState(null);
@@ -69,15 +55,15 @@ export function CryptoCheckoutForm({ setCoins }) {
   const location = useLocation();
   const navigate = useNavigate();
   const query = new URLSearchParams(location.search);
-  const initialAmount = query.get('amount') || 12500; // Default to most popular
+  const initialAmount = query.get('amount') || 12500;
   const [amount, setAmount] = useState(initialAmount);
   let ud = JSON.parse(localStorage.getItem("userdata"))
 
   const [orderSubmitted, setOrderSubmitted] = useState(false);
-  const [currency, setCurrency] = useState('BTC'); // Default currency
+  const [currency, setCurrency] = useState('BTC');
   const [rate, setRate] = useState(0);
   const [errorMessage, setErrorMessage] = useState('');
-  const [message, setMessage] = useState(''); // For success messages
+  const [message, setMessage] = useState('');
   const [walletAddress, setWalletAddress] = useState(walletAddressMap[currency] || 'YOUR_WALLET_ADDRESS_HERE');
   const [userDetails, setUserDetails] = useState({
     name: '',
@@ -85,18 +71,20 @@ export function CryptoCheckoutForm({ setCoins }) {
     walletAddress: '',
     key: '',
     transactionId: '',
+    blockchainExplorerLink: '',
     time: ''
   });
 
-
-
-  // ... existing state variables ...
   const [currentStep, setCurrentStep] = useState(0);
   const totalSteps = 5;
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const [filePreview, setFilePreview] = useState(null);
+  const [fileError, setFileError] = useState('');
+  const [transactionStatus, setTransactionStatus] = useState('pending');
+  const [validationMessage, setValidationMessage] = useState('');
+  const [enableOrderLogging, setEnableOrderLogging] = useState(true);
 
-  // ... all existing state and configurations remain the same ...
-
-
+  // ... all existing functions remain the same ...
   const dollarValueOfCoins = amount / 1000;
   const cryptoAmount = rate ? (dollarValueOfCoins / rate).toFixed(8) : '0.00000000';
 
@@ -118,24 +106,7 @@ export function CryptoCheckoutForm({ setCoins }) {
     }
   };
 
-  // Modified handleBuyCredits to automatically go to next step
-  // const handleBuyCredits = (packageAmount, packagePrice) => {
-  //   setAmount(packageAmount);
-  //   // Automatically advance to next step after selection
-  //   setTimeout(() => nextStep(), 500);
-  // };
-
-  const load = async () => {
-    try {
-      const { data } = await api.get('/api/wallet/balance');
-      setBalance(data?.balance ?? 0);
-    } catch (e) {
-      console.error(e);
-      setBalance(100); // demo fallback
-    }
-  };
-
-  // Fetch crypto rate from CoinGecko API
+  // ... all existing functions (fetchCryptoRate, handleBuyCredits, etc.) ...
   const fetchCryptoRate = async (cryptoCurrency) => {
     try {
       const coinId = currencyIdMap[cryptoCurrency];
@@ -149,35 +120,22 @@ export function CryptoCheckoutForm({ setCoins }) {
       return data[coinId]?.usd || 0;
     } catch (error) {
       console.error('Error fetching crypto rate:', error);
-      // Fallback rates for demo
-      const fallbackRates = { BTC: 45000, ETH: 3000, LTC: 100, SOL: 50, XMR: 150 };
+      const fallbackRates = { BTC: 45000, ETH: 3000, LTC: 100, SOL: 50 };
       return fallbackRates[cryptoCurrency] || 0;
     }
   };
 
   useEffect(() => {
-    load();
-    // Fetch initial rate
     fetchCryptoRate(currency).then(setRate);
   }, []);
 
   useEffect(() => {
-    // Update rate when currency changes
     fetchCryptoRate(currency).then(setRate);
   }, [currency]);
 
   const handleBuyCredits = (packageAmount, packagePrice) => {
-    // setAmount(packageAmount);
-    // // Optionally scroll to next step or highlight it
-    // document.querySelector('[data-step="3"]')?.scrollIntoView({ behavior: 'smooth' });
     setAmount(packageAmount);
-    // Automatically advance to next step after selection
     setTimeout(() => nextStep(), 500);
-  };
-
-  const handleCancelOrder = () => {
-    // Navigate back to dashboard or previous page
-    navigate('/wallet'); // Adjust the path as needed
   };
 
   const handleCopyAddress = () => {
@@ -208,25 +166,20 @@ export function CryptoCheckoutForm({ setCoins }) {
       });
   };
 
-  // Example function to upload file to backend:
   const uploadToBackend = async (file) => {
     const formData = new FormData();
     formData.append('media', file);
 
     try {
-      // uploadMediaFiles should return the media link or an object with mediaLink property
       const response = await uploadTransactionScreenshot(formData);
       console.log('Transaction screenshot file uploaded:', response);
 
-      // If your backend returns { mediaLink: "..." }
       if (response && response.url) {
         return response.url;
       }
-      // If your backend returns { mediaLink: "..." }
       if (response && response.mediaLink) {
         return response.mediaLink;
       }
-      // If your backend returns the link directly
       if (typeof response === 'string') {
         return response;
       }
@@ -237,12 +190,10 @@ export function CryptoCheckoutForm({ setCoins }) {
     }
   };
 
-  // Enhanced screenshot upload handler
   const handleScreenshotUpload = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // File type validation
     const allowedTypes = ['image/png', 'image/jpg', 'image/jpeg'];
     if (!allowedTypes.includes(file.type)) {
       setFileError('Please upload only PNG or JPG files.');
@@ -251,8 +202,7 @@ export function CryptoCheckoutForm({ setCoins }) {
       return;
     }
 
-    // File size validation (5MB limit)
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
       setFileError('File size must be less than 5MB.');
       setUploadedFile(null);
@@ -260,32 +210,15 @@ export function CryptoCheckoutForm({ setCoins }) {
       return;
     }
 
-    // Clear any previous errors
     setFileError('');
     setUploadedFile(file);
 
-    // Create preview
     const reader = new FileReader();
     reader.onloadend = () => {
       setFilePreview(reader.result);
     };
     reader.readAsDataURL(file);
 
-    // // Store file info for later use
-    // const fileInfo = {
-    //   name: file.name,
-    //   size: file.size,
-    //   type: file.type,
-    //   lastModified: file.lastModified,
-    //   timestamp: Date.now(),
-    //   userId: ud?.user_id || ud?.id || 'unknown'
-    // };
-
-    // // In a real app, you would upload to backend here
-    // console.log('Screenshot uploaded:', fileInfo);
-    // setMessage('Screenshot uploaded successfully!');
-
-    // Upload logic (if you want to upload immediately)
     const formData = new FormData();
     formData.append('screenshot', file);
     formData.append('username', ud.username);
@@ -294,34 +227,22 @@ export function CryptoCheckoutForm({ setCoins }) {
     formData.append('date', new Date().toISOString());
 
     try {
-      let mediaLink;
-
-      mediaLink = await uploadToBackend(file); // server returns { mediaLink }
+      let mediaLink = await uploadToBackend(file);
       formData.append('mediaLink', mediaLink);
-
       setMessage('Screenshot uploaded successfully!');
-
     } catch (error) {
       console.error('API - Error uploading screenshot:', error);
       setFileError('An error occurred while uploading the image.');
     }
   };
 
-  // Function to remove uploaded file
   const handleRemoveFile = () => {
     setUploadedFile(null);
     setFilePreview(null);
     setFileError('');
-    // Reset the file input
     const fileInput = document.getElementById('transaction-screenshot-upload');
     if (fileInput) fileInput.value = '';
   };
-  const [uploadedFile, setUploadedFile] = useState(null);
-  const [filePreview, setFilePreview] = useState(null);
-  const [fileError, setFileError] = useState('');
-  const [transactionStatus, setTransactionStatus] = useState('pending'); // pending, validating, confirmed, failed
-  const [validationMessage, setValidationMessage] = useState('');
-  const [enableOrderLogging, setEnableOrderLogging] = useState(true);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -334,7 +255,6 @@ export function CryptoCheckoutForm({ setCoins }) {
   const handleOrderSubmit = async (e) => {
     e.preventDefault();
 
-    // Only validate required fields (marked with asterisk)
     const requiredFields = ['name', 'email', 'walletAddress', 'transactionId'];
     const missingFields = requiredFields.filter(field => !userDetails[field]?.trim());
 
@@ -343,14 +263,12 @@ export function CryptoCheckoutForm({ setCoins }) {
       return;
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(userDetails.email)) {
       setErrorMessage('Please enter a valid email address.');
       return;
     }
 
-    // Send order details to backend
     try {
       let data = {
         username: ud?.username || 'anonymous',
@@ -360,8 +278,6 @@ export function CryptoCheckoutForm({ setCoins }) {
         walletAddress: userDetails.walletAddress,
         key: userDetails.key || '',
         transactionId: userDetails.transactionId,
-        transactionHash: userDetails.transactionHash || '',
-        blockExplorerLink: userDetails.blockExplorerLink || '',
         currency: currency,
         amount: amount,
         cryptoAmount: cryptoAmount,
@@ -371,13 +287,11 @@ export function CryptoCheckoutForm({ setCoins }) {
         session_id: crypto?.randomUUID ? crypto.randomUUID() : Math.random().toString(36),
         orderLoggingEnabled: enableOrderLogging,
         userAgent: navigator.userAgent,
-        ip: 'client-side' // Would be set by backend
+        ip: 'client-side'
       }
 
-      // Only log order if user opted in
       if (enableOrderLogging) {
         console.log("Logging order with user tracking:", data);
-        // Store in localStorage as backup
         const orderHistory = JSON.parse(localStorage.getItem('orderHistory') || '[]');
         orderHistory.push({
           ...data,
@@ -389,24 +303,33 @@ export function CryptoCheckoutForm({ setCoins }) {
         console.log("Order logging disabled by user. Processing without user tracking.");
       }
 
-      // Simulate API call since validateCryptoTransaction is not imported
+      api.post(`/api/purchases/${ud?.username || 'anonymous'}`,
+        { data: data }
+      )
+        .then(() => {
+          setMessage(`Order submitted successfully! ${enableOrderLogging ? 'Order logged with user tracking.' : 'Processing without logging.'} Please wait for confirmation.`);
+          setOrderSubmitted(true);
+          setErrorMessage('');
+        })
+        .catch((error) => {
+          console.error('Error submitting order:', error);
+          setErrorMessage('An error occurred. Please try again.');
+        });
+
+
       console.log("Submitting order:", data);
 
       setMessage(`Order submitted successfully! ${enableOrderLogging ? 'Order logged with user tracking.' : 'Processing without logging.'} Please wait for confirmation.`);
       setOrderSubmitted(true);
       setErrorMessage('');
 
-      // Scroll to Step 5
-      setTimeout(() => {
-        document.querySelector('[data-step="5"]')?.scrollIntoView({ behavior: 'smooth' });
-      }, 1000);
+      setTimeout(() => nextStep(), 1000);
 
     } catch (error) {
       console.error('Error submitting order:', error);
       setErrorMessage('An error occurred. Please try again.');
     }
   };
-
 
 
   const handleValidateTransaction = async () => {
@@ -419,22 +342,19 @@ export function CryptoCheckoutForm({ setCoins }) {
     setValidationMessage('Checking transaction on blockchain...');
 
     try {
-      // Simulate API call to validate transaction
-      // In real implementation, this would check the blockchain
-      await new Promise(resolve => setTimeout(resolve, 3000)); // Simulate API delay
+      // API call to validate transaction
+      // Implementation would check the blockchain
 
-      // Simulate different outcomes based on transaction ID length
-      const isValid = userDetails.transactionId.length > 10;
+      const isValid = await checkTransaction();
 
       if (isValid) {
-        setTransactionStatus('confirmed');
-        setValidationMessage('Transaction confirmed! Your credits will be added to your account within 10 minutes.');
         success('Transaction validated successfully!');
+        handleOrderSubmit(new Event('submit')); // Proceed to submit order
+        // handleScreenshotUploadStep2();
       } else {
-        setTransactionStatus('failed');
-        setValidationMessage('Transaction not found or invalid. Please check your transaction ID and try again.');
-        error('Transaction validation failed');
+        error('Transaction validation failed. Please check the details and try again.');
       }
+
     } catch (err) {
       setTransactionStatus('failed');
       setValidationMessage('Error validating transaction. Please try again later.');
@@ -448,58 +368,55 @@ export function CryptoCheckoutForm({ setCoins }) {
       ETH: '5-15 minutes (12-35 confirmations)',
       LTC: '5-15 minutes (6 confirmations)',
       SOL: '1-3 minutes (32 confirmations)',
-      XMR: '20-40 minutes (10 confirmations)'
+      // XMR: '20-40 minutes (10 confirmations)'
     };
     return waitTimes[currency] || '10-30 minutes';
   };
 
-  const onPaymentError = () => error('Payment could not be started');
-
-  // Step content components
-  // Step content components with light theme
+  // Mobile-optimized Step content components
   const StepContent = ({ stepIndex }) => {
     switch (stepIndex) {
       case 0:
         return (
           <Box sx={{ px: { xs: 1, sm: 2 } }}>
             <Typography
-              variant="h4"
+              variant="h5"
               sx={{
-                mb: 2,
+                mb: { xs: 1.5, sm: 2 },
                 textAlign: 'center',
                 color: '#1976d2',
                 fontWeight: 600,
-                fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' }
+                fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem' }
               }}
             >
-              Step 1: Choose Purchase Currency
+              Choose Currency
             </Typography>
             <Typography
-              variant="body1"
+              variant="body2"
               sx={{
                 opacity: 0.7,
-                mb: 3,
+                mb: { xs: 2, sm: 3 },
                 textAlign: 'center',
                 color: '#546e7a',
-                fontSize: { xs: '0.9rem', sm: '1rem' }
+                fontSize: { xs: '0.8rem', sm: '0.9rem' }
               }}
             >
               Select your preferred cryptocurrency to purchase credits.
             </Typography>
 
-            <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ mb: 3 }}>
+            <Grid container spacing={{ xs: 1.5, sm: 2 }} sx={{ mb: { xs: 2, sm: 3 } }}>
               {[
                 { code: 'BTC', name: 'Bitcoin', icon: '₿', color: '#f7931a' },
                 { code: 'ETH', name: 'Ethereum', icon: 'Ξ', color: '#627eea' },
                 { code: 'LTC', name: 'Litecoin', icon: 'Ł', color: '#345d9d' },
                 { code: 'SOL', name: 'Solana', icon: '◎', color: '#9945ff' },
-                { code: 'XMR', name: 'Monero', icon: 'ɱ', color: '#ff6600' }
+                // { code: 'XMR', name: 'Monero', icon: 'ɱ', color: '#ff6600' }
               ].map((crypto) => (
                 <Grid item xs={6} sm={4} md={2.4} key={crypto.code}>
                   <Paper
-                    elevation={currency === crypto.code ? 8 : 2}
+                    elevation={currency === crypto.code ? 6 : 2}
                     sx={{
-                      p: { xs: 2, sm: 3 },
+                      p: { xs: 1.5, sm: 2 },
                       textAlign: 'center',
                       cursor: 'pointer',
                       transition: 'all 0.3s ease',
@@ -510,23 +427,24 @@ export function CryptoCheckoutForm({ setCoins }) {
                         ? `2px solid ${crypto.color}`
                         : '2px solid #e3f2fd',
                       '&:hover': {
-                        transform: 'translateY(-4px)',
-                        boxShadow: '0 8px 25px rgba(0,0,0,0.15)',
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
                       },
-                      borderRadius: 3
+                      borderRadius: 2,
+                      minHeight: { xs: 80, sm: 100 }
                     }}
                     onClick={() => {
                       setCurrency(crypto.code);
                       setWalletAddress(walletAddressMap[crypto.code]);
                     }}
                   >
-                    <Box sx={{ fontSize: { xs: '2rem', sm: '2.5rem' }, mb: 1, color: crypto.color }}>
+                    <Box sx={{ fontSize: { xs: '1.5rem', sm: '2rem' }, mb: 0.5, color: crypto.color }}>
                       {crypto.icon}
                     </Box>
-                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 0.5, fontSize: { xs: '0.9rem', sm: '1.1rem' } }}>
+                    <Typography variant="body1" sx={{ fontWeight: 600, mb: 0.5, fontSize: { xs: '0.8rem', sm: '0.9rem' } }}>
                       {crypto.code}
                     </Typography>
-                    <Typography variant="body2" sx={{ color: '#546e7a', fontSize: { xs: '0.7rem', sm: '0.8rem' } }}>
+                    <Typography variant="body2" sx={{ color: '#546e7a', fontSize: { xs: '0.6rem', sm: '0.7rem' } }}>
                       {crypto.name}
                     </Typography>
                   </Paper>
@@ -534,12 +452,12 @@ export function CryptoCheckoutForm({ setCoins }) {
               ))}
             </Grid>
 
-            <Box sx={{ textAlign: 'center', mt: 3 }}>
+            <Box sx={{ textAlign: 'center', mt: { xs: 2, sm: 3 } }}>
               <button
                 onClick={nextStep}
                 disabled={!currency}
                 style={{
-                  ...lightStyles.primaryButton,
+                  ...mobileStyles.primaryButton,
                   opacity: currency ? 1 : 0.5,
                   cursor: currency ? 'pointer' : 'not-allowed'
                 }}
@@ -554,31 +472,77 @@ export function CryptoCheckoutForm({ setCoins }) {
         return (
           <Box sx={{ px: { xs: 1, sm: 2 } }}>
             <Typography
-              variant="h4"
+              variant="h5"
               sx={{
-                mb: 2,
+                mb: { xs: 1.5, sm: 2 },
                 textAlign: 'center',
                 color: '#1976d2',
                 fontWeight: 600,
-                fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' }
+                fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem' }
               }}
             >
-              Step 2: Purchase Credits
+              Purchase Credits
             </Typography>
             <Typography
-              variant="body1"
+              variant="body2"
               sx={{
                 opacity: 0.7,
-                mb: 3,
+                mb: { xs: 2, sm: 3 },
                 textAlign: 'center',
                 color: '#546e7a',
-                fontSize: { xs: '0.9rem', sm: '1rem' }
+                fontSize: { xs: '0.8rem', sm: '0.9rem' }
               }}
             >
-              Select an amount of credits to purchase. Current selection: <strong style={{ color: '#1976d2' }}>{parseInt(amount).toLocaleString()} credits</strong>
+              Purchasing: <strong style={{ color: '#1976d2' }}>{parseInt(amount).toLocaleString()} credits</strong>
             </Typography>
 
-            <Grid container spacing={{ xs: 2, sm: 3 }}>
+            {/* Custom Amount Input - Mobile Optimized */}
+            <Box sx={{ display: 'flex', justifyContent: 'center', mb: { xs: 2, sm: 3 } }}>
+              <TextField
+                type="number"
+                name="amount"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                size="small"
+                sx={{
+                  maxWidth: { xs: 140, sm: 160 },
+                  '& .MuiInputBase-input': {
+                    fontSize: { xs: '0.9rem', sm: '1rem' },
+                    textAlign: 'center'
+                  }
+                }}
+                label="Custom Amount"
+                inputProps={{ min: 1, step: 1 }}
+              />
+            </Box>
+
+            <Typography
+              sx={{
+                fontSize: { xs: '1.5rem', sm: '2rem' },
+                fontWeight: 'bold',
+                textAlign: 'center',
+                opacity: 0.85,
+                mb: { xs: 2, sm: 3 },
+                color: '#1976d2'
+              }}
+            >
+              OR
+            </Typography>
+
+            <Typography
+              variant="body2"
+              sx={{
+                opacity: 0.7,
+                mb: { xs: 2, sm: 3 },
+                textAlign: 'center',
+                color: '#546e7a',
+                fontSize: { xs: '0.8rem', sm: '0.9rem' }
+              }}
+            >
+              Select a Package:
+            </Typography>
+
+            <Grid container spacing={{ xs: 1.5, sm: 2 }}>
               {[
                 { amount: 2000, price: 2.5, popular: false },
                 { amount: 5000, price: 5, popular: false },
@@ -587,11 +551,11 @@ export function CryptoCheckoutForm({ setCoins }) {
                 { amount: 55000, price: 53, popular: false },
                 { amount: 120000, price: 115, popular: false },
               ].map((package_, index) => (
-                <Grid item xs={12} sm={6} md={4} key={index}>
+                <Grid item xs={6} sm={4} md={4} key={index}>
                   <Paper
-                    elevation={amount == package_.amount ? 8 : package_.popular ? 6 : 2}
+                    elevation={amount == package_.amount ? 6 : package_.popular ? 4 : 2}
                     sx={{
-                      p: { xs: 2, sm: 3 },
+                      p: { xs: 1.5, sm: 2 },
                       textAlign: 'center',
                       position: 'relative',
                       cursor: 'pointer',
@@ -602,42 +566,44 @@ export function CryptoCheckoutForm({ setCoins }) {
                           ? 'linear-gradient(135deg, #1976d2, #42a5f5)'
                           : 'linear-gradient(135deg, #ffffff, #f8f9fa)',
                       color: package_.popular || amount == package_.amount ? 'white' : '#1976d2',
-                      border: amount == package_.amount ? '3px solid #1976d2' : package_.popular ? 'none' : '2px solid #e3f2fd',
+                      border: amount == package_.amount ? '2px solid #1976d2' : package_.popular ? 'none' : '1px solid #e3f2fd',
                       '&:hover': {
-                        transform: 'translateY(-4px)',
-                        boxShadow: '0 8px 25px rgba(0,0,0,0.15)',
+                        transform: 'translateY(-2px)',
+                        boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
                       },
-                      borderRadius: 3
+                      borderRadius: 2,
+                      minHeight: { xs: 120, sm: 140 }
                     }}
                     onClick={() => handleBuyCredits(package_.amount, package_.price)}
                   >
                     {package_.popular && (
                       <Chip
-                        label="MOST POPULAR"
+                        label="POPULAR"
+                        size="small"
                         sx={{
                           position: 'absolute',
-                          top: -10,
+                          top: -8,
                           left: '50%',
                           transform: 'translateX(-50%)',
                           backgroundColor: '#ff9800',
                           color: 'white',
                           fontWeight: 'bold',
-                          fontSize: { xs: '0.6rem', sm: '0.7rem' }
+                          fontSize: { xs: '0.5rem', sm: '0.6rem' }
                         }}
                       />
                     )}
 
-                    <Typography variant="h3" sx={{ fontWeight: 'bold', mb: 1, fontSize: { xs: '1.5rem', sm: '2rem' } }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 0.5, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                       {package_.amount.toLocaleString()}
                     </Typography>
-                    <Typography variant="body2" sx={{ opacity: 0.8, mb: 2, fontSize: { xs: '0.8rem', sm: '0.9rem' } }}>
+                    <Typography variant="body2" sx={{ opacity: 0.8, mb: 1, fontSize: { xs: '0.7rem', sm: '0.8rem' } }}>
                       Credits
                     </Typography>
-                    <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 1, fontSize: { xs: '1.2rem', sm: '1.5rem' } }}>
-                      ${package_.price} USD
+                    <Typography variant="body1" sx={{ fontWeight: 'bold', mb: 0.5, fontSize: { xs: '0.9rem', sm: '1.1rem' } }}>
+                      ${package_.price}
                     </Typography>
-                    <Typography variant="body2" sx={{ opacity: 0.7, fontSize: { xs: '0.7rem', sm: '0.8rem' } }}>
-                      ≈ {cryptoAmount && rate ? (package_.price / rate).toFixed(6) : '0.000000'} {currency}
+                    <Typography variant="body2" sx={{ opacity: 0.7, fontSize: { xs: '0.6rem', sm: '0.7rem' } }}>
+                      ≈ {cryptoAmount && rate ? (package_.price / rate).toFixed(4) : '0.0000'} {currency}
                     </Typography>
                   </Paper>
                 </Grid>
@@ -650,86 +616,75 @@ export function CryptoCheckoutForm({ setCoins }) {
         return (
           <Box sx={{ px: { xs: 1, sm: 2 } }}>
             <Typography
-              variant="h4"
+              variant="h5"
               sx={{
-                mb: 2,
+                mb: { xs: 1.5, sm: 2 },
                 textAlign: 'center',
                 color: '#1976d2',
                 fontWeight: 600,
-                fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' }
+                fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem' }
               }}
             >
-              Step 3: Send Cryptocurrency
-            </Typography>
-            <Typography
-              variant="body1"
-              sx={{
-                opacity: 0.7,
-                mb: 3,
-                textAlign: 'center',
-                color: '#546e7a',
-                fontSize: { xs: '0.9rem', sm: '1rem' }
-              }}
-            >
-              Send the exact amount of cryptocurrency to the wallet address below.
+              Send Payment
             </Typography>
 
-            <Paper elevation={4} sx={{ p: { xs: 2, sm: 3 }, mb: 3, background: 'linear-gradient(135deg, #e3f2fd, #bbdefb)', borderRadius: 3 }}>
-              <Typography variant="h5" sx={{ textAlign: 'center', color: '#1976d2', fontWeight: 600, mb: 1, fontSize: { xs: '1.2rem', sm: '1.5rem' } }}>
-                You are buying: {parseInt(amount).toLocaleString()} Credits
+            {/* Purchase Summary - Compact */}
+            <Paper elevation={3} sx={{ p: { xs: 1.5, sm: 2 }, mb: { xs: 2, sm: 3 }, background: 'linear-gradient(135deg, #e3f2fd, #bbdefb)', borderRadius: 2 }}>
+              <Typography variant="body1" sx={{ textAlign: 'center', color: '#1976d2', fontWeight: 600, mb: 0.5, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
+                Buying: {parseInt(amount).toLocaleString()} Credits
               </Typography>
-              <Typography variant="h6" sx={{ textAlign: 'center', color: '#1565c0', fontSize: { xs: '1rem', sm: '1.25rem' } }}>
+              <Typography variant="body2" sx={{ textAlign: 'center', color: '#1565c0', fontSize: { xs: '0.8rem', sm: '0.9rem' } }}>
                 Total: ${((parseInt(amount) / 1000) || 0).toFixed(2)} USD
               </Typography>
             </Paper>
 
+            {/* Messages - Compact */}
             {errorMessage && (
-              <Paper elevation={2} sx={{ p: 2, mb: 2, backgroundColor: '#ffebee', border: '1px solid #f44336', borderRadius: 2 }}>
-                <Typography color="#d32f2f" sx={{ textAlign: 'center', fontSize: { xs: '0.8rem', sm: '0.9rem' } }}>
+              <Paper elevation={1} sx={{ p: 1.5, mb: 2, backgroundColor: '#ffebee', border: '1px solid #f44336', borderRadius: 1 }}>
+                <Typography color="#d32f2f" sx={{ textAlign: 'center', fontSize: { xs: '0.7rem', sm: '0.8rem' } }}>
                   {errorMessage}
                 </Typography>
               </Paper>
             )}
 
             {message && (
-              <Paper elevation={2} sx={{ p: 2, mb: 2, backgroundColor: '#e8f5e8', border: '1px solid #4caf50', borderRadius: 2 }}>
-                <Typography color="#2e7d32" sx={{ textAlign: 'center', fontSize: { xs: '0.8rem', sm: '0.9rem' } }}>
+              <Paper elevation={1} sx={{ p: 1.5, mb: 2, backgroundColor: '#e8f5e8', border: '1px solid #4caf50', borderRadius: 1 }}>
+                <Typography color="#2e7d32" sx={{ textAlign: 'center', fontSize: { xs: '0.7rem', sm: '0.8rem' } }}>
                   {message}
                 </Typography>
               </Paper>
             )}
 
-            <Grid container spacing={{ xs: 2, sm: 3 }}>
+            {/* Payment Details - Stacked on Mobile */}
+            <Grid container spacing={{ xs: 1.5, sm: 2 }}>
               <Grid item xs={12} md={6}>
-                <Paper elevation={4} sx={{ p: { xs: 2, sm: 3 }, textAlign: 'center', background: 'linear-gradient(135deg, #1976d2, #42a5f5)', color: 'white', borderRadius: 3 }}>
-                  <Box sx={{ fontSize: { xs: '2rem', sm: '3rem' }, mb: 2 }}>
-                    {{ BTC: '₿', ETH: 'Ξ', LTC: 'Ł', SOL: '◎', XMR: 'ɱ' }[currency]}
+                <Paper elevation={3} sx={{ p: { xs: 1.5, sm: 2 }, textAlign: 'center', background: 'linear-gradient(135deg, #1976d2, #42a5f5)', color: 'white', borderRadius: 2 }}>
+                  <Box sx={{ fontSize: { xs: '1.5rem', sm: '2rem' }, mb: 1 }}>
+                    {{ BTC: '₿', ETH: 'Ξ', LTC: 'Ł', SOL: '◎', /*XMR: 'ɱ'*/ }[currency]}
                   </Box>
-                  <Typography variant="h5" sx={{ mb: 2, fontSize: { xs: '1.1rem', sm: '1.5rem' } }}>
-                    {{ BTC: 'Bitcoin', ETH: 'Ethereum', LTC: 'Litecoin', SOL: 'Solana', XMR: 'Monero' }[currency]} ({currency})
+                  <Typography variant="body1" sx={{ mb: 1, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
+                    {{ BTC: 'Bitcoin', ETH: 'Ethereum', LTC: 'Litecoin', SOL: 'Solana', /*XMR: 'Monero'*/ }[currency]} ({currency})
                   </Typography>
-                  <Typography variant="body1" sx={{ opacity: 0.9, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
-                    Current Rate: <strong>${rate ? rate.toLocaleString() : '...'}</strong> USD
+                  <Typography variant="body2" sx={{ opacity: 0.9, fontSize: { xs: '0.7rem', sm: '0.8rem' } }}>
+                    Rate: <strong>${rate ? rate.toLocaleString() : '...'}</strong>
                   </Typography>
                 </Paper>
               </Grid>
 
               <Grid item xs={12} md={6}>
-                <Paper elevation={4} sx={{ p: { xs: 2, sm: 3 }, background: 'linear-gradient(135deg, #ffffff, #f8f9fa)', border: '2px solid #2196f3', borderRadius: 3 }}>
-                  <Typography variant="h6" sx={{ color: '#1976d2', mb: 2, textAlign: 'center', fontWeight: 600, fontSize: { xs: '1rem', sm: '1.25rem' } }}>
+                <Paper elevation={3} sx={{ p: { xs: 1.5, sm: 2 }, background: 'linear-gradient(135deg, #ffffff, #f8f9fa)', border: '2px solid #2196f3', borderRadius: 2 }}>
+                  <Typography variant="body1" sx={{ color: '#1976d2', mb: 1.5, textAlign: 'center', fontWeight: 600, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
                     Payment Instructions
                   </Typography>
-                  <Typography sx={{ mb: 2, textAlign: 'center', color: '#546e7a', fontSize: { xs: '0.8rem', sm: '0.9rem' } }}>
-                    Please send <strong style={{ color: '#1976d2' }}>{cryptoAmount} {currency}</strong> to the following wallet address:
-                  </Typography>
 
-                  <Box sx={{ mb: 2 }}>
-                    <Paper elevation={2} sx={{ p: 2, backgroundColor: '#e3f2fd', border: '1px solid #2196f3', borderRadius: 2 }}>
-                      <Typography sx={{ fontWeight: 'bold', mb: 1, color: '#1976d2', fontSize: { xs: '0.9rem', sm: '1rem' } }}>
-                        Amount: {cryptoAmount} {currency}
+                  {/* Amount Section */}
+                  <Box sx={{ mb: 1.5 }}>
+                    <Paper elevation={1} sx={{ p: 1.5, backgroundColor: '#e3f2fd', border: '1px solid #2196f3', borderRadius: 1 }}>
+                      <Typography sx={{ fontWeight: 'bold', mb: 1, color: '#1976d2', fontSize: { xs: '0.8rem', sm: '0.9rem' }, textAlign: 'center' }}>
+                        Send: {cryptoAmount} {currency}
                       </Typography>
                       <button
-                        style={{ ...lightStyles.secondaryButton, width: '100%', marginTop: '8px' }}
+                        style={{ ...mobileStyles.secondaryButton, width: '100%' }}
                         onClick={handleCopyAmount}
                       >
                         Copy Amount
@@ -737,13 +692,22 @@ export function CryptoCheckoutForm({ setCoins }) {
                     </Paper>
                   </Box>
 
+                  {/* Address Section */}
                   <Box>
-                    <Paper elevation={2} sx={{ p: 2, backgroundColor: '#e3f2fd', border: '1px solid #2196f3', borderRadius: 2 }}>
-                      <Typography sx={{ wordBreak: 'break-all', fontFamily: 'monospace', mb: 1, color: '#1976d2', fontSize: { xs: '0.7rem', sm: '0.8rem' } }}>
+                    <Paper elevation={1} sx={{ p: 1.5, backgroundColor: '#e3f2fd', border: '1px solid #2196f3', borderRadius: 1 }}>
+                      <Typography sx={{
+                        wordBreak: 'break-all',
+                        fontFamily: 'monospace',
+                        mb: 1,
+                        color: '#1976d2',
+                        fontSize: { xs: '0.6rem', sm: '0.7rem' },
+                        textAlign: 'center',
+                        lineHeight: 1.2
+                      }}>
                         {walletAddress}
                       </Typography>
                       <button
-                        style={{ ...lightStyles.secondaryButton, width: '100%', marginTop: '8px' }}
+                        style={{ ...mobileStyles.secondaryButton, width: '100%' }}
                         onClick={handleCopyAddress}
                       >
                         Copy Address
@@ -754,9 +718,9 @@ export function CryptoCheckoutForm({ setCoins }) {
               </Grid>
             </Grid>
 
-            <Box sx={{ textAlign: 'center', mt: 4 }}>
-              <button onClick={nextStep} style={lightStyles.primaryButton}>
-                I've Sent the Payment
+            <Box sx={{ textAlign: 'center', mt: { xs: 2, sm: 3 } }}>
+              <button onClick={nextStep} style={mobileStyles.primaryButton}>
+                I've Sent Payment
               </button>
             </Box>
           </Box>
@@ -766,109 +730,122 @@ export function CryptoCheckoutForm({ setCoins }) {
         return (
           <Box sx={{ px: { xs: 1, sm: 2 } }}>
             <Typography
-              variant="h4"
+              variant="h5"
               sx={{
-                mb: 2,
+                mb: { xs: 1.5, sm: 2 },
                 textAlign: 'center',
                 color: '#1976d2',
                 fontWeight: 600,
-                fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' }
+                fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem' }
               }}
             >
-              Step 4: Submit Transaction Details
+              Submit Details
             </Typography>
             <Typography
-              variant="body1"
+              variant="body2"
               sx={{
                 opacity: 0.7,
-                mb: 3,
+                mb: { xs: 2, sm: 3 },
                 textAlign: 'center',
                 color: '#546e7a',
-                fontSize: { xs: '0.9rem', sm: '1rem' }
+                fontSize: { xs: '0.8rem', sm: '0.9rem' }
               }}
             >
-              After sending the cryptocurrency, please fill out the form below to log your order.
-              Fields marked with <span style={{ color: '#f44336', fontWeight: 'bold' }}>*</span> are required.
+              Fill out the form to log your order. Fields with <span style={{ color: '#f44336', fontWeight: 'bold' }}>*</span> are required.
             </Typography>
 
-            <Paper elevation={4} sx={{ p: { xs: 2, sm: 3 }, background: 'linear-gradient(135deg, #ffffff, #f8f9fa)', border: '1px solid #e3f2fd', borderRadius: 3 }}>
+            <Paper elevation={3} sx={{ p: { xs: 1.5, sm: 2 }, background: 'linear-gradient(135deg, #ffffff, #f8f9fa)', border: '1px solid #e3f2fd', borderRadius: 2 }}>
               <form onSubmit={handleOrderSubmit}>
-                <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: 3, backgroundColor: '#e3f2fd', borderRadius: 2 }}>
-                  <Typography sx={{ textAlign: 'center', color: '#1976d2', fontSize: { xs: '0.8rem', sm: '0.9rem' } }}>
-                    After sending <strong>{cryptoAmount} {currency}</strong> to wallet: {walletAddress.slice(0, 20)}...
-                    <br />Fill out the form below to log your order for manual review.
+                {/* Summary Info */}
+                <Paper elevation={1} sx={{ p: { xs: 1.5, sm: 2 }, mb: { xs: 2, sm: 3 }, backgroundColor: '#e3f2fd', borderRadius: 1 }}>
+                  <Typography sx={{ textAlign: 'center', color: '#1976d2', fontSize: { xs: '0.7rem', sm: '0.8rem' } }}>
+                    Sent <strong>{cryptoAmount} {currency}</strong> to: {walletAddress.slice(0, 15)}...
                   </Typography>
                 </Paper>
 
-                <Grid container spacing={2}>
+                <Grid container spacing={{ xs: 1.5, sm: 2 }}>
                   <Grid item xs={12} sm={6}>
-                    <Box sx={lightStyles.formGroup}>
-                      <label style={lightStyles.label}>Full Name:<span style={lightStyles.required}>*</span></label>
+                    <Box sx={mobileStyles.formGroup}>
+                      <label style={mobileStyles.label}>Full Name<span style={mobileStyles.required}>*</span></label>
                       <input
                         type="text"
                         name="name"
                         value={userDetails.name}
                         onChange={handleInputChange}
                         required
-                        style={lightStyles.input}
+                        style={mobileStyles.input}
                         placeholder="Enter your full name"
                       />
                     </Box>
                   </Grid>
 
                   <Grid item xs={12} sm={6}>
-                    <Box sx={lightStyles.formGroup}>
-                      <label style={lightStyles.label}>Email Address:<span style={lightStyles.required}>*</span></label>
+                    <Box sx={mobileStyles.formGroup}>
+                      <label style={mobileStyles.label}>Email<span style={mobileStyles.required}>*</span></label>
                       <input
                         type="email"
                         name="email"
                         value={userDetails.email}
                         onChange={handleInputChange}
                         required
-                        style={lightStyles.input}
-                        placeholder="Enter your email address"
+                        style={mobileStyles.input}
+                        placeholder="Enter your email"
                       />
                     </Box>
                   </Grid>
 
                   <Grid item xs={12}>
-                    <Box sx={lightStyles.formGroup}>
-                      <label style={lightStyles.label}>Your Wallet Address:<span style={lightStyles.required}>*</span></label>
+                    <Box sx={mobileStyles.formGroup}>
+                      <label style={mobileStyles.label}>Your Wallet Address<span style={mobileStyles.required}>*</span></label>
                       <input
                         type="text"
                         name="walletAddress"
                         value={userDetails.walletAddress}
                         onChange={handleInputChange}
                         required
-                        style={lightStyles.input}
-                        placeholder="Enter the wallet address you sent from"
+                        style={mobileStyles.input}
+                        placeholder="Address you sent from"
                       />
                     </Box>
                   </Grid>
 
                   <Grid item xs={12}>
-                    <Box sx={lightStyles.formGroup}>
-                      <label style={lightStyles.label}>Transaction ID/Hash:<span style={lightStyles.required}>*</span></label>
+                    <Box sx={mobileStyles.formGroup}>
+                      <label style={mobileStyles.label}>Transaction ID<span style={mobileStyles.required}>*</span></label>
                       <input
                         type="text"
                         name="transactionId"
                         value={userDetails.transactionId}
                         onChange={handleInputChange}
                         required
-                        style={lightStyles.input}
-                        placeholder="Enter the transaction ID or hash"
+                        style={mobileStyles.input}
+                        placeholder="Transaction hash/ID"
                       />
                     </Box>
                   </Grid>
 
                   <Grid item xs={12}>
-                    {/* Upload Section */}
-                    <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, backgroundColor: '#f8f9fa', border: '2px dashed #2196f3', borderRadius: 2 }}>
-                      <Typography variant="h6" sx={{ color: '#1976d2', mb: 2, fontWeight: 600, fontSize: { xs: '1rem', sm: '1.1rem' } }}>
-                        Payment Screenshot (Optional):
+                    <Box sx={mobileStyles.formGroup}>
+                      <label style={mobileStyles.label}> Blockchain Explorer Link</label>
+                      <input
+                        type="text"
+                        name="blockchainExplorerLink"
+                        value={userDetails.blockchainExplorerLink}
+                        onChange={handleInputChange}
+                        style={mobileStyles.input}
+                        placeholder="Blockchain explorer link"
+                      />
+                    </Box>
+                  </Grid>
+
+                  {/* Screenshot Upload - Compact 
+                  <Grid item xs={12}>
+                    <Paper elevation={1} sx={{ p: { xs: 1.5, sm: 2 }, backgroundColor: '#f8f9fa', border: '2px dashed #2196f3', borderRadius: 1 }}>
+                      <Typography variant="body2" sx={{ color: '#1976d2', mb: 1.5, fontWeight: 600, fontSize: { xs: '0.8rem', sm: '0.9rem' }, textAlign: 'center' }}>
+                        Payment Screenshot (Optional)
                       </Typography>
 
-                      <Box sx={{ textAlign: 'center', mb: 2 }}>
+                      <Box sx={{ textAlign: 'center', mb: 1.5 }}>
                         <input
                           accept=".png,.jpg,.jpeg"
                           style={{ display: 'none' }}
@@ -876,61 +853,54 @@ export function CryptoCheckoutForm({ setCoins }) {
                           type="file"
                           onChange={handleScreenshotUpload}
                         />
-                        <label htmlFor="transaction-screenshot-upload">
-                          <button
-                            type="button"
-                            style={lightStyles.uploadButton}
-                            onClick={() => document.getElementById('transaction-screenshot-upload').click()}
-                          >
-                            <PhotoCamera style={{ marginRight: '8px', fontSize: '20px' }} />
-                            {uploadedFile ? 'Change Screenshot' : 'Upload Screenshot'}
-                          </button>
-                        </label>
+                        <button
+                          type="button"
+                          style={mobileStyles.uploadButton}
+                          onClick={() => document.getElementById('transaction-screenshot-upload').click()}
+                        >
+                          <PhotoCamera style={{ marginRight: '8px', fontSize: '16px' }} />
+                          {uploadedFile ? 'Change' : 'Upload'}
+                        </button>
                       </Box>
 
                       {fileError && (
-                        <Paper elevation={1} sx={{ p: 2, backgroundColor: '#ffebee', border: '1px solid #f44336', borderRadius: 1, mb: 2 }}>
-                          <Typography color="#d32f2f" sx={{ fontSize: { xs: '0.8rem', sm: '0.9rem' } }}>
+                        <Paper elevation={1} sx={{ p: 1, backgroundColor: '#ffebee', border: '1px solid #f44336', borderRadius: 1, mb: 1 }}>
+                          <Typography color="#d32f2f" sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem' } }}>
                             ⚠️ {fileError}
                           </Typography>
                         </Paper>
                       )}
 
                       {uploadedFile && (
-                        <Paper elevation={2} sx={{ p: 2, backgroundColor: '#e3f2fd', border: '1px solid #2196f3', borderRadius: 2, mb: 2 }}>
-                          <Grid container spacing={2} alignItems="center">
-                            <Grid item xs={12} sm={4}>
+                        <Paper elevation={1} sx={{ p: 1.5, backgroundColor: '#e3f2fd', border: '1px solid #2196f3', borderRadius: 1 }}>
+                          <Grid container spacing={1} alignItems="center">
+                            <Grid item xs={4}>
                               <img
                                 src={filePreview}
-                                alt="Payment screenshot preview"
+                                alt="Preview"
                                 style={{
                                   width: '100%',
-                                  maxWidth: '128px',
-                                  height: '128px',
+                                  maxWidth: '80px',
+                                  height: '60px',
                                   objectFit: 'cover',
-                                  borderRadius: '8px',
-                                  border: '2px solid #2196f3'
+                                  borderRadius: '4px',
+                                  border: '1px solid #2196f3'
                                 }}
                               />
                             </Grid>
-                            <Grid item xs={12} sm={6}>
-                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#1976d2', mb: 1 }}>
-                                📎 {uploadedFile.name}
+                            <Grid item xs={6}>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#1976d2', fontSize: { xs: '0.7rem', sm: '0.8rem' } }}>
+                                📎 {uploadedFile.name.length > 20 ? uploadedFile.name.substring(0, 20) + '...' : uploadedFile.name}
                               </Typography>
-                              <Typography variant="body2" sx={{ color: '#546e7a', mb: 1 }}>
+                              <Typography variant="body2" sx={{ color: '#546e7a', fontSize: { xs: '0.6rem', sm: '0.7rem' } }}>
                                 {(uploadedFile.size / 1024).toFixed(1)} KB
                               </Typography>
-                              <Chip
-                                label={uploadedFile.type.split('/')[1].toUpperCase()}
-                                size="small"
-                                sx={{ backgroundColor: '#2196f3', color: 'white' }}
-                              />
                             </Grid>
-                            <Grid item xs={12} sm={2}>
+                            <Grid item xs={2}>
                               <button
                                 type="button"
                                 onClick={handleRemoveFile}
-                                style={lightStyles.removeButton}
+                                style={mobileStyles.removeButton}
                               >
                                 🗑️
                               </button>
@@ -938,17 +908,13 @@ export function CryptoCheckoutForm({ setCoins }) {
                           </Grid>
                         </Paper>
                       )}
-
-                      <Typography variant="body2" sx={{ textAlign: 'center', color: '#546e7a', fontStyle: 'italic', fontSize: { xs: '0.7rem', sm: '0.8rem' } }}>
-                        📸 Upload a screenshot of your payment confirmation (PNG or JPG only, max 5MB)
-                      </Typography>
                     </Paper>
-                  </Grid>
+                  </Grid>*/}
                 </Grid>
 
-                <Box sx={{ textAlign: 'center', mt: 3 }}>
-                  <button style={lightStyles.submitButton} type="submit">
-                    Log Your Order
+                <Box sx={{ textAlign: 'center', mt: { xs: 2, sm: 3 } }}>
+                  <button style={mobileStyles.submitButton} type="submit">
+                    Submit Order
                   </button>
                 </Box>
               </form>
@@ -960,91 +926,86 @@ export function CryptoCheckoutForm({ setCoins }) {
         return (
           <Box sx={{ px: { xs: 1, sm: 2 } }}>
             <Typography
-              variant="h4"
+              variant="h5"
               sx={{
-                mb: 2,
+                mb: { xs: 1.5, sm: 2 },
                 textAlign: 'center',
                 color: '#1976d2',
                 fontWeight: 600,
-                fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' }
+                fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem' }
               }}
             >
-              Step 5: Transaction Status & Validation
+              Validation
             </Typography>
             <Typography
-              variant="body1"
+              variant="body2"
               sx={{
                 opacity: 0.7,
-                mb: 3,
+                mb: { xs: 2, sm: 3 },
                 textAlign: 'center',
                 color: '#546e7a',
-                fontSize: { xs: '0.9rem', sm: '1rem' }
+                fontSize: { xs: '0.8rem', sm: '0.9rem' }
               }}
             >
               {orderSubmitted
-                ? 'Your order has been logged. Use the tools below to check your transaction status.'
-                : 'After submitting your order details, you can validate your transaction here.'
+                ? 'Your order has been logged. Validate your transaction below.'
+                : 'Submit your order details first to validate your transaction.'
               }
             </Typography>
 
-            <Paper elevation={4} sx={{ p: { xs: 2, sm: 3 }, mb: 3, background: 'linear-gradient(135deg, #ffffff, #f8f9fa)', border: '2px solid #2196f3', borderRadius: 3 }}>
-              <Typography variant="h6" sx={{ color: '#1976d2', mb: 3, textAlign: 'center', fontWeight: 600, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
+            <Paper elevation={3} sx={{ p: { xs: 1.5, sm: 2 }, mb: { xs: 2, sm: 3 }, background: 'linear-gradient(135deg, #ffffff, #f8f9fa)', border: '2px solid #2196f3', borderRadius: 2 }}>
+              <Typography variant="body1" sx={{ color: '#1976d2', mb: 2, textAlign: 'center', fontWeight: 600, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
                 Transaction Validation
               </Typography>
 
-              <Paper elevation={2} sx={{ p: { xs: 2, sm: 3 }, mb: 3, backgroundColor: '#e8f5e8', border: '1px solid #4caf50', borderRadius: 2 }}>
-                <Typography sx={{ fontSize: { xs: '0.8rem', sm: '0.9rem' }, color: '#2e7d32', mb: 1 }}>
-                  <strong>Expected confirmation time for {currency}:</strong>
+              {/* Wait Time Info */}
+              <Paper elevation={1} sx={{ p: { xs: 1.5, sm: 2 }, mb: 2, backgroundColor: '#e8f5e8', border: '1px solid #4caf50', borderRadius: 1 }}>
+                <Typography sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem' }, color: '#2e7d32', mb: 0.5 }}>
+                  <strong>Expected time for {currency}:</strong>
                 </Typography>
-                <Typography sx={{ fontSize: { xs: '0.9rem', sm: '1rem' }, color: '#1b5e20', fontWeight: 600 }}>
+                <Typography sx={{ fontSize: { xs: '0.8rem', sm: '0.9rem' }, color: '#1b5e20', fontWeight: 600 }}>
                   {getExpectedWaitTime(currency)}
                 </Typography>
               </Paper>
 
-              <Box sx={{ textAlign: 'center', mb: 3 }}>
+              {/* Validate Button */}
+              <Box sx={{ textAlign: 'center', mb: 2 }}>
                 <button
                   type="button"
                   onClick={handleValidateTransaction}
                   disabled={transactionStatus === 'validating'}
                   style={{
-                    ...lightStyles.primaryButton,
+                    ...mobileStyles.primaryButton,
                     opacity: transactionStatus === 'validating' ? 0.6 : 1,
-                    cursor: transactionStatus === 'validating' ? 'not-allowed' : 'pointer',
-                    fontSize: '16px',
-                    padding: '15px 30px'
+                    cursor: transactionStatus === 'validating' ? 'not-allowed' : 'pointer'
                   }}
                 >
                   {transactionStatus === 'validating' ? (
-                    <>
-                      <span style={{ marginRight: '10px' }}>⏳</span>
-                      Validating Transaction...
-                    </>
+                    <>⏳ Validating...</>
                   ) : (
-                    <>
-                      <span style={{ marginRight: '10px' }}>🔍</span>
-                      Validate Transaction
-                    </>
+                    <>🔍 Validate Transaction</>
                   )}
                 </button>
               </Box>
 
+              {/* Validation Result */}
               {validationMessage && (
                 <Paper
-                  elevation={2}
+                  elevation={1}
                   sx={{
-                    p: { xs: 2, sm: 3 },
+                    p: { xs: 1.5, sm: 2 },
                     textAlign: 'center',
                     backgroundColor: transactionStatus === 'confirmed' ? '#e8f5e8' :
                       transactionStatus === 'failed' ? '#ffebee' : '#e3f2fd',
                     border: `1px solid ${transactionStatus === 'confirmed' ? '#4caf50' :
                       transactionStatus === 'failed' ? '#f44336' : '#2196f3'}`,
-                    borderRadius: 2
+                    borderRadius: 1
                   }}
                 >
                   <Typography sx={{
                     color: transactionStatus === 'confirmed' ? '#2e7d32' :
                       transactionStatus === 'failed' ? '#d32f2f' : '#1976d2',
-                    fontSize: { xs: '0.9rem', sm: '1rem' },
+                    fontSize: { xs: '0.8rem', sm: '0.9rem' },
                     fontWeight: 500
                   }}>
                     {transactionStatus === 'confirmed' && '✅ '}
@@ -1056,38 +1017,26 @@ export function CryptoCheckoutForm({ setCoins }) {
               )}
             </Paper>
 
-            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+            {/* Action Buttons */}
+            <Box sx={{ display: 'flex', gap: { xs: 1, sm: 2 }, justifyContent: 'center', flexWrap: 'wrap' }}>
               {transactionStatus === 'confirmed' ? (
                 <button
                   onClick={() => navigate('/wallet')}
-                  style={{
-                    ...lightStyles.successButton,
-                    fontSize: { xs: '14px', sm: '16px' },
-                    padding: '15px 30px'
-                  }}
+                  style={mobileStyles.successButton}
                 >
-                  <span style={{ marginRight: '10px' }}>🎉</span>
-                  Go to Wallet
+                  🎉 Go to Wallet
                 </button>
               ) : (
                 <>
                   <button
-                    onClick={() => window.location.reload()}
-                    style={{
-                      ...lightStyles.primaryButton,
-                      fontSize: '14px',
-                      padding: '12px 24px'
-                    }}
+                    onClick={() => navigate('/transactions')}
+                    style={mobileStyles.primaryButton}
                   >
                     Complete Purchase
                   </button>
                   <button
                     onClick={() => navigate('/wallet')}
-                    style={{
-                      ...lightStyles.secondaryButton,
-                      fontSize: '14px',
-                      padding: '12px 24px'
-                    }}
+                    style={mobileStyles.secondaryButton}
                   >
                     Back to Wallet
                   </button>
@@ -1103,294 +1052,286 @@ export function CryptoCheckoutForm({ setCoins }) {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 4 }, position: 'relative', minHeight: '100vh', backgroundColor: '#f8f9fa' }}>
-      {/* Progress Stepper */}
-      <Box sx={{ mb: { xs: 3, sm: 4 } }}>
-        <Stepper
-          activeStep={currentStep}
-          alternativeLabel
-          sx={{
-            '& .MuiStepLabel-label': {
-              fontSize: { xs: '0.7rem', sm: '0.875rem' },
-              color: '#546e7a'
-            },
-            '& .MuiStepLabel-label.Mui-active': {
-              color: '#1976d2',
-              fontWeight: 600
-            },
-            '& .MuiStepLabel-label.Mui-completed': {
-              color: '#4caf50',
-              fontWeight: 600
-            },
-            '& .MuiStepIcon-root': {
-              color: '#e0e0e0',
-              '&.Mui-active': {
-                color: '#1976d2'
-              },
-              '&.Mui-completed': {
-                color: '#4caf50'
-              }
-            }
-          }}
-        >
-          <Step>
-            <StepLabel>Choose Currency</StepLabel>
-          </Step>
-          <Step>
-            <StepLabel>Select Package</StepLabel>
-          </Step>
-          <Step>
-            <StepLabel>Send Payment</StepLabel>
-          </Step>
-          <Step>
-            <StepLabel>Submit Details</StepLabel>
-          </Step>
-          <Step>
-            <StepLabel>Validation</StepLabel>
-          </Step>
-        </Stepper>
-      </Box>
-
-      {/* Navigation Buttons */}
-      <IconButton
-        onClick={prevStep}
-        disabled={currentStep === 0}
+    <Box sx={{
+      backgroundColor: '#f8f9fa',
+      minHeight: '100vh',
+      pt: { xs: 1, sm: 2 },
+      pb: { xs: 8, sm: 4 } // Extra bottom padding for mobile navigation
+    }}>
+      <Container
+        maxWidth="lg"
         sx={{
-          position: 'fixed',
-          top: '50%',
-          left: { xs: 8, sm: 16 },
-          transform: 'translateY(-50%)',
-          zIndex: 1000,
-          backgroundColor: currentStep === 0 ? '#e0e0e0' : '#2196f3',
-          color: currentStep === 0 ? '#9e9e9e' : 'white',
-          width: { xs: 45, sm: 55 },
-          height: { xs: 45, sm: 55 },
-          '&:hover': {
-            backgroundColor: currentStep === 0 ? '#e0e0e0' : '#1976d2',
-          },
-          boxShadow: currentStep === 0 ? 'none' : '0 4px 15px rgba(33, 150, 243, 0.3)'
+          px: { xs: 0.5, sm: 2 }
         }}
       >
-        <ArrowBackIos sx={{ fontSize: { xs: 18, sm: 22 } }} />
-      </IconButton>
-
-      <IconButton
-        onClick={nextStep}
-        disabled={currentStep === totalSteps - 1}
-        sx={{
-          position: 'fixed',
-          top: '50%',
-          right: { xs: 8, sm: 16 },
-          transform: 'translateY(-50%)',
-          zIndex: 1000,
-          backgroundColor: currentStep === totalSteps - 1 ? '#e0e0e0' : '#2196f3',
-          color: currentStep === totalSteps - 1 ? '#9e9e9e' : 'white',
-          width: { xs: 45, sm: 55 },
-          height: { xs: 45, sm: 55 },
-          '&:hover': {
-            backgroundColor: currentStep === totalSteps - 1 ? '#e0e0e0' : '#1976d2',
-          },
-          boxShadow: currentStep === totalSteps - 1 ? 'none' : '0 4px 15px rgba(33, 150, 243, 0.3)'
-        }}
-      >
-        <ArrowForwardIos sx={{ fontSize: { xs: 18, sm: 22 } }} />
-      </IconButton>
-
-      {/* Main Content Area */}
-      <Card
-        variant="outlined"
-        sx={{
-          background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
-          border: '2px solid #e3f2fd',
-          borderRadius: 4,
-          boxShadow: '0 8px 32px rgba(33, 150, 243, 0.1)',
-          minHeight: '70vh',
-          overflow: 'hidden'
-        }}
-      >
-        <CardContent sx={{ p: 0 }}>
-          {/* Step Content with Slide Animation */}
-          <Box
+        {/* Progress Stepper - Compact */}
+        <Box sx={{ mb: { xs: 2, sm: 3 }, px: { xs: 1, sm: 0 } }}>
+          <Stepper
+            activeStep={currentStep}
+            alternativeLabel
             sx={{
-              position: 'relative',
-              overflow: 'hidden',
-              minHeight: { xs: '500px', sm: '600px' }
+              '& .MuiStepLabel-label': {
+                fontSize: { xs: '0.6rem', sm: '0.8rem' },
+                color: '#546e7a'
+              },
+              '& .MuiStepLabel-label.Mui-active': {
+                color: '#1976d2',
+                fontWeight: 600
+              },
+              '& .MuiStepLabel-label.Mui-completed': {
+                color: '#4caf50',
+                fontWeight: 600
+              },
+              '& .MuiStepIcon-root': {
+                color: '#e0e0e0',
+                fontSize: { xs: '1rem', sm: '1.25rem' },
+                '&.Mui-active': {
+                  color: '#1976d2'
+                },
+                '&.Mui-completed': {
+                  color: '#4caf50'
+                }
+              }
             }}
           >
+            <Step><StepLabel>Currency</StepLabel></Step>
+            <Step><StepLabel>Package</StepLabel></Step>
+            <Step><StepLabel>Payment</StepLabel></Step>
+            <Step><StepLabel>Details</StepLabel></Step>
+            <Step><StepLabel>Validate</StepLabel></Step>
+          </Stepper>
+        </Box>
+
+
+
+
+
+        <Card
+          variant="outlined"
+          sx={{
+            background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+            border: '2px solid #e3f2fd',
+            borderRadius: { xs: 2, sm: 3 },
+            boxShadow: '0 4px 20px rgba(33, 150, 243, 0.1)',
+            minHeight: { xs: 'calc(100vh - 140px)', sm: '70vh' },
+            minWidth: { xs: '400px', sm: '400px' },
+            overflow: 'auto',
+            mx: { xs: 0.5, sm: 0 },
+            position: 'relative' // Added for absolute positioning context
+          }}
+        >
+          <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+            {/* Simple Step Content Display */}
             <Box
               sx={{
+                minHeight: { xs: 'calc(100vh - 200px)', sm: '500px' },
+                width: '100%',
                 display: 'flex',
-                width: `${totalSteps * 100}%`,
-                transform: `translateX(-${(currentStep * 100) / totalSteps}%)`,
-                transition: 'transform 0.5s ease-in-out'
+                alignItems: 'flex-start',
+                justifyContent: 'center'
               }}
             >
+              <Box sx={{ width: '100%', maxWidth: '800px' }}>
+                <StepContent stepIndex={currentStep} />
+              </Box>
+            </Box>
+
+          </CardContent>
+
+
+        </Card>
+        <Card
+          variant="outlined"
+          sx={{
+            background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+            border: '2px solid #e3f2fd',
+            borderRadius: { xs: 2, sm: 3 },
+            boxShadow: '0 4px 20px rgba(33, 150, 243, 0.1)',
+            // maxHeight: { xs: '80px', sm: '100px' },
+            minHeight: { xs: '64px', sm: '96px' },
+            minWidth: { xs: '400px', sm: '400px' },
+            overflow: 'auto',
+            mx: { xs: 0.5, sm: 0 },
+            position: 'relative' // Added for absolute positioning context
+          }}
+        >
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2, flexWrap: 'wrap', gap: 2, position: 'absolute', bottom: { xs: 10, sm: 20 }, left: 0, right: 0, px: { xs: 2, sm: 3 } }}>
+            <IconButton
+              onClick={prevStep}
+              disabled={currentStep === 0}
+              sx={{
+                // position: 'absolute',
+                // bottom: { xs: 30, sm: 35 }, // Same level as step indicators
+                // left: { xs: 20, sm: 30 },
+                zIndex: 1000,
+                backgroundColor: currentStep === 0 ? '#e0e0e0' : '#2196f3',
+                color: currentStep === 0 ? '#9e9e9e' : 'white',
+                width: { xs: 35, sm: 45 },
+                height: { xs: 35, sm: 45 },
+                '&:hover': {
+                  backgroundColor: currentStep === 0 ? '#e0e0e0' : '#1976d2',
+                },
+                boxShadow: currentStep === 0 ? 'none' : '0 2px 10px rgba(33, 150, 243, 0.3)'
+              }}
+            >
+              <ArrowBackIos sx={{ fontSize: { xs: 14, sm: 18 } }} />
+            </IconButton>
+            {/* Step Indicators - Mobile Optimized */}
+            <Box sx={{
+              width: '100%',
+              maxWidth: '180px',
+              margin: '20px auto 0 auto',
+              display: 'flex',
+              gap: { xs: 0.5, sm: 1 },
+              zIndex: 999, // Lower than navigation buttons
+              backgroundColor: 'rgba(255, 255, 255, 0.9)',
+              padding: { xs: '6px 12px', sm: '8px 16px' },
+              borderRadius: '15px',
+              boxShadow: '0 2px 15px rgba(0,0,0,0.1)'
+            }}>
+
+              {/* Navigation Buttons - Aligned with Step Indicators */}
+
+
               {Array.from({ length: totalSteps }, (_, index) => (
                 <Box
                   key={index}
+                  onClick={() => goToStep(index)}
                   sx={{
-                    width: `${100 / totalSteps}%`,
-                    flexShrink: 0,
-                    p: { xs: 2, sm: 4 },
-                    display: 'flex',
-                    alignItems: 'center',
-                    minHeight: { xs: '500px', sm: '600px' }
+                    margin: '0 auto',
+                    width: { xs: 8, sm: 12 },
+                    height: { xs: 8, sm: 12 },
+                    borderRadius: '50%',
+                    backgroundColor: index === currentStep ? '#2196f3' : '#e0e0e0',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      backgroundColor: index === currentStep ? '#1976d2' : '#bdbdbd',
+                      transform: 'scale(1.2)'
+                    },
+                    boxShadow: index === currentStep ? '0 0 8px rgba(33, 150, 243, 0.5)' : 'none'
                   }}
-                >
-                  <Box sx={{ width: '100%' }}>
-                    <StepContent stepIndex={index} />
-                  </Box>
-                </Box>
+                />
               ))}
-            </Box>
-          </Box>
-        </CardContent>
-      </Card>
 
-      {/* Step Indicators */}
-      <Box sx={{
-        position: 'fixed',
-        bottom: { xs: 20, sm: 30 },
-        left: '50%',
-        transform: 'translateX(-50%)',
-        display: 'flex',
-        gap: 1,
-        zIndex: 1000,
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        padding: '8px 16px',
-        borderRadius: '20px',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
-      }}>
-        {Array.from({ length: totalSteps }, (_, index) => (
-          <Box
-            key={index}
-            onClick={() => goToStep(index)}
-            sx={{
-              width: { xs: 10, sm: 14 },
-              height: { xs: 10, sm: 14 },
-              borderRadius: '50%',
-              backgroundColor: index === currentStep ? '#2196f3' : '#e0e0e0',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                backgroundColor: index === currentStep ? '#1976d2' : '#bdbdbd',
-                transform: 'scale(1.2)'
-              },
-              boxShadow: index === currentStep ? '0 0 10px rgba(33, 150, 243, 0.5)' : 'none'
-            }}
-          />
-        ))}
-      </Box>
-    </Container>
+            </Box>  <IconButton
+              onClick={nextStep}
+              disabled={currentStep === totalSteps - 1}
+              sx={{
+                // position: 'absolute',
+                // bottom: { xs: 30, sm: 35 }, // Same level as step indicators
+                // right: { xs: 20, sm: 30 },
+                zIndex: 1000,
+                backgroundColor: currentStep === totalSteps - 1 ? '#e0e0e0' : '#2196f3',
+                color: currentStep === totalSteps - 1 ? '#9e9e9e' : 'white',
+                width: { xs: 35, sm: 45 },
+                height: { xs: 35, sm: 45 },
+                '&:hover': {
+                  backgroundColor: currentStep === totalSteps - 1 ? '#e0e0e0' : '#1976d2',
+                },
+                boxShadow: currentStep === totalSteps - 1 ? 'none' : '0 2px 10px rgba(33, 150, 243, 0.3)'
+              }}
+            >
+              <ArrowForwardIos sx={{ fontSize: { xs: 14, sm: 18 } }} />
+            </IconButton>
+          </Box>
+        </Card>
+      </Container>
+    </Box>
   );
 }
 
-// Light theme styles
-const lightStyles = {
+// Mobile-optimized styles
+const mobileStyles = {
   primaryButton: {
-    padding: '12px 32px',
+    padding: '10px 24px',
     backgroundColor: '#2196f3',
     color: 'white',
     border: 'none',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    fontSize: '16px',
-    fontWeight: '600',
-    transition: 'all 0.3s ease',
-    boxShadow: '0 4px 15px rgba(33, 150, 243, 0.3)',
-    ':hover': {
-      backgroundColor: '#1976d2',
-      transform: 'translateY(-2px)',
-      boxShadow: '0 6px 20px rgba(33, 150, 243, 0.4)',
-    }
-  },
-
-  secondaryButton: {
-    padding: '10px 24px',
-    backgroundColor: 'transparent',
-    color: '#2196f3',
-    border: '2px solid #2196f3',
-    borderRadius: '8px',
+    borderRadius: '6px',
     cursor: 'pointer',
     fontSize: '14px',
     fontWeight: '600',
     transition: 'all 0.3s ease',
-    ':hover': {
-      backgroundColor: '#2196f3',
-      color: 'white',
-      transform: 'translateY(-2px)',
-    }
+    boxShadow: '0 2px 10px rgba(33, 150, 243, 0.3)',
+  },
+
+  secondaryButton: {
+    padding: '8px 16px',
+    backgroundColor: 'transparent',
+    color: '#2196f3',
+    border: '2px solid #2196f3',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    fontSize: '12px',
+    fontWeight: '600',
+    transition: 'all 0.3s ease',
   },
 
   submitButton: {
-    padding: '12px 32px',
+    padding: '10px 24px',
     backgroundColor: '#4caf50',
     color: 'white',
     border: 'none',
-    borderRadius: '8px',
+    borderRadius: '6px',
     cursor: 'pointer',
-    fontSize: '16px',
+    fontSize: '14px',
     fontWeight: '600',
     transition: 'all 0.3s ease',
-    boxShadow: '0 4px 15px rgba(76, 175, 80, 0.3)',
-    ':hover': {
-      backgroundColor: '#43a047',
-      transform: 'translateY(-2px)',
-      boxShadow: '0 6px 20px rgba(76, 175, 80, 0.4)',
-    }
+    boxShadow: '0 2px 10px rgba(76, 175, 80, 0.3)',
   },
 
   successButton: {
-    padding: '12px 32px',
+    padding: '10px 24px',
     backgroundColor: '#4caf50',
     color: 'white',
     border: 'none',
-    borderRadius: '8px',
+    borderRadius: '6px',
     cursor: 'pointer',
-    fontSize: '16px',
+    fontSize: '14px',
     fontWeight: '600',
     transition: 'all 0.3s ease',
-    boxShadow: '0 4px 15px rgba(76, 175, 80, 0.3)',
+    boxShadow: '0 2px 10px rgba(76, 175, 80, 0.3)',
   },
 
   uploadButton: {
     display: 'inline-flex',
     alignItems: 'center',
-    padding: '12px 24px',
+    padding: '8px 16px',
     backgroundColor: '#2196f3',
-    color: 'white',
-    border: 'none',
-    borderRadius: '8px',
-    cursor: 'pointer',
-    fontSize: '14px',
-    fontWeight: '600',
-    transition: 'all 0.3s ease',
-    boxShadow: '0 4px 15px rgba(33, 150, 243, 0.3)',
-  },
-
-  removeButton: {
-    padding: '8px',
-    backgroundColor: '#f44336',
     color: 'white',
     border: 'none',
     borderRadius: '6px',
     cursor: 'pointer',
-    fontSize: '16px',
+    fontSize: '12px',
+    fontWeight: '600',
+    transition: 'all 0.3s ease',
+    boxShadow: '0 2px 8px rgba(33, 150, 243, 0.3)',
+  },
+
+  removeButton: {
+    padding: '4px',
+    backgroundColor: '#f44336',
+    color: 'white',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '12px',
     transition: 'all 0.3s ease',
     width: '100%',
-    boxShadow: '0 2px 8px rgba(244, 67, 54, 0.3)',
+    minHeight: '28px',
   },
 
   formGroup: {
-    marginBottom: '20px',
+    marginBottom: '12px',
   },
 
   label: {
     display: 'block',
-    marginBottom: '8px',
+    marginBottom: '6px',
     fontWeight: '600',
     color: '#1976d2',
-    fontSize: '14px',
+    fontSize: '12px',
   },
 
   required: {
@@ -1400,21 +1341,15 @@ const lightStyles = {
 
   input: {
     width: '100%',
-    padding: '12px 16px',
-    borderRadius: '8px',
+    padding: '10px 12px',
+    borderRadius: '6px',
     border: '2px solid #e3f2fd',
-    fontSize: '16px',
+    fontSize: '14px',
     backgroundColor: '#ffffff',
     color: '#333',
     transition: 'all 0.3s ease',
     boxSizing: 'border-box',
-    ':focus': {
-      outline: 'none',
-      borderColor: '#2196f3',
-      boxShadow: '0 0 10px rgba(33, 150, 243, 0.2)',
-    },
-    ':hover': {
-      borderColor: '#bbdefb',
-    },
   }
 };
+
+export default CryptoCheckoutForm;
