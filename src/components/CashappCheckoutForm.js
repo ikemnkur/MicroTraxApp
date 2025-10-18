@@ -244,10 +244,10 @@ export const CashappCheckoutForm = ({ setCoins }) => {
         <p>
           Please send <strong>{cashappAmount} {currency}</strong> to the following CashApp account:
         </p>
-        <div style={styles.cashappTagContainer}>
-          <img width="256px" src="./public/CashappQR.jpg" alt="CashApp QR" />
+        <div style={{ ...styles.cashappTagContainer, justifyContent: 'center' }}>
+          <img width="256px" src="./CashappQR.jpg" alt="CashApp QR" />
         </div>
-        <div style={styles.cashappTagContainer}>
+        <div style={{ ...styles.cashappTagContainer, justifyContent: 'center' }}>
           <p style={styles.cashappTag}>{cashappTagStatic}</p>
           <button style={styles.button} onClick={handleCopyAddress}>
             Copy CashApp Tag
@@ -419,7 +419,7 @@ export const CashappCheckoutForm = ({ setCoins }) => {
           </div>
         </div>
 
-        <div style={styles.buttonGroup}>
+        <div style={{ ...styles.buttonGroup, display: 'flex', justifyContent: 'center', gap: '12px' }}>
           <button style={styles.button} type="submit">
             Log Your Order
           </button>

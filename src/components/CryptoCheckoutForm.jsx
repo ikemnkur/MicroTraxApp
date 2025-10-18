@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { PhotoCamera } from '@mui/icons-material';
+import axios from 'axios';
 import {
   Container,
   Typography,
@@ -24,6 +25,8 @@ import { uploadTransactionScreenshot, } from './api';
 
 import { useToast } from './contexts/ToastContext';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
 const api = axios.create({
   baseURL: API_URL,
   headers: {
@@ -39,7 +42,7 @@ export function CryptoCheckoutForm({ setCoins }) {
     LTC: 'ltc1qgg5aggedmvjx0grd2k5shg6jvkdzt9dtcqa4dh',
     SOL: 'qaSpvAumg2L3LLZA8qznFtbrRKYMP1neTGqpNgtCPaU',
     ETH: '0x9a61f30347258A3D03228F363b07692F3CBb7f27',
-    // XMR: '44X8AgosuXFCuRmBoDRc66Vw1FeCaL6vRiKRqrmqXeJdeKAciYuyaJj7STZnHMg7x8icHJL6M1hzeAPqSh8NSC1GGC9bkCp',
+    XMR: '44X8AgosuXFCuRmBoDRc66Vw1FeCaL6vRiKRqrmqXeJdeKAciYuyaJj7STZnHMg7x8icHJL6M1hzeAPqSh8NSC1GGC9bkCp',
   };
 
   const currencyIdMap = {
@@ -47,7 +50,7 @@ export function CryptoCheckoutForm({ setCoins }) {
     ETH: 'ethereum',
     LTC: 'litecoin',
     SOL: 'solana',
-    // XMR: 'monero'
+    XMR: 'monero'
   };
 
   const [balance, setBalance] = useState(null);
@@ -108,6 +111,7 @@ export function CryptoCheckoutForm({ setCoins }) {
 
   // ... all existing functions (fetchCryptoRate, handleBuyCredits, etc.) ...
   const fetchCryptoRate = async (cryptoCurrency) => {
+    
     try {
       const coinId = currencyIdMap[cryptoCurrency];
       if (!coinId) {
@@ -120,7 +124,7 @@ export function CryptoCheckoutForm({ setCoins }) {
       return data[coinId]?.usd || 0;
     } catch (error) {
       console.error('Error fetching crypto rate:', error);
-      const fallbackRates = { BTC: 45000, ETH: 3000, LTC: 100, SOL: 50 };
+      const fallbackRates = { BTC: 45000, ETH: 3000, LTC: 100, SOL: 50, XMR: 250 };
       return fallbackRates[cryptoCurrency] || 0;
     }
   };
@@ -368,7 +372,7 @@ export function CryptoCheckoutForm({ setCoins }) {
       ETH: '5-15 minutes (12-35 confirmations)',
       LTC: '5-15 minutes (6 confirmations)',
       SOL: '1-3 minutes (32 confirmations)',
-      // XMR: '20-40 minutes (10 confirmations)'
+      XMR: '20-40 minutes (10 confirmations)'
     };
     return waitTimes[currency] || '10-30 minutes';
   };
@@ -410,7 +414,7 @@ export function CryptoCheckoutForm({ setCoins }) {
                 { code: 'ETH', name: 'Ethereum', icon: 'Ξ', color: '#627eea' },
                 { code: 'LTC', name: 'Litecoin', icon: 'Ł', color: '#345d9d' },
                 { code: 'SOL', name: 'Solana', icon: '◎', color: '#9945ff' },
-                // { code: 'XMR', name: 'Monero', icon: 'ɱ', color: '#ff6600' }
+                { code: 'XMR', name: 'Monero (N/A)', icon: 'ɱ', color: '#ff6600' }
               ].map((crypto) => (
                 <Grid item xs={6} sm={4} md={2.4} key={crypto.code}>
                   <Paper
@@ -545,11 +549,11 @@ export function CryptoCheckoutForm({ setCoins }) {
             <Grid container spacing={{ xs: 1.5, sm: 2 }}>
               {[
                 { amount: 2000, price: 2.5, popular: false },
-                { amount: 5000, price: 5, popular: false },
+                { amount: 5000, price: 5.25, popular: false },
                 { amount: 12500, price: 11, popular: true },
                 { amount: 25000, price: 24, popular: false },
                 { amount: 55000, price: 53, popular: false },
-                { amount: 120000, price: 115, popular: false },
+                { amount: 120000, price: 110, popular: false },
               ].map((package_, index) => (
                 <Grid item xs={6} sm={4} md={4} key={index}>
                   <Paper
@@ -660,10 +664,10 @@ export function CryptoCheckoutForm({ setCoins }) {
               <Grid item xs={12} md={6}>
                 <Paper elevation={3} sx={{ p: { xs: 1.5, sm: 2 }, textAlign: 'center', background: 'linear-gradient(135deg, #1976d2, #42a5f5)', color: 'white', borderRadius: 2 }}>
                   <Box sx={{ fontSize: { xs: '1.5rem', sm: '2rem' }, mb: 1 }}>
-                    {{ BTC: '₿', ETH: 'Ξ', LTC: 'Ł', SOL: '◎', /*XMR: 'ɱ'*/ }[currency]}
+                    {{ BTC: '₿', ETH: 'Ξ', LTC: 'Ł', SOL: '◎', XMR: 'ɱ' }[currency]}
                   </Box>
                   <Typography variant="body1" sx={{ mb: 1, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
-                    {{ BTC: 'Bitcoin', ETH: 'Ethereum', LTC: 'Litecoin', SOL: 'Solana', /*XMR: 'Monero'*/ }[currency]} ({currency})
+                    {{ BTC: 'Bitcoin', ETH: 'Ethereum', LTC: 'Litecoin', SOL: 'Solana', XMR: 'Monero (Coming-Soon)'}[currency]} ({currency})
                   </Typography>
                   <Typography variant="body2" sx={{ opacity: 0.9, fontSize: { xs: '0.7rem', sm: '0.8rem' } }}>
                     Rate: <strong>${rate ? rate.toLocaleString() : '...'}</strong>
