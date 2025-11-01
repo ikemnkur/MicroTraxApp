@@ -411,7 +411,7 @@ const AccountPage = () => {
           </Paper>
 
           {/* Tier Card */}
-          <Paper sx={{ ...cardSx, mt: 2 }}>
+          {/* <Paper sx={{ ...cardSx, mt: 2 }}>
             <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
               Account Tier
             </Typography>
@@ -446,7 +446,7 @@ const AccountPage = () => {
                 Downgrade
               </Button>
             </Box>
-          </Paper>
+          </Paper> */}
         </Grid>
 
         {/* Right column: Form */}

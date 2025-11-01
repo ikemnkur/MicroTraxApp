@@ -46,7 +46,7 @@ const WithdrawWallet = () => {
   // const navigate = useNavigate();
 
   const [amount, setAmount] = useState('');
-  const [withdrawMethod, setWithdrawMethod] = useState('Bank');
+  const [withdrawMethod, setWithdrawMethod] = useState('BTC');
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [userData, setUserData] = useState(JSON.parse(localStorage.getItem('userdata')) || {});
@@ -570,12 +570,12 @@ const WithdrawWallet = () => {
                 <InputLabel 
                   sx={{ fontSize: { xs: '0.9rem', sm: '1rem' } }}
                 >
-                  Withdrawal Method
+                  Withdraw Method
                 </InputLabel>
                 <Select
                   value={withdrawMethod}
                   onChange={(e) => setWithdrawMethod(e.target.value)}
-                  label="Withdrawal Method"
+                  label="Withdraw Method"
                   sx={{
                     '& .MuiSelect-select': {
                       fontSize: { xs: '0.9rem', sm: '1rem' }
@@ -630,7 +630,10 @@ const WithdrawWallet = () => {
             </Typography>
           </Box>
 
-          {/* Cost Info Chips */}
+          
+
+          <Divider sx={{ my: { xs: 2, sm: 3 } }} />
+{/* Cost Info Chips */}
           <Box sx={{ 
             display: 'flex', 
             gap: { xs: 0.5, sm: 1 }, 
@@ -652,7 +655,7 @@ const WithdrawWallet = () => {
             />
             <Chip 
               variant="outlined" 
-              label={`Server: ${Math.round(serverPct * 100)}%`}
+              label={`Server: ${Math.round(serverCost)}`}
               size="small"
               sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}
             />
@@ -677,7 +680,7 @@ const WithdrawWallet = () => {
           <Card sx={{ backgroundColor: "#EEEEFF", mb: 2 }}>
             <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
               <Grid container spacing={1}>
-                <Grid item xs={6} sm={3}>
+                {/* <Grid item xs={6} sm={3}>
                   <Typography 
                     variant="body2" 
                     sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}

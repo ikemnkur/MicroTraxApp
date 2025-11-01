@@ -39,7 +39,7 @@ const ReloadWallet = () => {
     if (paymentMethod === 'stripe') {
       navigate(`/stripe-checkout?amount=${purchaseAmount}`);
     } else if (paymentMethod === 'crypto') {
-      navigate(`/crypto-checkout?amount=${amount}`);
+      navigate(`/crypto-checkout`);
     } else if (paymentMethod === 'cashapp') {
       navigate(`/cashapp-checkout?amount=${amount}`);
     } else if (paymentMethod === 'coinbase') {
@@ -110,16 +110,24 @@ const ReloadWallet = () => {
 
         {/* Amount controls (kept exactly by method) */}
         {paymentMethod === 'crypto' && (
-          <TextField
-            label="Amount"
-            type="number"
-            fullWidth
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            inputProps={{ min: '100', step: '1' }}
-            InputProps={{ startAdornment: <InputAdornment position="start">₡</InputAdornment> }}
-            sx={{ maxWidth: 360 }}
-          />
+          // <TextField
+          //   label="Amount"
+          //   type="number"
+          //   fullWidth
+          //   value={amount}
+          //   onChange={(e) => setAmount(e.target.value)}
+          //   inputProps={{ min: '100', step: '1' }}
+          //   InputProps={{ startAdornment: <InputAdornment position="start">₡</InputAdornment> }}
+          //   sx={{ maxWidth: 360 }}
+          // />
+
+          <>
+          Buy coins via cryptocurrency transfer. <br />
+          After clicking "Continue to checkout" you will receive instructions to complete the transfer. <br />
+          Minimum amount: ₡2500 <br />
+          Recommended wallets: <a href="https://cakewallet.com/" target="_blank" rel="noreferrer">Cake Wallet</a>, <a href="https://trustwallet.com/" target="_blank" rel="noreferrer">Trust Wallet</a>, <a href="https://www.coinbase.com/" target="_blank" rel="noreferrer">Coinbase</a>, <a href="https://metamask.io/" target="_blank" rel="noreferrer">MetaMask</a>.
+          </>
+          
         )}
 
         {paymentMethod === 'cashapp' && (

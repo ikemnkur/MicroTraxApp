@@ -428,21 +428,21 @@ const TransactionHistory = () => {
             <TableBody>
               {loading && (
                 <TableRow>
-                  <TableCell colSpan={{ xs: 4, sm: 5 }} align="center">
+                   <TableCell colSpan={5} align="center">
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
               )}
               {error && (
                 <TableRow>
-                  <TableCell colSpan={{ xs: 4, sm: 5 }} align="center" sx={{ color: 'red' }}>
+                  <TableCell colSpan={5} align="center" sx={{ color: 'red' }}>
                     {error}
                   </TableCell>
                 </TableRow>
               )}
               {!loading && transactionsToDisplay.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={{ xs: 4, sm: 5 }} align="center">
+                  <TableCell colSpan={5} align="center">
                     No transactions found.
                   </TableCell>
                 </TableRow>

@@ -183,7 +183,12 @@ const Info = () => {
       }}
     >
 
-      <Typography variant="h4" align="center" gutterBottom>
+      <Typography variant="h3" align="center" gutterBottom sx={{
+        color: '#00a6ffff',
+        fontWeight: 'bold',
+        textShadow: '0 0 10px rgba(0, 140, 255, 0.5)',
+        mb: 3
+      }}>
         Welcome to Clout Coin Club
       </Typography>
 
@@ -304,7 +309,7 @@ const Info = () => {
             <Box
                 sx={{
                     textAlign: 'center',
-                    backgroundColor: '#ddeff0ff',
+                    backgroundColor: '#ffffffff',
                     p: 4,
                     borderRadius: 2,
                     border: '2px solid #0080ffff',

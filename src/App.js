@@ -12,7 +12,7 @@ import ReceivedPayments from './components/ReceivedPayments';
 import { CheckoutForm, Return } from "./components/Stripe";
 import { CoinBaseCheckoutForm } from "./components/CoinBaseCheckoutForm";
 import { CashappCheckoutForm } from "./components/CashappCheckoutForm";
-import { CryptoCheckoutForm } from "./components/CryptoCheckoutForm";
+import  CryptoCheckoutForm  from "./components/CryptoCheckoutForm";
 import ReloadWallet from './components/ReloadWallet';
 import ConvertWallet from './components/ConvertWallet';
 import WithdrawWallet from './components/WithdrawWallet';
