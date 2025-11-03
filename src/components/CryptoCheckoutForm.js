@@ -498,11 +498,11 @@ const DetailsStep = React.memo(({ userDetails, handleInputChange, cryptoAmount, 
             </Grid>
           </Grid>
 
-          <Box sx={{ textAlign: 'center', mt: 3 }}>
+          {/* <Box sx={{ textAlign: 'center', mt: 3 }}>
             <button style={mobileStyles.submitButton} type="submit">
               Submit Order
             </button>
-          </Box>
+          </Box> */}
         </form>
       </Paper>
     </Box>
@@ -591,7 +591,7 @@ const ValidationStep = React.memo(({ orderSubmitted, currency, transactionStatus
         ) : (
           <>
             <button onClick={() => navigate('/transactions')} style={mobileStyles.primaryButton}>
-              Complete Purchase
+              View Transactions
             </button>
             <button onClick={() => navigate('/wallet')} style={mobileStyles.secondaryButton}>
               Back to Wallet
